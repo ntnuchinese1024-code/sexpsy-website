@@ -19,3 +19,10 @@ npm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Obsidian: local UI/workspace state and installed plugin binaries
+# (app.json / templates.json / community-plugins.json etc. stay tracked
+# so the vault config travels with the repo)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/plugins/
