@@ -3,10 +3,12 @@
 @tailwind utilities;
 
 :root {
-  /* SofaCounter 等次要 UI 用的中性莫蘭迪色票，刻意比主品牌色（chestnut/terracotta）再柔和一階 */
+  /* SofaCounter、Contact 等次要頁面用的中性莫蘭迪色票，刻意比主品牌色（chestnut/terracotta）再柔和一階 */
   --color-text-primary: #3d4043;
   --color-text-muted: #787d82;
   --color-accent: #c4a495;
+  /* 聯絡頁專用主色：偏灰霧藍綠，呼應「客廳裡安靜角落」的氛圍，與全站 terracotta 主色刻意做出區隔 */
+  --color-primary: #6c7d7f;
 }
 
 @layer base {

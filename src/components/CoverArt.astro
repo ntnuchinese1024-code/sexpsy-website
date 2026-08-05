@@ -23,7 +23,10 @@ function hashSeed(input: string) {
 
 const hash = hashSeed(seed);
 const rand = (index: number, min: number, max: number) => {
-  const value = (hash >> (index * 4)) % 1000;
+  // 注意用無號右移 >>>：hash 可能超過 2^31，若用有號右移 >> 在某些 index
+  // 會位移出負數，導致 % 1000 也是負的，算出的值可能小於 min（甚至變負數，
+  // 曾在 <circle r="負值"> 觸發 SVG 錯誤）。
+  const value = (hash >>> (index * 4)) % 1000;
   return min + (value / 1000) * (max - min);
 };
 
