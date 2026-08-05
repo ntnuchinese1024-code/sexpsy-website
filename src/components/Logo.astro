@@ -1,0 +1,34 @@
+---
+// Version 1 品牌標誌：圓圈與上下兩道錯位弧線構成「P」，
+// 錯位留白呈斜向 S 型，象徵 Sexuality & Psychology。
+// 取自品牌識別系統（________Logo_Brand_System.pptx）originals。
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<svg
+  class={className}
+  viewBox="0 0 1000 800"
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-label="沙發上的性心理 Logo"
+>
+  <circle cx="190" cy="190" r="80" fill="none" stroke="#C87D65" stroke-width="20" />
+  <path
+    d="M 190,220 C 300,360 650,360 760,220"
+    fill="none"
+    stroke="#3C2A21"
+    stroke-width="40"
+    stroke-linecap="round"
+  />
+  <path
+    d="M 310,420 C 420,560 770,560 880,420"
+    fill="none"
+    stroke="#3C2A21"
+    stroke-width="40"
+    stroke-linecap="round"
+  />
+</svg>

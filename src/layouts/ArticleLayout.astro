@@ -1,0 +1,142 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import CoverArt from '../components/CoverArt.astro';
+
+interface Props {
+  title: string;
+  date: Date;
+  category: string;
+  tags: string[];
+  summary: string;
+  reference?: string;
+  cover?: string;
+  slug?: string;
+}
+
+const { title, date, category, tags, summary, reference, cover, slug } = Astro.props;
+
+const formattedDate = date.toLocaleDateString('zh-TW', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout title={title} description={summary}>
+  <div
+    id="reading-progress"
+    class="fixed left-0 top-0 z-[60] h-1 w-0 bg-terracotta transition-[width] duration-150"
+    role="progressbar"
+    aria-label="閱讀進度"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    aria-valuenow="0"
+  >
+  </div>
+
+  <article id="article-content" class="mx-auto max-w-[680px] px-6 py-16">
+    <div class="mb-10 overflow-hidden rounded-2xl">
+      {
+        cover ? (
+          <img src={cover} alt={title} class="aspect-video w-full object-cover" />
+        ) : (
+          <CoverArt category={category} seed={slug} class="aspect-video w-full" />
+        )
+      }
+    </div>
+
+    <header class="mb-10 border-b border-chestnut/10 pb-8">
+      <p class="text-sm font-medium uppercase tracking-[0.15em] text-terracotta">{category}</p>
+      <h1 class="mt-3 font-serif text-3xl font-semibold leading-tight text-chestnut sm:text-4xl">
+        {title}
+      </h1>
+      <p class="mt-4 text-lg leading-relaxed text-chestnut/70">{summary}</p>
+
+      <div class="mt-6 flex flex-wrap items-center gap-3 text-sm text-chestnut/60">
+        <time datetime={date.toISOString()}>{formattedDate}</time>
+        {
+          tags.length > 0 && (
+            <span class="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <span class="rounded-full bg-terracotta/10 px-3 py-1 text-xs text-terracotta">
+                  #{tag}
+                </span>
+              ))}
+            </span>
+          )
+        }
+      </div>
+    </header>
+
+    <div
+      class="prose prose-lg article-body max-w-none font-serif leading-loose text-chestnut
+             prose-headings:font-serif prose-headings:font-semibold prose-headings:text-chestnut
+             prose-p:leading-loose prose-a:text-terracotta prose-a:underline prose-a:underline-offset-2
+             prose-strong:text-chestnut prose-blockquote:border-l-4 prose-blockquote:border-terracotta/40
+             prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-chestnut/70
+             prose-img:rounded-2xl prose-img:shadow-md"
+    >
+      <slot />
+    </div>
+
+    {
+      reference && (
+        <footer class="mt-14 border-t border-chestnut/10 pt-6">
+          <h2 class="font-serif text-sm font-semibold uppercase tracking-[0.15em] text-chestnut/60">
+            參考資料
+          </h2>
+          <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-chestnut/70">{reference}</p>
+        </footer>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  /* 莫蘭迪重點劃線：文章內 <mark> 依序輪流套用五大系列色作為底線強調，取代預設黃底標記 */
+  :global(.article-body mark) {
+    background: transparent;
+    color: inherit;
+    padding: 0 0.05em;
+    border-bottom: 3px solid #c87d65; /* terracotta，預設色 */
+  }
+  :global(.article-body mark[data-highlight='sage']) {
+    border-bottom-color: #8a9a86;
+  }
+  :global(.article-body mark[data-highlight='indigo']) {
+    border-bottom-color: #5b6c7d;
+  }
+  :global(.article-body mark[data-highlight='wine']) {
+    border-bottom-color: #a35d6a;
+  }
+  :global(.article-body mark[data-highlight='caramel']) {
+    border-bottom-color: #d49b6a;
+  }
+</style>
+
+<script>
+  function updateReadingProgress() {
+    const article = document.getElementById('article-content');
+    const bar = document.getElementById('reading-progress');
+    if (!article || !bar) return;
+
+    const articleTop = article.offsetTop;
+    const articleHeight = article.offsetHeight;
+    const viewportHeight = window.innerHeight;
+    const scrolled = window.scrollY - articleTop + viewportHeight * 0.3;
+    const scrollableHeight = Math.max(articleHeight - viewportHeight * 0.3, 1);
+
+    const progress = Math.min(100, Math.max(0, (scrolled / scrollableHeight) * 100));
+    bar.style.width = `${progress}%`;
+    bar.setAttribute('aria-valuenow', String(Math.round(progress)));
+  }
+
+  updateReadingProgress();
+  window.addEventListener('scroll', updateReadingProgress, { passive: true });
+  window.addEventListener('resize', updateReadingProgress);
+
+  const highlightColors = ['terracotta', 'sage', 'indigo', 'wine', 'caramel'];
+  document.querySelectorAll('.article-body mark').forEach((mark, index) => {
+    mark.setAttribute('data-highlight', highlightColors[index % highlightColors.length]);
+  });
+</script>

@@ -1,0 +1,81 @@
+---
+// 品牌插畫板塊：當文章沒有提供實際圖片時，依系列色自動產生一張抽象插畫
+// 呼應 Logo 的圓圈＋雙弧線意象，並用小點點呼應原始品牌識別的摩斯電碼紋理。
+import { getSeriesByName } from '../lib/series';
+
+interface Props {
+  category: string;
+  /** 用來讓每張插畫的構圖略有變化，通常傳文章 slug */
+  seed?: string;
+  class?: string;
+}
+
+const { category, seed = category, class: className = '' } = Astro.props;
+const series = getSeriesByName(category);
+
+function hashSeed(input: string) {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+const hash = hashSeed(seed);
+const rand = (index: number, min: number, max: number) => {
+  const value = (hash >> (index * 4)) % 1000;
+  return min + (value / 1000) * (max - min);
+};
+
+const circleCx = rand(1, 560, 700);
+const circleCy = rand(2, 70, 150);
+const arcOffsetY = rand(3, -20, 20);
+const arcRotate = rand(4, -6, 6);
+
+const dots = Array.from({ length: 14 }, (_, i) => ({
+  cx: rand(i + 5, 40, 760),
+  cy: rand(i + 20, 40, 410),
+  r: rand(i + 35, 2, 5),
+  opacity: rand(i + 50, 0.15, 0.45),
+}));
+---
+
+<svg
+  viewBox="0 0 800 450"
+  xmlns="http://www.w3.org/2000/svg"
+  class={className}
+  role="img"
+  aria-label={`${category} 系列插畫`}
+  preserveAspectRatio="xMidYMid slice"
+>
+  <rect width="800" height="450" fill="#F9F6F0" />
+  <rect width="800" height="450" fill={series.hex} fill-opacity="0.08" />
+
+  <circle cx={circleCx} cy={circleCy} r="180" fill={series.hex} fill-opacity="0.12" />
+
+  <g transform={`translate(0, ${arcOffsetY}) rotate(${arcRotate}, 400, 225)`}>
+    <circle cx="150" cy="150" r="46" fill="none" stroke={series.hex} stroke-width="12" />
+    <path
+      d="M 150,180 C 220,270 380,270 450,180"
+      fill="none"
+      stroke="#3C2A21"
+      stroke-width="20"
+      stroke-linecap="round"
+      opacity="0.85"
+    />
+    <path
+      d="M 230,300 C 300,390 460,390 530,300"
+      fill="none"
+      stroke="#3C2A21"
+      stroke-width="20"
+      stroke-linecap="round"
+      opacity="0.85"
+    />
+  </g>
+
+  {
+    dots.map((dot) => (
+      <circle cx={dot.cx} cy={dot.cy} r={dot.r} fill={series.hex} fill-opacity={dot.opacity} />
+    ))
+  }
+</svg>

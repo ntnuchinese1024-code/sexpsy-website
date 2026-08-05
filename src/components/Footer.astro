@@ -1,0 +1,57 @@
+---
+import Logo from './Logo.astro';
+
+const currentYear = new Date().getFullYear();
+
+const seriesColors = [
+  { name: '鼠尾草綠', class: 'bg-sage' },
+  { name: '煙燻靛藍', class: 'bg-indigo' },
+  { name: '莫蘭迪酒紅', class: 'bg-wine' },
+  { name: '烤焦糖橘', class: 'bg-caramel' },
+  { name: '奶油亞麻黃', class: 'bg-flax' },
+];
+
+const footerLinks = [
+  { label: '首頁', href: '/' },
+  { label: '關於', href: '/about' },
+  { label: '聯絡我們', href: '/#contact' },
+];
+---
+
+<footer class="border-t border-chestnut/10 bg-cream" id="contact">
+  <div class="mx-auto max-w-5xl px-6 py-12">
+    <div class="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+      <div class="flex items-start gap-3">
+        <Logo class="h-10 w-auto shrink-0" />
+        <div>
+          <p class="font-serif text-base font-medium text-chestnut">沙發上的性心理</p>
+          <p class="mt-1 max-w-xs text-sm leading-relaxed text-chestnut/70">
+            Let the sky rain potatoes! 用心理學的視角，陪你窩在沙發上聊性、聊愛、聊自己。
+          </p>
+        </div>
+      </div>
+
+      <nav class="flex flex-wrap gap-x-6 gap-y-2" aria-label="頁尾選單">
+        {
+          footerLinks.map((link) => (
+            <a
+              href={link.href}
+              class="text-sm text-chestnut/70 transition-colors hover:text-terracotta"
+            >
+              {link.label}
+            </a>
+          ))
+        }
+      </nav>
+    </div>
+
+    <div class="mt-10 flex items-center gap-2" aria-hidden="true">
+      {seriesColors.map((color) => <span class={`h-2 w-2 rounded-full ${color.class}`} title={color.name} />)}
+    </div>
+
+    <div class="mt-6 flex flex-col gap-2 border-t border-chestnut/10 pt-6 text-xs text-chestnut/50 md:flex-row md:items-center md:justify-between">
+      <p>&copy; {currentYear} 沙發上的性心理．All rights reserved.</p>
+      <p>內容僅供心理教育參考，不能取代專業諮商或醫療診斷。</p>
+    </div>
+  </div>
+</footer>

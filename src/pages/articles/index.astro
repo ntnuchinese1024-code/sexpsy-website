@@ -1,0 +1,102 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SearchBar from '../../components/SearchBar.astro';
+import CoverArt from '../../components/CoverArt.astro';
+import { getCollection } from 'astro:content';
+import { getSeriesByName } from '../../lib/series';
+
+const articles = (await getCollection('articles')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+---
+
+<BaseLayout title="所有文章" description="沙發上的性心理所有文章：五大系列 Tag 篩選與關鍵字搜尋。">
+  <section class="mx-auto max-w-5xl px-6 pb-24 pt-20 sm:pt-28">
+    <p class="text-sm font-medium uppercase tracking-[0.2em] text-terracotta">Articles</p>
+    <h1 class="mt-2 font-serif text-3xl font-semibold text-chestnut sm:text-4xl">所有文章</h1>
+    <p class="mt-3 max-w-xl text-chestnut/70">
+      窩在沙發上慢慢逛，用系列篩選或關鍵字，找到現在最想聊的話題。
+    </p>
+
+    <div class="mt-10">
+      <SearchBar />
+    </div>
+
+    {
+      articles.length === 0 ? (
+        <p class="text-chestnut/60">文章準備中，敬請期待。</p>
+      ) : (
+        <div class="grid gap-8 sm:grid-cols-2">
+          {articles.map((article) => {
+            const series = getSeriesByName(article.data.category);
+            const searchText = [
+              article.data.title,
+              article.data.summary,
+              article.data.category,
+              ...article.data.tags,
+            ]
+              .join(' ')
+              .toLowerCase();
+
+            return (
+              <a
+                href={`/articles/${article.slug}`}
+                data-article-card
+                data-category={article.data.category}
+                data-search={searchText}
+                class="group flex flex-col overflow-hidden rounded-2xl border border-chestnut/10 bg-white/40 transition-colors hover:border-terracotta/40"
+              >
+                <div class="aspect-video w-full overflow-hidden">
+                  {article.data.cover ? (
+                    <img
+                      src={article.data.cover}
+                      alt={article.data.title}
+                      class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <CoverArt
+                      category={article.data.category}
+                      seed={article.slug}
+                      class="h-full w-full transition-transform duration-300 group-hover:scale-105"
+                    />
+                  )}
+                </div>
+                <div class="flex flex-1 flex-col p-6">
+                  <span class={`inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-medium ${series.badge}`}>
+                    {article.data.category}
+                  </span>
+                  <h2 class="mt-3 font-serif text-xl font-semibold leading-snug text-chestnut group-hover:text-terracotta">
+                    {article.data.title}
+                  </h2>
+                  <p class="mt-3 line-clamp-3 text-sm leading-relaxed text-chestnut/70">
+                    {article.data.summary}
+                  </p>
+                  <div class="mt-4 flex flex-wrap items-center gap-3">
+                    <time class="text-xs text-chestnut/50" datetime={article.data.date.toISOString()}>
+                      {article.data.date.toLocaleDateString('zh-TW', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </time>
+                    {article.data.tags.length > 0 && (
+                      <span class="flex flex-wrap gap-1.5">
+                        {article.data.tags.map((tag) => (
+                          <span class="text-xs text-chestnut/40">#{tag}</span>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      )
+    }
+
+    <p id="no-results" class="hidden py-16 text-center text-chestnut/50">
+      沒有符合條件的文章，換個關鍵字或系列試試看吧。
+    </p>
+  </section>
+</BaseLayout>
