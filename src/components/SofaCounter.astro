@@ -30,11 +30,11 @@ if (!NAMESPACE) {
 }
 
 type Props =
-  | { type: 'global'; slug?: never; class?: string }
-  | { type: 'post'; slug: string; class?: string };
+  | { type: 'global'; slug?: never; class?: string; readOnly?: boolean }
+  | { type: 'post'; slug: string; class?: string; readOnly?: boolean };
 
 const props = Astro.props as Props;
-const { type, class: className = '' } = props;
+const { type, class: className = '', readOnly = false } = props;
 
 if (type === 'post' && !props.slug) {
   throw new Error('<SofaCounter type="post" /> 需要提供 slug prop');
@@ -47,6 +47,11 @@ const label =
     ? '已有 {count} 位朋友曾在這張沙發上停下腳步'
     : '已有 {count} 位朋友曾坐在這裡讀這段故事';
 
+// readOnly：用在文章「卡片」上顯示已知的閱讀數時要打開。卡片只是預覽縮圖，
+// 訪客根本還沒點進文章，不該把「卡片有被渲染到」算成一次閱讀——所以這裡
+// 一律只讀 /get、絕對不會呼叫會遞增的 /hit。真正的「+1」只發生在文章
+// 內頁本身（ArticleLayout 用預設的非 readOnly 模式）。
+
 // define:vars 會把 <script> 當成 is:inline 處理（不經過 Vite 打包），
 // 所以這裡先在 frontmatter（有 import.meta.env 可用）算好 isDev，
 // 再連同 API_BASE 一起傳進去，腳本本體維持純 JS、不依賴建置期替換。
@@ -58,6 +63,7 @@ const isDev = import.meta.env.DEV;
   data-namespace={NAMESPACE}
   data-key={key}
   data-label={label}
+  data-readonly={readOnly ? 'true' : undefined}
   aria-live="polite"
 >
   <span class="sofa-counter__icon" aria-hidden="true">🛋️</span>
@@ -115,10 +121,28 @@ const isDev = import.meta.env.DEV;
   // 所以這裡刻意寫成純 JavaScript，不能用 TypeScript 型別標註語法。
 
   // /hit 會遞增，/get 只讀不遞增。
+  // /get 打一個從來沒被 /hit 過的 key，Abacus 會回 HTTP 404（不是 200！）、
+  // body 是 { error: 'Key not found' }。一定要先讀 body 判斷是不是這種
+  // 「還沒有人讀過」的狀況，再看 res.ok 決定要不要丟錯——順序反過來的話，
+  // 404 會在讀到 body 之前就被當成一般錯誤丟出去，永遠走不到下面的判斷。
   async function apiRequest(action, namespace, key) {
     const res = await fetch(apiBase + '/' + action + '/' + encodeURIComponent(namespace) + '/' + encodeURIComponent(key));
-    if (!res.ok) throw new Error('SofaCounter: API 回應 ' + res.status);
-    const data = await res.json();
+
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (error) {
+      // 回應不是合法 JSON，data 維持 null，交給下面 res.ok 判斷丟錯
+    }
+
+    if (action === 'get' && data && data.error) {
+      return null;
+    }
+
+    if (!res.ok) {
+      throw new Error('SofaCounter: API 回應 ' + res.status);
+    }
+
     const value = Number(data && data.value);
     if (!Number.isFinite(value)) throw new Error('SofaCounter: API 回傳格式異常');
     return value;
@@ -129,7 +153,12 @@ const isDev = import.meta.env.DEV;
   // 呼叫 /hit 遞增，之後同一 session 內再遇到同一個計數器（例如全站計數器
   // 在每一頁的 Footer 都會出現，或同一篇文章被重新整理）一律改打唯讀的
   // /get，畫面數字仍會即時更新，但不會重複計入這次造訪。
-  async function fetchCount(namespace, key) {
+  async function fetchCount(namespace, key, readOnly) {
+    if (readOnly) {
+      const value = await apiRequest('get', namespace, key);
+      return value === null ? 0 : value;
+    }
+
     const storageKey = 'sofa-counter-hit:' + namespace + ':' + key;
     let alreadyHitThisSession = false;
     try {
@@ -140,7 +169,9 @@ const isDev = import.meta.env.DEV;
 
     if (alreadyHitThisSession) {
       try {
-        return await apiRequest('get', namespace, key);
+        const value = await apiRequest('get', namespace, key);
+        if (value === null) throw new Error('SofaCounter: 這個 session 已標記為 hit 過，但 /get 卻找不到 key');
+        return value;
       } catch (error) {
         // 讀取失敗（例如從未真的 hit 成功過）就退回 hit，至少數字還能動
         return await apiRequest('hit', namespace, key);
@@ -160,6 +191,7 @@ const isDev = import.meta.env.DEV;
     const namespace = node.dataset.namespace;
     const key = node.dataset.key;
     const labelTemplate = node.dataset.label || '已有 {count} 位朋友曾停下腳步';
+    const readOnly = node.dataset.readonly === 'true';
     const textEl = node.querySelector('.sofa-counter__text');
     if (!namespace || !key || !textEl) return;
 
@@ -169,7 +201,7 @@ const isDev = import.meta.env.DEV;
       if (isDev) {
         displayValue = '（開發模式預覽）';
       } else {
-        const value = await fetchCount(namespace, key);
+        const value = await fetchCount(namespace, key, readOnly);
         displayValue = value.toLocaleString('zh-TW');
       }
     } catch (error) {

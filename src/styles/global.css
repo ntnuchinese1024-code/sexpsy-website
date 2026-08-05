@@ -9,6 +9,8 @@
   --color-accent: #c4a495;
   /* 聯絡頁專用主色：偏灰霧藍綠，呼應「客廳裡安靜角落」的氛圍，與全站 terracotta 主色刻意做出區隔 */
   --color-primary: #6c7d7f;
+  /* Hero／文章卡片重構用的柔和邊框色 */
+  --color-border: #e0dcd7;
 }
 
 @layer base {
