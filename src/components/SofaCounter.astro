@@ -7,8 +7,27 @@
 // 單一 GET 請求打 /hit/{namespace}/{key} 就會遞增並回傳目前數值，且已驗證有
 // 正確回傳 Access-Control-Allow-Origin 標頭可供瀏覽器端 fetch 使用。
 // 若之後 Abacus 也停止服務，只需要改下面 API_BASE 這一個常數即可換供應商。
+//
+// 計數語意：算的是「造訪／閱讀次數」，不是「頁面渲染次數」——同一個瀏覽分頁
+// 的同一次 session 裡，同一個 key 只會遞增一次，重複進到同一頁不會重複累加
+// （細節見下方 client script 的 sessionStorage 判斷）。
+//
+// namespace 安全性：一開始用網站真實網域 sexpsy.tw 當 namespace，結果驗證時
+// 發現數字在完全沒有真實流量的情況下持續自己往上跳——因為 Abacus 跟原本的
+// CountAPI 一樣完全公開、不需要驗證，repo 又是公開的，namespace 字面字串
+// 直接明文寫在原始碼裡，等於是公開邀請任何掃描公開 repo 的 bot 來打 /hit 灌水。
+// 現在改成從環境變數讀取一組不可猜測的隨機字串（見 .env.example），不再把
+// 真正使用中的 namespace 明文 commit 進公開原始碼。
 const API_BASE = 'https://abacus.jasoncameron.dev';
-const NAMESPACE = 'sexpsy.tw';
+const NAMESPACE = import.meta.env.PUBLIC_SOFA_NAMESPACE;
+
+if (!NAMESPACE) {
+  throw new Error(
+    '<SofaCounter /> 缺少 PUBLIC_SOFA_NAMESPACE 環境變數。' +
+      '本機開發請複製 .env.example 為 .env 並填入實際值；' +
+      'CI／部署請在 GitHub Actions 設定對應的 secret（詳見 .env.example 說明）。'
+  );
+}
 
 type Props =
   | { type: 'global'; slug?: never; class?: string }
@@ -94,12 +113,46 @@ const isDev = import.meta.env.DEV;
 <script define:vars={{ apiBase: API_BASE, isDev }} is:inline>
   // 注意：define:vars 會讓這個 script 以 is:inline 方式輸出（不經過 Vite/esbuild），
   // 所以這裡刻意寫成純 JavaScript，不能用 TypeScript 型別標註語法。
-  async function fetchCount(namespace, key) {
-    const res = await fetch(apiBase + '/hit/' + encodeURIComponent(namespace) + '/' + encodeURIComponent(key));
+
+  // /hit 會遞增，/get 只讀不遞增。
+  async function apiRequest(action, namespace, key) {
+    const res = await fetch(apiBase + '/' + action + '/' + encodeURIComponent(namespace) + '/' + encodeURIComponent(key));
     if (!res.ok) throw new Error('SofaCounter: API 回應 ' + res.status);
     const data = await res.json();
     const value = Number(data && data.value);
     if (!Number.isFinite(value)) throw new Error('SofaCounter: API 回傳格式異常');
+    return value;
+  }
+
+  // 「已有 X 位朋友」算的是造訪／閱讀次數，不是每次頁面渲染都要 +1：
+  // 同一個瀏覽分頁（sessionStorage 存活期間）內，同一個 key 只在第一次
+  // 呼叫 /hit 遞增，之後同一 session 內再遇到同一個計數器（例如全站計數器
+  // 在每一頁的 Footer 都會出現，或同一篇文章被重新整理）一律改打唯讀的
+  // /get，畫面數字仍會即時更新，但不會重複計入這次造訪。
+  async function fetchCount(namespace, key) {
+    const storageKey = 'sofa-counter-hit:' + namespace + ':' + key;
+    let alreadyHitThisSession = false;
+    try {
+      alreadyHitThisSession = sessionStorage.getItem(storageKey) === '1';
+    } catch (error) {
+      // sessionStorage 可能被瀏覽器隱私設定封鎖，視同尚未計過即可，不影響核心功能
+    }
+
+    if (alreadyHitThisSession) {
+      try {
+        return await apiRequest('get', namespace, key);
+      } catch (error) {
+        // 讀取失敗（例如從未真的 hit 成功過）就退回 hit，至少數字還能動
+        return await apiRequest('hit', namespace, key);
+      }
+    }
+
+    const value = await apiRequest('hit', namespace, key);
+    try {
+      sessionStorage.setItem(storageKey, '1');
+    } catch (error) {
+      // 存不進去頂多這次 session 多算一次，不影響核心功能
+    }
     return value;
   }
 

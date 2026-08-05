@@ -31,6 +31,8 @@ jobs:
 
       - name: Build Astro Site
         run: npm run build
+        env:
+          PUBLIC_SOFA_NAMESPACE: ${{ secrets.SOFA_NAMESPACE }}
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
