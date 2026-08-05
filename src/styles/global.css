@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* SofaCounter 等次要 UI 用的中性莫蘭迪色票，刻意比主品牌色（chestnut/terracotta）再柔和一階 */
+  --color-text-primary: #3d4043;
+  --color-text-muted: #787d82;
+  --color-accent: #c4a495;
+}
+
 @layer base {
   html {
     @apply scroll-smooth;

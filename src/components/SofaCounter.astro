@@ -1,0 +1,145 @@
+---
+// 全站／單篇文章瀏覽數計數器。純前端 client-side fetch，不需要後端。
+//
+// API 供應商說明：規格原本指定 CountAPI（api.countapi.xyz），但該服務網域已經
+// 完全無法解析（DNS 查詢失敗，非暫時性問題），確認已經停止服務。這裡改用行為
+// 幾乎一致的替代服務 Abacus（abacus.jasoncameron.dev）：同樣是免費、免註冊、
+// 單一 GET 請求打 /hit/{namespace}/{key} 就會遞增並回傳目前數值，且已驗證有
+// 正確回傳 Access-Control-Allow-Origin 標頭可供瀏覽器端 fetch 使用。
+// 若之後 Abacus 也停止服務，只需要改下面 API_BASE 這一個常數即可換供應商。
+const API_BASE = 'https://abacus.jasoncameron.dev';
+const NAMESPACE = 'sexpsy.tw';
+
+type Props =
+  | { type: 'global'; slug?: never; class?: string }
+  | { type: 'post'; slug: string; class?: string };
+
+const props = Astro.props as Props;
+const { type, class: className = '' } = props;
+
+if (type === 'post' && !props.slug) {
+  throw new Error('<SofaCounter type="post" /> 需要提供 slug prop');
+}
+
+const key = type === 'global' ? 'total_visits' : `post_${props.slug}`;
+
+const label =
+  type === 'global'
+    ? '已有 {count} 位朋友曾在這張沙發上停下腳步'
+    : '已有 {count} 位朋友曾坐在這裡讀這段故事';
+
+// define:vars 會把 <script> 當成 is:inline 處理（不經過 Vite 打包），
+// 所以這裡先在 frontmatter（有 import.meta.env 可用）算好 isDev，
+// 再連同 API_BASE 一起傳進去，腳本本體維持純 JS、不依賴建置期替換。
+const isDev = import.meta.env.DEV;
+---
+
+<span
+  class:list={['sofa-counter', className]}
+  data-namespace={NAMESPACE}
+  data-key={key}
+  data-label={label}
+  aria-live="polite"
+>
+  <span class="sofa-counter__icon" aria-hidden="true">🛋️</span>
+  <span class="sofa-counter__text">
+    <span class="sofa-counter__skeleton">...</span>
+  </span>
+</span>
+
+<style>
+  .sofa-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.35em 0.9em;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .sofa-counter__icon {
+    font-size: 1em;
+    transform: translateY(-0.05em);
+  }
+
+  .sofa-counter__text {
+    color: var(--color-text-muted);
+  }
+
+  .sofa-counter__skeleton {
+    display: inline-block;
+    opacity: 0.6;
+    letter-spacing: 0.05em;
+  }
+
+  .sofa-counter :global(.sofa-counter__count) {
+    font-weight: 600;
+    color: var(--color-accent);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .sofa-counter :global(.sofa-counter__count.is-visible) {
+    opacity: 1;
+  }
+
+  .sofa-counter :global(.sofa-counter__text-primary) {
+    color: var(--color-text-primary);
+  }
+</style>
+
+<script define:vars={{ apiBase: API_BASE, isDev }} is:inline>
+  // 注意：define:vars 會讓這個 script 以 is:inline 方式輸出（不經過 Vite/esbuild），
+  // 所以這裡刻意寫成純 JavaScript，不能用 TypeScript 型別標註語法。
+  async function fetchCount(namespace, key) {
+    const res = await fetch(apiBase + '/hit/' + encodeURIComponent(namespace) + '/' + encodeURIComponent(key));
+    if (!res.ok) throw new Error('SofaCounter: API 回應 ' + res.status);
+    const data = await res.json();
+    const value = Number(data && data.value);
+    if (!Number.isFinite(value)) throw new Error('SofaCounter: API 回傳格式異常');
+    return value;
+  }
+
+  async function hydrateSofaCounter(node) {
+    const namespace = node.dataset.namespace;
+    const key = node.dataset.key;
+    const labelTemplate = node.dataset.label || '已有 {count} 位朋友曾停下腳步';
+    const textEl = node.querySelector('.sofa-counter__text');
+    if (!namespace || !key || !textEl) return;
+
+    let displayValue;
+    try {
+      // 開發模式（astro dev）不打正式站的計數 API，避免本機測試灌水真實數字
+      if (isDev) {
+        displayValue = '（開發模式預覽）';
+      } else {
+        const value = await fetchCount(namespace, key);
+        displayValue = value.toLocaleString('zh-TW');
+      }
+    } catch (error) {
+      console.warn('SofaCounter 讀取失敗，優雅降級為「許多」', error);
+      displayValue = '許多';
+    }
+
+    const countHtml = '<span class="sofa-counter__count">' + displayValue + '</span>';
+    textEl.innerHTML = labelTemplate.replace('{count}', countHtml);
+
+    requestAnimationFrame(() => {
+      const countEl = textEl.querySelector('.sofa-counter__count');
+      if (countEl) countEl.classList.add('is-visible');
+    });
+  }
+
+  // 用 currentScript 只處理「自己前面那一個」.sofa-counter 節點。
+  // 每個 SofaCounter 實例都會各自輸出一段 define:vars script，
+  // 如果改用 querySelectorAll 抓全頁面的 .sofa-counter，
+  // 頁面上有兩個以上實例時（例如文章頁同時有 post + global 計數器）
+  // 每個節點就會被重複 hydrate、重複打 API，導致灌水計數。
+  const currentNode = document.currentScript && document.currentScript.previousElementSibling;
+  if (currentNode && currentNode.classList.contains('sofa-counter')) {
+    hydrateSofaCounter(currentNode);
+  }
+</script>

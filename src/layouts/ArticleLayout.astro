@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import CoverArt from '../components/CoverArt.astro';
+import SofaCounter from '../components/SofaCounter.astro';
 
 interface Props {
   title: string;
@@ -65,6 +66,7 @@ const formattedDate = date.toLocaleDateString('zh-TW', {
             </span>
           )
         }
+        {slug && <SofaCounter type="post" slug={slug} />}
       </div>
     </header>
 
