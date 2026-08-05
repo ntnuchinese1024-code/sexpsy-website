@@ -1,12 +1,16 @@
 ---
-title: "為什麼我們讀論文讀到最後都變成一顆馬鈴薯？"
+title: 為什麼我們讀論文讀到最後都變成一顆馬鈴薯？
 date: 2026-08-06
-category: "馬鈴薯嗑論文"
-tags: ["依附理論", "文獻閱讀", "研究生日常"]
-summary: "從一篇談依附風格與親密關係的經典研究出發，聊聊為什麼啃論文啃到最後，整個人會癱成一顆馬鈴薯，卻又意外踏實。"
+category: 馬鈴薯嗑論文
+tags:
+  - 依附理論
+  - 文獻閱讀
+  - 研究生日常
+summary: 從一篇談依附風格與親密關係的經典研究出發，聊聊為什麼啃論文啃到最後，整個人會癱成一顆馬鈴薯，卻又意外踏實。
 reference: |
   Hazan, C., & Shaver, P. (1987). Romantic love conceptualized as an attachment process. Journal of Personality and Social Psychology, 52(3), 511–524.
   Mikulincer, M., & Shaver, P. R. (2016). Attachment in Adulthood: Structure, Dynamics, and Change (2nd ed.). Guilford Press.
+cover: /images/ex1.jpg
 ---
 
 深夜十一點，書桌燈還亮著，桌上攤著一疊列印出來、畫滿螢光筆的文獻。這是每一個「嗑論文人」都很熟悉的畫面——
