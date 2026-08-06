@@ -1,108 +1,138 @@
 #!/usr/bin/env node
 /**
- * 分析一篇文章 → 生成莫蘭迪風格 AI 配圖（Google Gemini 圖片生成模型）→
- * 存進 public/images/ → 更新該文章的 frontmatter（cover、aiGenerated）→
- * 把內文插圖插回文章段落。
+ * 分析一篇文章 → 用 SVG＋sharp 在本機產生莫蘭迪風格的「文字封面圖」（文章
+ * 標題 + 系列配色 + 呼應品牌 Logo 的裝飾弧線）→ 存進 public/images/ →
+ * 更新該文章的 frontmatter（cover）。
  *
  * 使用方式（在 repo 根目錄）：
- *   node --env-file=.env scripts/generate-article-images.mjs <slug> [選項]
- *   或設定好 .env 後： npm run generate:images -- <slug> [選項]
+ *   node scripts/generate-article-images.mjs <slug> [選項]
+ *   或： npm run generate:images -- <slug> [選項]
  *
  * 選項：
- *   --dry-run       只印出會用的 prompt 跟預估花費，不會真的呼叫 API、不會改檔案
- *   --cover-only    只生成封面，不生成內文插圖
- *   --inline=<n>    內文插圖張數（預設 1，最多 3）
- *   --force         就算已經有 cover 也強制重新生成
- *   --model=<name>  預設 gemini-2.5-flash-image（見下方「模型選擇」說明）
+ *   --dry-run   只把生成的 SVG 存到 /tmp 供預覽，不寫回 public/images/、不改文章
+ *   --force     就算已經有 cover 也強制重新生成、覆蓋
  *
  * 不帶 slug 時，預設抓 src/content/articles/ 底下 frontmatter date 最新的文章。
  *
- * 需要 GEMINI_API_KEY（見 .env.example 說明）。這支腳本只在本機/CI 手動執行，
- * 不會被排進網站的自動部署流程——這是計費 API，不應該每次 push 就自動燒錢。
- *
  * ---------------------------------------------------------------------------
- * 模型選擇說明（2026-08-06 查證）：
- * 原本規劃用「Imagen 3」，查證後發現 Imagen 3 已經下架、它的後繼者 Imagen 4
- * 系列也已公告會在 2026-08-17 關閉，兩者都不適合現在寫進腳本裡。目前 Google
- * 官方文件列為「建議用於新專案」的是 Gemini 圖片生成模型家族（俗稱 Nano
- * Banana），API 呼叫方式也跟 Imagen 系列不同——不是走專門的圖片生成端點，
- * 而是透過一般的 generateContent，用 responseModalities 要求模型回傳圖片。
- * 這裡預設用 gemini-2.5-flash-image（目前最便宜、文件仍列為推薦的一款）；
- * 如果之後想換更高品質的 gemini-3-pro-image 或更新的版本，改 --model 或
- * MODEL_PRICING 裡加一筆對照就好，不用動呼叫邏輯。
+ * 為什麼不用 AI 生圖 API 了（2026-08-06）：
+ * 原本規劃串 OpenAI DALL-E 3 → 查證後改成 Google Gemini（Imagen 3 已下架、
+ * Imagen 4 系列公告 2026-08-17 也要關）→ 實測發現 Gemini 圖片生成模型在
+ * Free Tier 配額直接是 0，要用就得開計費。最後決定完全不依賴外部付費 API，
+ * 改成本機純運算的 SVG 文字卡片，零成本、零外部依賴、也不會再因為哪個
+ * 模型下架而突然壞掉。
+ *
+ * 因為這裡沒有用到任何生成式 AI 模型（純樣板＋程式排版），不會把文章的
+ * aiGenerated 欄位設成 true——那個欄位跟 ArticleLayout 的「AI 配圖聲明」
+ * 綁在一起，用在這裡顯示會失真。之後如果真的接了 AI 生圖 API，才需要
+ * 把該篇文章的 aiGenerated 手動或另外寫程式設成 true。
  * ---------------------------------------------------------------------------
  */
 
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { tmpdir } from 'node:os';
 import matter from 'gray-matter';
 import sharp from 'sharp';
-import { GoogleGenAI, Modality } from '@google/genai';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const ARTICLES_DIR = join(ROOT, 'src/content/articles');
 const IMAGES_DIR = join(ROOT, 'public/images');
 
+const WIDTH = 1600;
+const HEIGHT = 900;
+
 // ---------- CLI 參數 ----------
 const args = process.argv.slice(2);
 const flags = new Set(
   args.filter((a) => a.startsWith('--') && !a.includes('=')).map((a) => a.slice(2))
 );
-const kv = Object.fromEntries(
-  args.filter((a) => a.startsWith('--') && a.includes('=')).map((a) => {
-    const [key, ...rest] = a.slice(2).split('=');
-    return [key, rest.join('=')];
-  })
-);
 const positional = args.find((a) => !a.startsWith('--'));
 
 const isDryRun = flags.has('dry-run');
-const coverOnly = flags.has('cover-only');
 const force = flags.has('force');
-const inlineCount = coverOnly ? 0 : Math.min(3, Math.max(0, parseInt(kv.inline ?? '1', 10) || 0));
-const model = kv.model ?? 'gemini-2.5-flash-image';
 
-// 每張圖的美金價格（2026-08-06 查證，Gemini API 官方定價頁）。查不到的模型
-// 用 gemini-2.5-flash-image 的價格當保守估計，並在輸出裡註明是估計值。
-const MODEL_PRICING = {
-  'gemini-2.5-flash-image': 0.039,
-  'gemini-3.1-flash-lite-image': 0.0336,
-  'gemini-3.1-flash-image': 0.067,
-  'gemini-3-pro-image': 0.134,
+// ---------- 品牌色票（跟 src/lib/series.ts 的六大系列對應） ----------
+// 這裡刻意用純 JS 常數複製一份色票，不直接 import series.ts——這支腳本用
+// node 直接執行（非 Astro/Vite pipeline），import .ts 檔案要另外處理型別
+// 剝離，容易因 Node 版本而行為不同。若 series.ts 的系列色票有異動，記得
+// 回來同步更新這裡。
+const SERIES_HEX = {
+  馬鈴薯嗑論文: '#8A9A86',
+  沙發夜聊室: '#5B6C7D',
+  情慾實驗室: '#A35D6A',
+  心理急救包: '#D49B6A',
+  耍廢自癒角: '#E6C594',
+  翻頁餘溫: '#B5876D',
 };
+const DEFAULT_HEX = '#3C2A21'; // 未收錄的分類 fallback 回 chestnut
 
-// ---------- 品牌視覺主題（跟 src/lib/series.ts 的六大系列對應） ----------
-// 這裡刻意用純 JS 常數複製一份對應的英文主題描述，不直接 import series.ts——
-// 這支腳本用 node 直接執行（非 Astro/Vite pipeline），import .ts 檔案要另外處理
-// 型別剝離，容易因 Node 版本而行為不同。若 series.ts 的系列名稱或色票有異動，
-// 記得回來同步更新這裡。
-const THEME_BY_CATEGORY = {
-  馬鈴薯嗑論文:
-    'stacks of open books and academic papers softly scattered on a cozy desk, gentle sage green tones',
-  沙發夜聊室:
-    'two abstract soft silhouettes in quiet late-night conversation on a sofa, smoky indigo-blue tones',
-  情慾實驗室:
-    'soft abstract intertwined organic forms suggesting intimacy and vulnerability, wine burgundy tones',
-  心理急救包:
-    'a gentle glowing first-aid box, comforting open hands, warm caramel orange tones',
-  耍廢自癒角:
-    'a person curled up relaxing on a couch under a cozy blanket, soft flax yellow tones',
-  翻頁餘溫:
-    'an open book with warm golden light glowing softly from its pages, amber brown parchment tones',
-};
+function escapeXml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
-const BASE_STYLE =
-  'Minimalist Morandi-style editorial illustration, muted soft color palette, gentle diffused ' +
-  'natural light, generous negative space, no text or letters anywhere in the image, warm and ' +
-  'psychologically safe atmosphere, calm therapeutic mood, flat modern illustration style, subtle ' +
-  'paper grain texture, gentle rounded shapes, editorial magazine illustration, high quality';
+// 中文/日文/韓文一個字大致等寬，用字數估算換行就足夠準，不需要真的量測
+// 字型寬度。最多顯示 4 行，避免超長標題把版面撐爆。
+function wrapTitle(title, maxCharsPerLine = 11, maxLines = 4) {
+  const lines = [];
+  let current = '';
+  for (const char of title) {
+    current += char;
+    if (current.length >= maxCharsPerLine) {
+      lines.push(current);
+      current = '';
+    }
+  }
+  if (current) lines.push(current);
 
-function buildPrompt({ category, title, summary }, variantHint) {
-  const theme = THEME_BY_CATEGORY[category] ?? THEME_BY_CATEGORY['馬鈴薯嗑論文'];
-  const context = `Editorial illustration for a Traditional Chinese psychology article titled "${title}". Article theme: ${summary}`;
-  return [BASE_STYLE, theme, variantHint, context].filter(Boolean).join('. ');
+  if (lines.length > maxLines) {
+    const truncated = lines.slice(0, maxLines);
+    truncated[maxLines - 1] = truncated[maxLines - 1].slice(0, -1) + '…';
+    return truncated;
+  }
+  return lines;
+}
+
+// ---------- 組出封面 SVG ----------
+function buildCoverSvg({ title, category }) {
+  const accentHex = SERIES_HEX[category] ?? DEFAULT_HEX;
+  const titleLines = wrapTitle(title);
+  const lineHeight = 92;
+  const titleBlockHeight = (titleLines.length - 1) * lineHeight;
+  const startY = HEIGHT / 2 - titleBlockHeight / 2 + 20;
+
+  const titleTspans = titleLines
+    .map((line, i) => `<tspan x="120" y="${startY + i * lineHeight}">${escapeXml(line)}</tspan>`)
+    .join('');
+
+  return `
+<svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="${WIDTH}" height="${HEIGHT}" fill="#F9F6F0" />
+  <rect width="${WIDTH}" height="${HEIGHT}" fill="${accentHex}" fill-opacity="0.10" />
+
+  <!-- 呼應品牌 Logo 的圓圈＋雙弧線意象。用巢狀 <svg> 直接搬 Logo.astro 原本
+       的座標系統（viewBox 0 0 1000 800）等比縮放進右下角的框，不用自己重新
+       算 transform/scale——手動算很容易把弧線算到畫布外面被裁掉（踩過這個坑）。 -->
+  <svg x="1080" y="470" width="460" height="368" viewBox="0 0 1000 800" opacity="0.85">
+    <circle cx="190" cy="190" r="80" fill="none" stroke="${accentHex}" stroke-width="20" />
+    <path d="M 190,220 C 300,360 650,360 760,220" fill="none" stroke="#3C2A21" stroke-width="40" stroke-linecap="round" opacity="0.5" />
+    <path d="M 310,420 C 420,560 770,560 880,420" fill="none" stroke="#3C2A21" stroke-width="40" stroke-linecap="round" opacity="0.5" />
+  </svg>
+
+  <!-- 分類標籤 -->
+  <circle cx="128" cy="82" r="6" fill="${accentHex}" />
+  <text x="150" y="90" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif"
+        font-size="26" font-weight="600" letter-spacing="3" fill="#C87D65">${escapeXml(category)}</text>
+
+  <!-- 標題 -->
+  <text font-family="'Noto Serif TC','Songti TC',serif" font-size="76" font-weight="700" fill="#3C2A21">${titleTspans}</text>
+</svg>`;
 }
 
 // ---------- 找目標文章 ----------
@@ -137,121 +167,43 @@ function pickTargetArticle(slugArg) {
   return files.sort((a, b) => new Date(b.parsed.data.date) - new Date(a.parsed.data.date))[0];
 }
 
-// ---------- 插入內文插圖 ----------
-function insertInlineImages(body, imagePaths, title) {
-  if (imagePaths.length === 0) return body;
-
-  const paragraphs = body.split(/\n\n+/);
-  const insertAfter = imagePaths.map((_, i) =>
-    Math.max(1, Math.round(((i + 1) * paragraphs.length) / (imagePaths.length + 1)))
-  );
-
-  let offset = 0;
-  imagePaths.forEach((imagePath, i) => {
-    const position = insertAfter[i] + offset;
-    const markdown = `![${title} 插圖 ${i + 1}](${imagePath})`;
-    paragraphs.splice(position, 0, markdown);
-    offset += 1;
-  });
-
-  return paragraphs.join('\n\n');
-}
-
 // ---------- 主流程 ----------
 async function main() {
   const article = pickTargetArticle(positional);
-  const { data, content } = article.parsed;
+  const { data } = article.parsed;
 
-  console.log(`\n目標文章：${article.filename}（category: ${data.category}）\n`);
+  console.log(`\n目標文章：${article.filename}（category: ${data.category}）`);
 
-  if (data.cover && !force && !isDryRun) {
+  if (data.cover && !force) {
     console.log(
       `這篇已經有 cover（${data.cover}），沒有加 --force 就不會覆蓋。加上 --force 可強制重新生成。`
     );
     return;
   }
 
-  const coverPrompt = buildPrompt(data, 'Wide landscape composition suitable as an article cover banner.');
-  const inlinePrompts = Array.from({ length: inlineCount }, (_, i) =>
-    buildPrompt(data, `Square composition, section illustration variant ${i + 1}, slightly different framing from the cover.`)
-  );
-
-  console.log('=== 封面 Prompt ===');
-  console.log(coverPrompt);
-  inlinePrompts.forEach((p, i) => {
-    console.log(`\n=== 內文插圖 ${i + 1} Prompt ===`);
-    console.log(p);
-  });
-
-  const pricePerImage = MODEL_PRICING[model];
-  const isEstimate = pricePerImage === undefined;
-  const effectivePrice = pricePerImage ?? MODEL_PRICING['gemini-2.5-flash-image'];
-  const estimatedCost = effectivePrice * (1 + inlinePrompts.length);
-  console.log(
-    `\n預估花費：約 US$${estimatedCost.toFixed(3)}（${model}${isEstimate ? '，價格未收錄，用 gemini-2.5-flash-image 價格粗估' : ''}）`
-  );
+  const svg = buildCoverSvg(data);
 
   if (isDryRun) {
-    console.log('\n--dry-run：不會呼叫 API、不會改動任何檔案。');
+    const previewPath = join(tmpdir(), `cover-preview-${article.slug}.svg`);
+    writeFileSync(previewPath, svg, 'utf-8');
+    console.log(`\n--dry-run：不會寫回 public/images/、不會改文章。SVG 預覽已存到：${previewPath}`);
     return;
   }
 
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error(
-      '缺少 GEMINI_API_KEY。請先在 .env 設定好（參考 .env.example），並用 ' +
-        '`node --env-file=.env scripts/generate-article-images.mjs` 執行。'
-    );
-  }
-
-  const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   mkdirSync(IMAGES_DIR, { recursive: true });
+  const outFilename = `cover-${article.slug}.webp`;
+  const outPath = join(IMAGES_DIR, outFilename);
+  await sharp(Buffer.from(svg)).webp({ quality: 90 }).toFile(outPath);
+  const coverPath = `/images/${outFilename}`;
+  console.log(`已存檔：public/images/${outFilename}`);
 
-  async function generateAndSave(prompt, aspectRatio, outFilename) {
-    console.log(`\n生成中：${outFilename} …`);
-    const response = await client.models.generateContent({
-      model,
-      contents: `${prompt} Aspect ratio: ${aspectRatio}.`,
-      config: { responseModalities: [Modality.TEXT, Modality.IMAGE] },
-    });
-
-    const parts = response.candidates?.[0]?.content?.parts ?? [];
-    const imagePart = parts.find((part) => part.inlineData);
-    if (!imagePart) {
-      const textPart = parts.find((part) => part.text);
-      throw new Error(
-        `模型沒有回傳圖片（可能被安全過濾擋下）。${textPart ? `模型訊息：${textPart.text}` : ''}`
-      );
-    }
-
-    const buffer = Buffer.from(imagePart.inlineData.data, 'base64');
-    const outPath = join(IMAGES_DIR, outFilename);
-    // 用 sharp 統一裁切/縮放成需要的比例與尺寸，不依賴模型是否精準遵守
-    // prompt 裡文字描述的構圖比例——封面走 16:9，內文插圖走 1:1。
-    const [w, h] = aspectRatio === '16:9' ? [1600, 900] : [1024, 1024];
-    await sharp(buffer).resize(w, h, { fit: 'cover' }).webp({ quality: 82 }).toFile(outPath);
-    console.log(`已存檔：public/images/${outFilename}`);
-    return `/images/${outFilename}`;
-  }
-
-  const coverPath = await generateAndSave(coverPrompt, '16:9', `cover-${article.slug}.webp`);
-
-  const inlinePaths = [];
-  for (let i = 0; i < inlinePrompts.length; i++) {
-    const path = await generateAndSave(inlinePrompts[i], '1:1', `${article.slug}-section-${i + 1}.webp`);
-    inlinePaths.push(path);
-  }
-
-  const newBody = insertInlineImages(content.trim(), inlinePaths, data.title);
-  const updatedFrontmatter = { ...data, cover: coverPath, aiGenerated: true };
-  const updatedFile = matter.stringify(`\n${newBody}\n`, updatedFrontmatter);
-
+  const updatedFrontmatter = { ...data, cover: coverPath };
+  const updatedFile = matter.stringify(`\n${article.parsed.content.trim()}\n`, updatedFrontmatter);
   writeFileSync(article.fullPath, updatedFile, 'utf-8');
-  console.log(`\n已更新 ${article.filename}：cover 指向 ${coverPath}，aiGenerated: true`);
-  if (inlinePaths.length > 0) {
-    console.log(`已插入 ${inlinePaths.length} 張內文插圖。`);
-  }
+
+  console.log(`\n已更新 ${article.filename}：cover 指向 ${coverPath}`);
   console.log(
-    '\n因為圖片存在 public/images/ 底下（跟 vault 根目錄的 images/ 是 symlink），Obsidian 那邊會自動看到，不用額外同步。'
+    '因為圖片存在 public/images/ 底下（跟 vault 根目錄的 images/ 是 symlink），Obsidian 那邊會自動看到，不用額外同步。'
   );
 }
 

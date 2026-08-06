@@ -9,7 +9,7 @@
     "build": "astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "generate:images": "node --env-file=.env scripts/generate-article-images.mjs"
+    "generate:images": "node scripts/generate-article-images.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
@@ -21,7 +21,6 @@
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
-    "@google/genai": "^2.16.0",
     "gray-matter": "^4.0.3",
     "sharp": "^0.35.3"
   }
