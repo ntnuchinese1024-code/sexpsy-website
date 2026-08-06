@@ -21,8 +21,8 @@
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
+    "@google/genai": "^2.16.0",
     "gray-matter": "^4.0.3",
-    "openai": "^7.4.0",
     "sharp": "^0.35.3"
   }
 }
