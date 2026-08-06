@@ -16,8 +16,8 @@ const latestArticles = articles.slice(0, 6);
 
   <section class="border-y border-chestnut/10 bg-terracotta/5">
     <div class="mx-auto max-w-5xl px-6 py-16">
-      <p class="text-sm font-medium uppercase tracking-[0.2em] text-chestnut/50">五大主題系列</p>
-      <h2 class="mt-2 font-serif text-2xl font-semibold text-chestnut sm:text-3xl">我們聊的，都在這五個沙發角落</h2>
+      <p class="text-sm font-medium uppercase tracking-[0.2em] text-chestnut/50">六大主題系列</p>
+      <h2 class="mt-2 font-serif text-2xl font-semibold text-chestnut sm:text-3xl">我們聊的，都在這六個沙發角落</h2>
 
       <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {
@@ -30,7 +30,7 @@ const latestArticles = articles.slice(0, 6);
                 系列 {String(index + 1).padStart(2, '0')}
               </span>
               <h3 class="mt-4 font-serif text-lg font-semibold text-chestnut group-hover:text-terracotta">
-                {series.name}
+                {series.title ?? series.name}
               </h3>
               <p class="mt-2 text-sm leading-relaxed text-chestnut/70">{series.tagline}</p>
             </a>

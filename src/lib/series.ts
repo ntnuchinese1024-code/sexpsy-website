@@ -1,5 +1,7 @@
 export interface Series {
   name: string;
+  /** 完整／裝飾性標題（含 emoji），沒特別設定時 fallback 回 name */
+  title?: string;
   slug: string;
   tagline: string;
   /** 卡片邊框色 */
@@ -57,6 +59,16 @@ export const SERIES: Series[] = [
     badge: 'bg-flax text-chestnut',
     dot: 'bg-flax',
     hex: '#E6C594',
+  },
+  {
+    name: '翻頁餘溫',
+    title: '🔖 翻頁餘溫・書頁對話',
+    slug: 'page-warmth',
+    tagline: '那些閱讀過的書籍，都在生命裡活躍了起來。',
+    border: 'border-parchment/50',
+    badge: 'bg-[#F7F3EE] text-[#5A4335]',
+    dot: 'bg-parchment',
+    hex: '#B5876D',
   },
 ];
 
