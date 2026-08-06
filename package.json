@@ -9,7 +9,9 @@
     "build": "astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "generate:images": "node scripts/generate-article-images.mjs"
+    "generate:images": "node scripts/generate-article-images.mjs",
+    "hooks:install": "node scripts/install-hooks.mjs",
+    "prepare": "node scripts/install-hooks.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

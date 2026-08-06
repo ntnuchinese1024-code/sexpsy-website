@@ -69,6 +69,20 @@ const SERIES_HEX = {
 };
 const DEFAULT_HEX = '#3C2A21'; // 未收錄的分類 fallback 回 chestnut
 
+// 分類 badge 的底色／文字色，直接複製 series.ts 的 badge 欄位（不是統一從
+// SERIES_HEX 推規則）——因為「翻頁餘溫」的 badge 刻意用淺底色＋深棕字，
+// 跟其他 5 個系列（實色底＋淺字）不是同一套規則，用查表才能保證跟網站
+// 上實際看到的 badge 顏色一致。
+const SERIES_BADGE = {
+  馬鈴薯嗑論文: { bg: '#8A9A86', text: '#F9F6F0' },
+  沙發夜聊室: { bg: '#5B6C7D', text: '#F9F6F0' },
+  情慾實驗室: { bg: '#A35D6A', text: '#F9F6F0' },
+  心理急救包: { bg: '#D49B6A', text: '#3C2A21' },
+  耍廢自癒角: { bg: '#E6C594', text: '#3C2A21' },
+  翻頁餘溫: { bg: '#F7F3EE', text: '#5A4335' },
+};
+const DEFAULT_BADGE = { bg: '#3C2A21', text: '#F9F6F0' };
+
 function escapeXml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -77,19 +91,109 @@ function escapeXml(str) {
     .replace(/"/g, '&quot;');
 }
 
+// ---------- 色彩：算出每個系列色的對比色（互補色） ----------
+// 保留原色的飽和度/明度，只把色相轉 180 度，這樣算出來的對比色還是柔和的
+// 莫蘭迪色調，不會變成刺眼的高彩度撞色。
+function hexToHsl(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      default:
+        h = (r - g) / d + 4;
+    }
+    h /= 6;
+  }
+  return [h * 360, s * 100, l * 100];
+}
+
+function hslToHex(h, s, l) {
+  const hue = h / 360;
+  const sat = s / 100;
+  const light = l / 100;
+  let r;
+  let g;
+  let b;
+  if (sat === 0) {
+    r = g = b = light;
+  } else {
+    const hue2rgb = (p, q, t) => {
+      let tt = t;
+      if (tt < 0) tt += 1;
+      if (tt > 1) tt -= 1;
+      if (tt < 1 / 6) return p + (q - p) * 6 * tt;
+      if (tt < 1 / 2) return q;
+      if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6;
+      return p;
+    };
+    const q = light < 0.5 ? light * (1 + sat) : light + sat - light * sat;
+    const p = 2 * light - q;
+    r = hue2rgb(p, q, hue + 1 / 3);
+    g = hue2rgb(p, q, hue);
+    b = hue2rgb(p, q, hue - 1 / 3);
+  }
+  const toHex = (x) => Math.round(x * 255).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function complementaryHex(hex) {
+  const [h, s, l] = hexToHsl(hex);
+  return hslToHex((h + 180) % 360, s, l);
+}
+
+// ---------- 標題自動換行（含中文斷行禁則） ----------
 // 中文/日文/韓文一個字大致等寬，用字數估算換行就足夠準，不需要真的量測
 // 字型寬度。最多顯示 4 行，避免超長標題把版面撐爆。
+const NO_LINE_START = new Set(['」', '』', '）', '，', '。', '、', '？', '！', '；', '：', '】', '》']);
+const NO_LINE_END = new Set(['「', '『', '（', '【', '《']);
+
+// 單純照字數斷行，「」『』（）這類成對符號常常被硬生生切成上下兩行
+// （開符號留在行尾、閉符號被推到下一行開頭），中文排版稱為斷行禁則——
+// 這裡做基本處理：閉符號不該出現在行首就往上一行尾巴挪，開符號不該出現
+// 在行尾就往下一行開頭挪。
+function applyLineBreakRules(lines) {
+  const result = [...lines];
+  for (let i = 0; i < result.length - 1; i++) {
+    while (result[i + 1].length > 0 && NO_LINE_START.has(result[i + 1][0])) {
+      result[i] += result[i + 1][0];
+      result[i + 1] = result[i + 1].slice(1);
+    }
+    while (result[i].length > 0 && NO_LINE_END.has(result[i][result[i].length - 1])) {
+      const char = result[i][result[i].length - 1];
+      result[i] = result[i].slice(0, -1);
+      result[i + 1] = char + result[i + 1];
+    }
+  }
+  return result.filter((line) => line.length > 0);
+}
+
 function wrapTitle(title, maxCharsPerLine = 11, maxLines = 4) {
-  const lines = [];
+  const rawLines = [];
   let current = '';
   for (const char of title) {
     current += char;
     if (current.length >= maxCharsPerLine) {
-      lines.push(current);
+      rawLines.push(current);
       current = '';
     }
   }
-  if (current) lines.push(current);
+  if (current) rawLines.push(current);
+
+  const lines = applyLineBreakRules(rawLines);
 
   if (lines.length > maxLines) {
     const truncated = lines.slice(0, maxLines);
@@ -99,11 +203,26 @@ function wrapTitle(title, maxCharsPerLine = 11, maxLines = 4) {
   return lines;
 }
 
+// 裝飾圈旁邊的小點點——呼應原始品牌 Logo（logo.png）弧線之間那排摩斯電碼
+// 小點的意象，用對比色點綴，當作「跳色細節」而不是整片背景換色：背景／
+// 圓圈／badge 都維持系列辨識色（識別度優先），對比色只在這裡出現。
+const ACCENT_DOTS = [
+  { x: 1000, y: 430, r: 5 },
+  { x: 1032, y: 408, r: 3 },
+  { x: 966, y: 456, r: 4 },
+  { x: 1054, y: 446, r: 6 },
+  { x: 938, y: 416, r: 3 },
+  { x: 1010, y: 470, r: 3 },
+];
+
 // ---------- 組出封面 SVG ----------
 function buildCoverSvg({ title, category }) {
-  const accentHex = SERIES_HEX[category] ?? DEFAULT_HEX;
+  const identityHex = SERIES_HEX[category] ?? DEFAULT_HEX; // 系列本身的辨識色
+  const accentHex = complementaryHex(identityHex); // 對比色，只用在小點點裝飾
+  const badge = SERIES_BADGE[category] ?? DEFAULT_BADGE; // 跟網站上實際 badge 一致的底色/字色
+
   const titleLines = wrapTitle(title);
-  const lineHeight = 92;
+  const lineHeight = 118; // 拉大行距，原本 92 偏擠
   const titleBlockHeight = (titleLines.length - 1) * lineHeight;
   const startY = HEIGHT / 2 - titleBlockHeight / 2 + 20;
 
@@ -111,24 +230,46 @@ function buildCoverSvg({ title, category }) {
     .map((line, i) => `<tspan x="120" y="${startY + i * lineHeight}">${escapeXml(line)}</tspan>`)
     .join('');
 
+  // 分類 badge：做成跟網站上 ArticleCard 一樣的圓角膠囊，而不是單純文字＋
+  // 色點——直接複用 badge 底色/字色查表，讓封面上的分類色跟文章頁滾下去
+  // 就會看到的那個 badge 完全一致，不是另外算出來的顏色。
+  const badgeFontSize = 28;
+  const badgePaddingX = 28;
+  const badgeTextWidth = [...category].length * badgeFontSize * 1.02;
+  const badgeWidth = badgeTextWidth + badgePaddingX * 2;
+  const badgeHeight = 58;
+  const badgeX = 120;
+  const badgeY = 64;
+
+  const accentDots = ACCENT_DOTS.map(
+    (dot) => `<circle cx="${dot.x}" cy="${dot.y}" r="${dot.r}" fill="${accentHex}" fill-opacity="0.7" />`
+  ).join('');
+
   return `
 <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
   <rect width="${WIDTH}" height="${HEIGHT}" fill="#F9F6F0" />
-  <rect width="${WIDTH}" height="${HEIGHT}" fill="${accentHex}" fill-opacity="0.10" />
+  <!-- 背景維持系列辨識色打底，拉高一點透明度增加存在感，但不換成對比色——
+       對比色在低透明度下彼此會被稀釋到很像，高透明度又容易跟別的系列
+       撞色、也偏離全站燕麥白的暖色調，維持辨識色最不會混淆。 -->
+  <rect width="${WIDTH}" height="${HEIGHT}" fill="${identityHex}" fill-opacity="0.18" />
 
   <!-- 呼應品牌 Logo 的圓圈＋雙弧線意象。用巢狀 <svg> 直接搬 Logo.astro 原本
        的座標系統（viewBox 0 0 1000 800）等比縮放進右下角的框，不用自己重新
        算 transform/scale——手動算很容易把弧線算到畫布外面被裁掉（踩過這個坑）。 -->
-  <svg x="1080" y="470" width="460" height="368" viewBox="0 0 1000 800" opacity="0.85">
-    <circle cx="190" cy="190" r="80" fill="none" stroke="${accentHex}" stroke-width="20" />
-    <path d="M 190,220 C 300,360 650,360 760,220" fill="none" stroke="#3C2A21" stroke-width="40" stroke-linecap="round" opacity="0.5" />
-    <path d="M 310,420 C 420,560 770,560 880,420" fill="none" stroke="#3C2A21" stroke-width="40" stroke-linecap="round" opacity="0.5" />
+  <svg x="1080" y="470" width="460" height="368" viewBox="0 0 1000 800" opacity="0.9">
+    <circle cx="190" cy="190" r="80" fill="none" stroke="${identityHex}" stroke-width="22" />
+    <path d="M 190,220 C 300,360 650,360 760,220" fill="none" stroke="#3C2A21" stroke-width="40" stroke-linecap="round" opacity="0.55" />
+    <path d="M 310,420 C 420,560 770,560 880,420" fill="none" stroke="#3C2A21" stroke-width="40" stroke-linecap="round" opacity="0.55" />
   </svg>
 
-  <!-- 分類標籤 -->
-  <circle cx="128" cy="82" r="6" fill="${accentHex}" />
-  <text x="150" y="90" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif"
-        font-size="26" font-weight="600" letter-spacing="3" fill="#C87D65">${escapeXml(category)}</text>
+  <!-- 對比色小點點，跳色細節 -->
+  ${accentDots}
+
+  <!-- 分類 badge -->
+  <rect x="${badgeX}" y="${badgeY}" width="${badgeWidth}" height="${badgeHeight}" rx="${badgeHeight / 2}" fill="${badge.bg}" />
+  <text x="${badgeX + badgeWidth / 2}" y="${badgeY + badgeHeight / 2 + badgeFontSize * 0.35}" text-anchor="middle"
+        font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif"
+        font-size="${badgeFontSize}" font-weight="600" letter-spacing="2" fill="${badge.text}">${escapeXml(category)}</text>
 
   <!-- 標題 -->
   <text font-family="'Noto Serif TC','Songti TC',serif" font-size="76" font-weight="700" fill="#3C2A21">${titleTspans}</text>
