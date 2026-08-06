@@ -96,7 +96,7 @@ cover: /images/韋瓦第效應.jpeg
 
 **延伸閱讀：**
 
-1. 楊艾德／[拋開偏見，我就是我]([http://sa.ylib.com/MagArticle.aspx?Unit=featurearticles&id=2951](https://www.scitw.cc/posts/6701))
+1. 楊艾德／[拋開偏見，我就是我](https://www.scitw.cc/posts/6701)
     
 2. 朱家安／[只要你真心相信刻板印象存在，它就會變成真的](https://news.readmoo.com/2017/12/18/kris-171218-vivaldi/)
     
