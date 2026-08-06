@@ -1,29 +1,155 @@
 ---
 import Logo from './Logo.astro';
+import ArticleCard from './ArticleCard.astro';
+import { getCollection } from 'astro:content';
+
+const articles = await getCollection('articles');
 ---
 
-<section class="mx-auto max-w-3xl px-6 pb-16 pt-20 text-center sm:pt-28">
-  <Logo class="mx-auto h-16 w-auto sm:h-20" />
+<!-- ① 品牌 Hero：原本大器精緻的版型與 chestnut／terracotta 配色 -->
+<section class="mx-auto max-w-5xl px-6 pb-16 pt-20 sm:pt-28">
+  <Logo class="h-16 w-auto sm:h-20" />
 
-  <h1 class="mt-8 text-balance font-serif text-4xl font-semibold text-chestnut sm:text-5xl">
-    沙發上的性心理
+  <h1 class="mt-8 whitespace-nowrap font-serif text-[clamp(1.1rem,5vw,3.25rem)] font-semibold leading-tight text-chestnut">
+    把學術搬進客廳，把親密聊成日常。
   </h1>
-
-  <p class="mx-auto mt-6 max-w-xl text-pretty font-serif text-lg leading-[1.8] text-chestnut/80 sm:text-xl">
-    允許疑惑，接納渴望；<br class="hidden sm:block" />
-    在這張沙發上，最重要的永遠是<span
-      class="rounded bg-[var(--color-accent)]/35 px-1.5 py-0.5 font-medium text-chestnut"
-      >尊重你自己的感受</span
-    >。
+  <p class="mt-4 max-w-xl font-serif text-xl italic text-terracotta">
+    躺進沙發，感受心理與性。
+  </p>
+  <p class="mt-6 max-w-xl text-lg leading-relaxed text-chestnut/70">
+    沙發上的性心理，用心理學的視角陪你梳理親密關係、身體與情慾裡那些說不出口的困惑，
+    找到一個安心攤在沙發上、慢慢聊的空間。
   </p>
 
-  <div class="mt-10">
+  <div class="mt-8 flex flex-wrap gap-3">
     <a
-      href="#articles"
-      class="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-7 py-3.5 text-sm font-medium text-cream transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_8px_rgba(196,164,149,0.3)]"
+      href="#random-sofa"
+      class="rounded-full bg-chestnut px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-terracotta"
     >
-      <span aria-hidden="true">🛋️</span>
-      選一張沙發坐下
+      閱讀文章
+    </a>
+    <a
+      href="/about"
+      class="rounded-full border border-chestnut/20 px-6 py-3 text-sm font-medium text-chestnut transition-colors hover:border-terracotta hover:text-terracotta"
+    >
+      認識創辦人
     </a>
   </div>
 </section>
+
+<!-- ② 直覺選座與隨機推薦：微幅底色轉折，區隔出第二段溫柔引導 -->
+<section id="random-sofa" class="bg-[#f2eee9] px-6 py-20">
+  <div class="mx-auto max-w-2xl text-center">
+    <p class="text-pretty font-serif text-lg leading-[1.8] text-chestnut/80 sm:text-xl">
+      允許疑惑，接納渴望。<br />
+      閉上眼順著直覺，選一張沙發坐下——<br />
+      在這張沙發上，最重要的永遠是<span
+        class="rounded bg-[var(--color-accent)]/35 px-1.5 py-0.5 font-medium text-chestnut"
+        >尊重你自己的感受</span
+      >。
+    </p>
+
+    <button
+      type="button"
+      id="random-sofa-trigger"
+      class="mt-10 inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-7 py-3.5 text-sm font-medium text-cream transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_8px_rgba(196,164,149,0.3)]"
+    >
+      <span aria-hidden="true">🛋️</span>
+      隨機挑一張沙發
+    </button>
+  </div>
+
+  <div
+    id="random-sofa-reveal"
+    class="random-sofa-reveal mx-auto mt-14 max-w-5xl"
+    hidden
+  >
+    <p class="text-center text-sm font-medium uppercase tracking-[0.2em] text-chestnut/50">
+      今天為你準備的 3 張沙發
+    </p>
+
+    <div id="random-sofa-grid" class="mt-6 grid gap-6 sm:grid-cols-3">
+      {
+        articles.map((entry) => (
+          <div data-random-card data-slug={entry.slug} hidden>
+            <ArticleCard entry={entry} headingLevel="h3" />
+          </div>
+        ))
+      }
+    </div>
+
+    {
+      articles.length > 3 && (
+        <div class="mt-8 text-center">
+          <button
+            type="button"
+            id="random-sofa-reshuffle"
+            class="inline-flex items-center gap-1.5 rounded-full border border-chestnut/20 px-5 py-2.5 text-sm font-medium text-chestnut/80 transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+          >
+            <span aria-hidden="true">🔄</span>
+            換一批沙發
+          </button>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .random-sofa-reveal {
+    opacity: 0;
+    transform: translateY(-16px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .random-sofa-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+
+<script>
+  const trigger = document.getElementById('random-sofa-trigger');
+  const reshuffleButton = document.getElementById('random-sofa-reshuffle');
+  const revealPanel = document.getElementById('random-sofa-reveal');
+  const grid = document.getElementById('random-sofa-grid');
+
+  function pickRandomSlugs(slugs: string[], count: number) {
+    const pool = [...slugs];
+    const picked: string[] = [];
+    while (picked.length < count && pool.length > 0) {
+      const index = Math.floor(Math.random() * pool.length);
+      picked.push(pool.splice(index, 1)[0]);
+    }
+    return picked;
+  }
+
+  function showRandomCards() {
+    if (!grid) return;
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>('[data-random-card]'));
+    const allSlugs = cards.map((card) => card.dataset.slug ?? '');
+    const picked = pickRandomSlugs(allSlugs, Math.min(3, allSlugs.length));
+
+    cards.forEach((card) => {
+      card.hidden = !picked.includes(card.dataset.slug ?? '');
+    });
+  }
+
+  function revealPanelWithAnimation() {
+    if (!revealPanel) return;
+    const alreadyVisible = revealPanel.classList.contains('is-visible');
+    showRandomCards();
+
+    if (alreadyVisible) return;
+
+    revealPanel.hidden = false;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        revealPanel.classList.add('is-visible');
+      });
+    });
+  }
+
+  trigger?.addEventListener('click', revealPanelWithAnimation);
+  reshuffleButton?.addEventListener('click', showRandomCards);
+</script>
