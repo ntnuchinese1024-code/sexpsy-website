@@ -1,0 +1,30 @@
+---
+import type { StudyRoom } from '../lib/self-study-rooms';
+
+interface Props {
+  room: StudyRoom;
+}
+
+const { room } = Astro.props;
+---
+
+<section class="rounded-2xl bg-[#e2d2c9] p-6">
+  <h2 class="font-serif text-sm font-semibold uppercase tracking-[0.15em] text-chestnut/70">
+    {room.icon} 這個房間的提醒
+  </h2>
+  <p class="mt-3 text-sm leading-relaxed text-[var(--color-text-primary)]">{room.disclaimer}</p>
+  <div class="mt-4 flex flex-wrap gap-3 text-sm">
+    <a
+      href="/contact"
+      class="inline-flex items-center gap-2 rounded-full border border-terracotta/40 bg-terracotta/10 px-5 py-2.5 font-medium text-terracotta transition-colors hover:bg-terracotta hover:text-cream"
+    >
+      🛋️ 預約諮商／聯繫我
+    </a>
+    <a
+      href="/self-study/resources"
+      class="inline-flex items-center gap-2 rounded-full border border-terracotta/40 bg-terracotta/10 px-5 py-2.5 font-medium text-terracotta transition-colors hover:bg-terracotta hover:text-cream"
+    >
+      🧭 完整求助資源列表
+    </a>
+  </div>
+</section>

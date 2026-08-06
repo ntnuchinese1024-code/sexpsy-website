@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import SelfStudyDashboardLayout from '../../../layouts/SelfStudyDashboardLayout.astro';
+import RoomDisclaimer from '../../../components/RoomDisclaimer.astro';
 import { STUDY_ROOMS, getRoomBySlug } from '../../../lib/self-study-rooms';
 
 export async function getStaticPaths() {
@@ -45,4 +46,8 @@ const units = roomUnits
       </div>
     )
   }
+
+  <div class="mt-8">
+    <RoomDisclaimer room={room} />
+  </div>
 </SelfStudyDashboardLayout>

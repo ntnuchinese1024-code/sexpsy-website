@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { RESOURCE_CATEGORIES } from '../../lib/emergency-resources';
+---
+
+<BaseLayout
+  title="求助資源列表"
+  description="緊急求助、心理衛生、婦幼保護、成癮戒治與校園服務的專線整理，需要即時協助時可以在這裡找到聯絡方式。"
+>
+  <section class="mx-auto max-w-3xl px-6 pb-10 pt-20 text-center sm:pt-28">
+    <p class="text-sm font-medium uppercase tracking-[0.25em] text-terracotta">Resources</p>
+    <h1 class="mt-3 font-serif text-3xl font-semibold text-chestnut sm:text-4xl">求助資源列表</h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-chestnut/70">
+      自我探索很珍貴，但不是每個時刻都適合自己一個人扛。如果你現在需要更即時、更專業的協助，這裡整理了幾類常見的求助管道。
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 pb-24">
+    <div class="space-y-6">
+      {
+        RESOURCE_CATEGORIES.map((category) => (
+          <div class="rounded-2xl border border-chestnut/10 bg-white/50 p-6">
+            <h2 class="flex items-center gap-2 font-serif text-lg font-semibold text-chestnut">
+              <span aria-hidden="true">{category.icon}</span>
+              {category.title}
+            </h2>
+            <ul class="mt-4 space-y-3">
+              {category.entries.map((entry) => (
+                <li class="flex flex-col gap-0.5 border-t border-chestnut/10 pt-3 first:border-t-0 first:pt-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                  <span class="text-sm text-chestnut/80">{entry.name}</span>
+                  <span class="text-sm">
+                    {entry.href ? (
+                      <a href={entry.href} class="font-semibold text-terracotta underline underline-offset-2">
+                        {entry.contact}
+                      </a>
+                    ) : (
+                      <span class="font-semibold text-chestnut">{entry.contact}</span>
+                    )}
+                    {entry.note && <span class="ml-2 text-xs text-chestnut/50">{entry.note}</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="mt-8 text-center text-xs text-chestnut/40">
+      資料整理自公開求助管道，如有異動歡迎<a href="/contact" class="underline underline-offset-2">告訴我們</a>。
+    </p>
+  </section>
+</BaseLayout>

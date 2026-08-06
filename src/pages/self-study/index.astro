@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { STUDY_ROOMS } from '../../lib/self-study-rooms';
+import { STUDY_ROOMS, SELF_STUDY_BASE_DISCLAIMER } from '../../lib/self-study-rooms';
 ---
 
 <BaseLayout
@@ -34,6 +34,18 @@ import { STUDY_ROOMS } from '../../lib/self-study-rooms';
           </a>
         ))
       }
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 pb-24">
+    <div class="rounded-2xl bg-[#e2d2c9] p-6">
+      <p class="text-sm leading-relaxed text-[var(--color-text-primary)]">{SELF_STUDY_BASE_DISCLAIMER}</p>
+      <a
+        href="/self-study/resources"
+        class="mt-4 inline-flex items-center gap-2 rounded-full border border-terracotta/40 bg-terracotta/10 px-5 py-2.5 text-sm font-medium text-terracotta transition-colors hover:bg-terracotta hover:text-cream"
+      >
+        🧭 查看完整求助資源列表
+      </a>
     </div>
   </section>
 </BaseLayout>

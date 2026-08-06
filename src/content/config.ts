@@ -1,4 +1,4 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection, reference, z } from 'astro:content';
 import { normalizeImagePath } from '../lib/normalize-image-path.mjs';
 
 const articles = defineCollection({
@@ -42,11 +42,18 @@ const selfStudy = defineCollection({
     downloadWord: z.string().optional(),
     /** AI 探索陪伴 Prompt；沒填就不顯示複製卡片區塊 */
     aiPrompt: z.string().optional(),
-    /** 目前只有 standard-healing 一種免責文案，先寫死在 SelfStudyUnitPanel，
-     * 保留這個欄位是為了未來如果需要不同性質單元（例如涉及更高風險內容）
-     * 可以切換不同免責提醒，不用改 schema。 */
+    /** 免責提醒目前是「自學專區總則 + 房間專屬提醒」兩層結構（見
+     * self-study-rooms.ts 的 disclaimer 欄位），單元本身不需要另外指定。
+     * 保留這個欄位是為了未來如果某篇單元需要跳脫房間預設、換一段完全不同
+     * 的免責文案時可以覆蓋，目前還沒有任何單元用到覆蓋邏輯。 */
     disclaimerType: z.string().default('standard-healing'),
     tags: z.array(z.string()).default([]),
+    /** 預計完成時間（分鐘），顯示在單元標題旁邊 */
+    estimatedMinutes: z.number().positive().optional(),
+    /** 難易度；先開放兩級，之後真的需要更多層再擴充 */
+    difficulty: z.enum(['入門', '進階']).optional(),
+    /** 延伸閱讀：對應 src/content/articles/ 的文章 slug，會做成連結卡片 */
+    relatedArticles: z.array(reference('articles')).default([]),
   }),
 });
 

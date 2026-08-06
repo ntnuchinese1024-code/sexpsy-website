@@ -13,6 +13,9 @@ aiPrompt: |
   然後陪我一起觀察它接下來會怎麼變化。
 disclaimerType: "standard-healing"
 tags: ["衝動管理", "覺察", "學習單"]
+estimatedMinutes: 15
+difficulty: "入門"
+relatedArticles: ["first-post"]
 ---
 
 這是「自學專區」的範例單元，用來測試 Obsidian 的自學專屬 frontmatter 模板能不能正確對應到網站的兩欄式儀表板。

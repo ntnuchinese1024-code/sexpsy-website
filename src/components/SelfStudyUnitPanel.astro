@@ -1,19 +1,50 @@
 ---
+import RoomDisclaimer from './RoomDisclaimer.astro';
+import type { StudyRoom } from '../lib/self-study-rooms';
+
+interface RelatedArticle {
+  slug: string;
+  title: string;
+}
+
 interface Props {
   title: string;
   summary: string;
+  room: StudyRoom;
   downloadPdf?: string;
   downloadWord?: string;
   aiPrompt?: string;
   tags: string[];
+  estimatedMinutes?: number;
+  difficulty?: string;
+  relatedArticles: RelatedArticle[];
 }
 
-const { title, summary, downloadPdf, downloadWord, aiPrompt, tags } = Astro.props;
+const {
+  title,
+  summary,
+  room,
+  downloadPdf,
+  downloadWord,
+  aiPrompt,
+  tags,
+  estimatedMinutes,
+  difficulty,
+  relatedArticles,
+} = Astro.props;
 ---
 
 <article class="space-y-10">
   <header>
     <h1 class="font-serif text-2xl font-semibold text-chestnut sm:text-3xl">{title}</h1>
+
+    <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-chestnut/60">
+      {estimatedMinutes && <span>⏱️ 約 {estimatedMinutes} 分鐘</span>}
+      {difficulty && (
+        <span class="rounded-full bg-chestnut/10 px-2.5 py-0.5 font-medium text-chestnut/70">{difficulty}</span>
+      )}
+    </div>
+
     {
       tags.length > 0 && (
         <div class="mt-3 flex flex-wrap gap-2">
@@ -37,6 +68,24 @@ const { title, summary, downloadPdf, downloadWord, aiPrompt, tags } = Astro.prop
       <slot />
     </div>
   </section>
+
+  {
+    relatedArticles.length > 0 && (
+      <section>
+        <h2 class="section-heading">延伸閱讀</h2>
+        <div class="mt-3 flex flex-wrap gap-3">
+          {relatedArticles.map((article) => (
+            <a
+              href={`/articles/${article.slug}`}
+              class="rounded-full border border-chestnut/15 bg-white/50 px-4 py-2 text-sm text-chestnut/80 transition-colors hover:border-terracotta/50 hover:text-terracotta"
+            >
+              📖 {article.title}
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   {
     (downloadPdf || downloadWord) && (
@@ -84,14 +133,10 @@ const { title, summary, downloadPdf, downloadWord, aiPrompt, tags } = Astro.prop
     )
   }
 
-  <section class="rounded-2xl bg-[#e2d2c9] p-6">
+  <section>
     <h2 class="section-heading text-chestnut/70">④ 專業陪伴與免責提醒</h2>
-    <p class="mt-3 text-sm leading-relaxed text-[var(--color-text-primary)]">
-      這裡的內容是自我探索的輔助工具，<strong class="font-semibold">不能取代專業心理諮商，AI 陪伴對話也不具備真人心理師的判斷與安全網</strong>。如果你在探索過程中感覺到強烈不適，或有安全上的疑慮，請優先聯繫專業資源。
-    </p>
-    <div class="mt-4 flex flex-wrap gap-3 text-sm">
-      <a href="/contact" class="download-btn">🛋️ 預約諮商／聯繫我</a>
-      <a href="tel:1995" class="download-btn">緊急支援：生命線 1995</a>
+    <div class="mt-3">
+      <RoomDisclaimer room={room} />
     </div>
   </section>
 </article>

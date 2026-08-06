@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, getEntries } from 'astro:content';
 import SelfStudyDashboardLayout from '../../../layouts/SelfStudyDashboardLayout.astro';
 import SelfStudyUnitPanel from '../../../components/SelfStudyUnitPanel.astro';
 import { getRoomBySlug } from '../../../lib/self-study-rooms';
@@ -15,6 +15,14 @@ export async function getStaticPaths() {
 const { unit } = Astro.props;
 const room = getRoomBySlug(unit.data.room)!;
 const { Content } = await unit.render();
+
+const relatedArticles =
+  unit.data.relatedArticles.length > 0
+    ? (await getEntries(unit.data.relatedArticles)).map((article) => ({
+        slug: article.slug,
+        title: article.data.title,
+      }))
+    : [];
 
 const roomUnits = await getCollection('self-study', (entry) => entry.data.room === room.slug);
 const units = roomUnits
@@ -32,10 +40,14 @@ const units = roomUnits
   <SelfStudyUnitPanel
     title={unit.data.title}
     summary={unit.data.summary}
+    room={room}
     downloadPdf={unit.data.downloadPdf}
     downloadWord={unit.data.downloadWord}
     aiPrompt={unit.data.aiPrompt}
     tags={unit.data.tags}
+    estimatedMinutes={unit.data.estimatedMinutes}
+    difficulty={unit.data.difficulty}
+    relatedArticles={relatedArticles}
   >
     <Content />
   </SelfStudyUnitPanel>
