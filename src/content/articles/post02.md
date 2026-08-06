@@ -9,7 +9,7 @@ tags:
   - ＃刻板印象威脅
 summary: 「把別人認為你做不到的事做到最好，就是最好的反擊。」這句話鼓舞了無數人，卻也讓我們背負了沉重的代價。心理學上的**「刻板印象威脅」**揭示了一個殘酷的真相：當我們耗費大量心力想去顛覆他人的偏見時，這份「想證明自己」的渴望，往往會轉化為阻礙表現的隱形枷鎖。面對標籤，除了咬牙硬撐，我們其實還有更具修復力與從容的選擇。
 reference: 克勞德・史提爾（2018）。《韋瓦第效應：打破刻板印象，擺脫身份威脅的心理學策略》。臉譜出版。
-cover: /images/6ep2.jpg
+cover: /images/韋瓦第效應.jpeg
 ---
 # 為了撕下「刻板印象標籤」，我們究竟承擔了多少隱形成本？
 
@@ -96,11 +96,10 @@ cover: /images/6ep2.jpg
 
 **延伸閱讀：**
 
-1. 楊艾德／[拋開偏見，我就是我](http://sa.ylib.com/MagArticle.aspx?Unit=featurearticles&id=2951)
+1. 楊艾德／[拋開偏見，我就是我]([http://sa.ylib.com/MagArticle.aspx?Unit=featurearticles&id=2951](https://www.scitw.cc/posts/6701))
     
 2. 朱家安／[只要你真心相信刻板印象存在，它就會變成真的](https://news.readmoo.com/2017/12/18/kris-171218-vivaldi/)
     
-3. 孫旻瑋／[從性別刻板印象談學業表現上的性別差異](https://reurl.cc/ZYEvM)
-    
+
 
 ![](public/images/韋瓦第效應.jpeg)
