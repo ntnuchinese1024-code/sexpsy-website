@@ -29,6 +29,29 @@ const articles = defineCollection({
   }),
 });
 
+const selfStudy = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    /** 對應 src/lib/self-study-rooms.ts 的房間 slug，決定這篇單元歸在哪個自學室 */
+    room: z.enum(['sex-and-addiction', 'intimacy', 'body']),
+    /** 房間內的排序，數字小的排前面 */
+    order: z.number().default(0),
+    summary: z.string(),
+    downloadPdf: z.string().optional(),
+    downloadWord: z.string().optional(),
+    /** AI 探索陪伴 Prompt；沒填就不顯示複製卡片區塊 */
+    aiPrompt: z.string().optional(),
+    /** 目前只有 standard-healing 一種免責文案，先寫死在 SelfStudyUnitPanel，
+     * 保留這個欄位是為了未來如果需要不同性質單元（例如涉及更高風險內容）
+     * 可以切換不同免責提醒，不用改 schema。 */
+    disclaimerType: z.string().default('standard-healing'),
+    tags: z.array(z.string()).default([]),
+  }),
+});
+
 export const collections = {
   articles,
+  // key 必須跟 src/content/ 底下的資料夾名稱一模一樣（self-study，不是 selfStudy）
+  'self-study': selfStudy,
 };

@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { STUDY_ROOMS } from '../../lib/self-study-rooms';
+---
+
+<BaseLayout
+  title="自學專區"
+  description="匿名、無壓力的自我探索角落——知識導讀、練習學習單，還有陪你梳理思緒的 AI 對話 Prompt。"
+>
+  <section class="mx-auto max-w-3xl px-6 pb-10 pt-20 text-center sm:pt-28">
+    <p class="text-sm font-medium uppercase tracking-[0.25em] text-terracotta">Self-Guided Space</p>
+    <h1 class="mt-3 font-serif text-3xl font-semibold text-chestnut sm:text-4xl">自學專區</h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-chestnut/70">
+      不用預約、不用等待，這裡是一個可以匿名、用自己的步調慢慢探索的角落。挑一間你現在最想走進去的房間吧。
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-5xl px-6 pb-24">
+    <div class="grid gap-6 sm:grid-cols-3">
+      {
+        STUDY_ROOMS.map((room) => (
+          <a
+            href={`/self-study/${room.slug}`}
+            class={`group flex flex-col rounded-3xl border ${room.border} bg-white/50 p-7 transition-transform hover:-translate-y-1`}
+          >
+            <span class="text-3xl" aria-hidden="true">
+              {room.icon}
+            </span>
+            <h2 class="mt-4 font-serif text-lg font-semibold text-chestnut">{room.name}</h2>
+            <p class="mt-2 flex-1 text-sm leading-relaxed text-chestnut/60">{room.tagline}</p>
+            <span class={`mt-5 inline-flex w-fit items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${room.badge}`}>
+              進去看看 →
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

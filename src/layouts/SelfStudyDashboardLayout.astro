@@ -1,0 +1,140 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import type { StudyRoom } from '../lib/self-study-rooms';
+
+interface UnitSummary {
+  slug: string;
+  title: string;
+  tags: string[];
+}
+
+interface Props {
+  room: StudyRoom;
+  units: UnitSummary[];
+  activeSlug?: string;
+  title: string;
+  description?: string;
+}
+
+const { room, units, activeSlug, title, description } = Astro.props;
+const allTags = [...new Set(units.flatMap((unit) => unit.tags))];
+---
+
+<BaseLayout title={title} description={description}>
+  <section class="mx-auto max-w-6xl px-6 py-12">
+    <nav class="mb-8 flex flex-wrap items-center gap-2 text-sm text-chestnut/50" aria-label="麵包屑">
+      <a href="/self-study" class="hover:text-terracotta">自學專區</a>
+      <span aria-hidden="true">／</span>
+      <span class="text-chestnut/80">{room.icon} {room.name}</span>
+    </nav>
+
+    <div class="grid gap-8 lg:grid-cols-[280px_1fr]">
+      <aside class="lg:sticky lg:top-24 lg:self-start">
+        <div class="rounded-2xl border border-chestnut/10 bg-white/50 p-5">
+          <p class="font-serif text-sm font-semibold text-chestnut">{room.icon} {room.name}</p>
+          <p class="mt-1.5 text-xs leading-relaxed text-chestnut/60">{room.tagline}</p>
+        </div>
+
+        <div class="relative mt-5">
+          <input
+            type="search"
+            id="unit-search"
+            placeholder="搜尋這個房間的單元…"
+            class="w-full rounded-full border border-chestnut/15 bg-white/60 py-2.5 pl-4 pr-4 text-sm text-chestnut placeholder:text-chestnut/40 focus:border-terracotta focus:outline-none"
+          />
+        </div>
+
+        {
+          allTags.length > 0 && (
+            <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label="依標籤篩選">
+              <button type="button" data-tag="all" class="unit-tag-chip is-active">
+                全部
+              </button>
+              {allTags.map((tag) => (
+                <button type="button" data-tag={tag} class="unit-tag-chip">
+                  #{tag}
+                </button>
+              ))}
+            </div>
+          )
+        }
+
+        <ul class="mt-5 space-y-1" id="unit-list">
+          {
+            units.map((unit) => (
+              <li data-unit-title={unit.title} data-unit-tags={unit.tags.join(',')}>
+                <a
+                  href={`/self-study/${room.slug}/${unit.slug}`}
+                  class:list={[
+                    'block rounded-xl px-4 py-2.5 text-sm transition-colors',
+                    unit.slug === activeSlug
+                      ? 'bg-terracotta text-cream'
+                      : 'text-chestnut/75 hover:bg-terracotta/10 hover:text-terracotta',
+                  ]}
+                >
+                  {unit.title}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <p id="unit-empty-state" class="mt-4 hidden text-sm text-chestnut/50">沒有符合的單元。</p>
+      </aside>
+
+      <div class="min-w-0">
+        <slot />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .unit-tag-chip {
+    @apply rounded-full border border-chestnut/15 bg-cream px-3 py-1 text-xs font-medium text-chestnut/70 transition-colors hover:border-terracotta hover:text-terracotta;
+  }
+  .unit-tag-chip.is-active {
+    @apply border-terracotta bg-terracotta text-cream hover:text-cream;
+  }
+</style>
+
+<script>
+  const searchInput = document.getElementById('unit-search') as HTMLInputElement | null;
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.unit-tag-chip'));
+  const items = Array.from(document.querySelectorAll<HTMLLIElement>('#unit-list > li'));
+  const emptyState = document.getElementById('unit-empty-state');
+
+  let activeTag = 'all';
+
+  function applyFilters() {
+    const query = (searchInput?.value ?? '').trim().toLowerCase();
+    let visibleCount = 0;
+    for (const item of items) {
+      const title = (item.dataset.unitTitle ?? '').toLowerCase();
+      const tags = (item.dataset.unitTags ?? '').split(',');
+      const matchesTag = activeTag === 'all' || tags.includes(activeTag);
+      const matchesQuery = query === '' || title.includes(query);
+      const visible = matchesTag && matchesQuery;
+      item.classList.toggle('hidden', !visible);
+      if (visible) visibleCount += 1;
+    }
+    emptyState?.classList.toggle('hidden', visibleCount > 0);
+  }
+
+  function setActiveChip(tag: string) {
+    activeTag = tag;
+    for (const chip of chips) {
+      chip.classList.toggle('is-active', chip.dataset.tag === tag);
+    }
+  }
+
+  setActiveChip('all');
+  applyFilters();
+
+  searchInput?.addEventListener('input', applyFilters);
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      setActiveChip(chip.dataset.tag ?? 'all');
+      applyFilters();
+    });
+  });
+</script>

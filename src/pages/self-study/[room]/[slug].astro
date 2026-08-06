@@ -1,0 +1,42 @@
+---
+import { getCollection } from 'astro:content';
+import SelfStudyDashboardLayout from '../../../layouts/SelfStudyDashboardLayout.astro';
+import SelfStudyUnitPanel from '../../../components/SelfStudyUnitPanel.astro';
+import { getRoomBySlug } from '../../../lib/self-study-rooms';
+
+export async function getStaticPaths() {
+  const allUnits = await getCollection('self-study');
+  return allUnits.map((unit) => ({
+    params: { room: unit.data.room, slug: unit.slug },
+    props: { unit },
+  }));
+}
+
+const { unit } = Astro.props;
+const room = getRoomBySlug(unit.data.room)!;
+const { Content } = await unit.render();
+
+const roomUnits = await getCollection('self-study', (entry) => entry.data.room === room.slug);
+const units = roomUnits
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((u) => ({ slug: u.slug, title: u.data.title, tags: u.data.tags }));
+---
+
+<SelfStudyDashboardLayout
+  room={room}
+  units={units}
+  activeSlug={unit.slug}
+  title={unit.data.title}
+  description={unit.data.summary}
+>
+  <SelfStudyUnitPanel
+    title={unit.data.title}
+    summary={unit.data.summary}
+    downloadPdf={unit.data.downloadPdf}
+    downloadWord={unit.data.downloadWord}
+    aiPrompt={unit.data.aiPrompt}
+    tags={unit.data.tags}
+  >
+    <Content />
+  </SelfStudyUnitPanel>
+</SelfStudyDashboardLayout>
