@@ -12,9 +12,10 @@ interface Props {
   reference?: string;
   cover?: string;
   slug?: string;
+  aiGenerated?: boolean;
 }
 
-const { title, date, category, tags, summary, reference, cover, slug } = Astro.props;
+const { title, date, category, tags, summary, reference, cover, slug, aiGenerated } = Astro.props;
 
 const formattedDate = date.toLocaleDateString('zh-TW', {
   year: 'numeric',
@@ -89,6 +90,14 @@ const formattedDate = date.toLocaleDateString('zh-TW', {
           </h2>
           <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-chestnut/70">{reference}</p>
         </footer>
+      )
+    }
+
+    {
+      aiGenerated && (
+        <p class="mt-10 text-center text-xs italic text-chestnut/40">
+          本站文章配圖由 AI 視覺技術輔助生成，符合品牌莫蘭迪美學規範。
+        </p>
       )
     }
   </article>

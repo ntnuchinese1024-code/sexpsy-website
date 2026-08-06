@@ -8,7 +8,8 @@
     "start": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "generate:images": "node --env-file=.env scripts/generate-article-images.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
@@ -18,5 +19,10 @@
     "tailwindcss": "^3.4.19",
     "typescript": "^5.7.2",
     "unist-util-visit": "^5.1.0"
+  },
+  "devDependencies": {
+    "gray-matter": "^4.0.3",
+    "openai": "^7.4.0",
+    "sharp": "^0.35.3"
   }
 }

@@ -19,6 +19,13 @@ const articles = defineCollection({
       .string()
       .optional()
       .transform((value) => normalizeImagePath(value)),
+    /**
+     * 這篇文章的圖（cover 和／或內文插圖）是否由 AI 生成。由
+     * scripts/generate-article-images.mjs 自動寫入，用來決定要不要顯示
+     * AI 配圖聲明；不是所有文章都用 AI 配圖（例如書封照片），所以不能
+     * 寫死全站顯示，要靠這個欄位判斷。
+     */
+    aiGenerated: z.boolean().default(false),
   }),
 });
 
