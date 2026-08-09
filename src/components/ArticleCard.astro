@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import CoverArt from './CoverArt.astro';
 import SofaCounter from './SofaCounter.astro';
 import { getSeriesByName } from '../lib/series';
+import { wrapTitleHtml } from '../lib/wrap-title';
 
 interface Props {
   entry: CollectionEntry<'articles'>;
@@ -55,9 +56,10 @@ const searchText = [entry.data.title, entry.data.summary, entry.data.category, .
       {entry.data.category}
     </span>
 
-    <Heading class="mt-3 font-serif text-xl font-semibold leading-snug text-chestnut transition-colors group-hover:text-[var(--color-primary)]">
-      {entry.data.title}
-    </Heading>
+    <Heading
+      class="mt-3 font-serif text-xl font-semibold leading-snug text-chestnut transition-colors group-hover:text-[var(--color-primary)]"
+      set:html={wrapTitleHtml(entry.data.title)}
+    />
 
     <p class="mt-3 line-clamp-3 text-sm leading-relaxed text-[var(--color-text-muted)]">
       {entry.data.summary}
