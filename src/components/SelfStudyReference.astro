@@ -17,7 +17,7 @@ const relatedUnits = (await getCollection('self-study')).filter((unit) =>
   relatedUnits.length > 0 && (
     <div class="mt-6 rounded-2xl border border-[var(--color-border)] bg-white p-6 sm:p-8">
       <p class="text-sm font-medium uppercase tracking-[0.15em] text-chestnut/50">延伸自學</p>
-      <p class="mt-1 text-sm text-chestnut/60">這篇文章也被收進以下自學單元裡的延伸閱讀，想更進一步練習可以逛逛。</p>
+      <p class="mt-1 text-sm text-chestnut/60">在沙發上讀完這篇文章後，如果想更進一步練習，把知識內化成自己的智慧，歡迎起身走進自學室一起練功。</p>
       <div class="mt-4 flex flex-wrap gap-3">
         {relatedUnits.map((unit) => {
           const room = getRoomBySlug(unit.data.room)!;
