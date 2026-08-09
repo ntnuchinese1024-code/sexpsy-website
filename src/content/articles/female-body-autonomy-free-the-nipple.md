@@ -10,6 +10,7 @@ tags:
 summary: >-
   女性的乳房,從來都不只是自己的:被宗教、商業、情色與新聞版面輪流定義,連哺乳都要承受異樣眼光。這篇文章從2014年掀起的「解放乳房（FreeTheNipple）」運動談起,聊聊女性身體自主權的核心,其實不是把身體去性化,而是拿回為自己身體做決定的自由。
 reference: Marilyn Yalom（2019）。《乳房的歷史》。麥田出版。
+cover: /images/cover-female-body-autonomy-free-the-nipple.webp
 ---
 
 你有沒有想過,自己的乳房,好像從來都不完全是「自己的」?
