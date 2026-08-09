@@ -10,10 +10,11 @@ interface Props {
 
 const { category, tags, slug } = Astro.props;
 
-const seriesArticles = (await getCollection('articles')).filter(
-  (entry) => entry.data.category === category
-);
-seriesArticles.sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
+const allArticles = await getCollection('articles');
+
+const seriesArticles = allArticles
+  .filter((entry) => entry.data.category === category)
+  .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
 
 const currentIndex = seriesArticles.findIndex((entry) => entry.slug === slug);
 const total = seriesArticles.length;
@@ -24,10 +25,48 @@ const progress = total > 1 ? ((currentIndex + 1) / total) * 100 : 100;
 
 const series = getSeriesByName(category);
 const seriesLabel = series.title ?? series.name;
+
+/** 從陣列中隨機挑 count 篇，不重複（同 self-study 單元頁沒指定延伸閱讀時的隨機推薦邏輯） */
+function pickRandom<T>(pool: T[], count: number): T[] {
+  const copy = [...pool];
+  const picked: T[] = [];
+  while (picked.length < count && copy.length > 0) {
+    const i = Math.floor(Math.random() * copy.length);
+    picked.push(copy.splice(i, 1)[0]);
+  }
+  return picked;
+}
+
+// 同系列沒有上一篇／下一篇可接續時，改用「標籤相似優先、不夠再隨機補」的方式推薦文章，
+// 讓讀完單篇文章的人還是有地方可以繼續逛，不會卡在頁尾。
+const RECOMMEND_COUNT = 3;
+let recommended: typeof allArticles = [];
+let recommendedIsRandom = false;
+
+if (!prev && !next) {
+  const others = allArticles.filter((entry) => entry.slug !== slug);
+  const tagMatched = others
+    .map((entry) => ({
+      entry,
+      score: entry.data.tags.filter((tag) => tags.includes(tag)).length,
+    }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.entry);
+
+  if (tagMatched.length >= RECOMMEND_COUNT) {
+    recommended = tagMatched.slice(0, RECOMMEND_COUNT);
+  } else {
+    const matchedSlugs = new Set(tagMatched.map((entry) => entry.slug));
+    const randomPool = others.filter((entry) => !matchedSlugs.has(entry.slug));
+    recommended = [...tagMatched, ...pickRandom(randomPool, RECOMMEND_COUNT - tagMatched.length)];
+    recommendedIsRandom = tagMatched.length === 0;
+  }
+}
 ---
 
 {
-  (total > 1 || prev || next || tags.length > 0) && (
+  (total > 1 || prev || next || tags.length > 0 || recommended.length > 0) && (
     <nav aria-label="文章導覽" class="mt-14 rounded-2xl border border-[var(--color-border)] bg-white p-6 sm:p-8">
       {total > 1 && (
         <div class="mb-6">
@@ -70,6 +109,22 @@ const seriesLabel = series.title ?? series.name;
               <span class="mt-1 font-serif text-sm font-semibold leading-snug">{next.data.title}</span>
             </a>
           )}
+        </div>
+      )}
+
+      {recommended.length > 0 && (
+        <div>
+          <p class="text-sm text-chestnut/50">{recommendedIsRandom ? '你可能也想看看' : '猜你也喜歡'}</p>
+          <div class="mt-3 flex flex-wrap gap-3">
+            {recommended.map((article) => (
+              <a
+                href={`/articles/${article.slug}`}
+                class="rounded-full border border-chestnut/15 bg-cream/60 px-4 py-2 text-sm text-chestnut/80 transition-colors hover:border-terracotta/50 hover:text-terracotta"
+              >
+                📖 {article.data.title}
+              </a>
+            ))}
+          </div>
         </div>
       )}
 

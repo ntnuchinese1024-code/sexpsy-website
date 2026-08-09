@@ -1,0 +1,37 @@
+---
+import { getCollection } from 'astro:content';
+import { getRoomBySlug } from '../lib/self-study-rooms';
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+
+const relatedUnits = (await getCollection('self-study')).filter((unit) =>
+  unit.data.relatedArticles.some((ref) => ref.slug === slug)
+);
+---
+
+{
+  relatedUnits.length > 0 && (
+    <div class="mt-6 rounded-2xl border border-[var(--color-border)] bg-white p-6 sm:p-8">
+      <p class="text-sm font-medium uppercase tracking-[0.15em] text-chestnut/50">延伸自學</p>
+      <p class="mt-1 text-sm text-chestnut/60">這篇文章也被收進以下自學單元裡的延伸閱讀，想更進一步練習可以逛逛。</p>
+      <div class="mt-4 flex flex-wrap gap-3">
+        {relatedUnits.map((unit) => {
+          const room = getRoomBySlug(unit.data.room)!;
+          return (
+            <a
+              href={`/self-study/${unit.data.room}/${unit.slug}`}
+              class={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90 ${room.badge}`}
+            >
+              <span aria-hidden="true">{room.icon}</span>
+              {unit.data.title}
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  )
+}
