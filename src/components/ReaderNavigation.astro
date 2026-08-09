@@ -1,0 +1,102 @@
+---
+import { getCollection } from 'astro:content';
+import { getSeriesByName } from '../lib/series';
+
+interface Props {
+  category: string;
+  tags: string[];
+  slug: string;
+}
+
+const { category, tags, slug } = Astro.props;
+
+const seriesArticles = (await getCollection('articles')).filter(
+  (entry) => entry.data.category === category
+);
+seriesArticles.sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
+
+const currentIndex = seriesArticles.findIndex((entry) => entry.slug === slug);
+const total = seriesArticles.length;
+const prev = currentIndex > 0 ? seriesArticles[currentIndex - 1] : undefined;
+const next =
+  currentIndex >= 0 && currentIndex < total - 1 ? seriesArticles[currentIndex + 1] : undefined;
+const progress = total > 1 ? ((currentIndex + 1) / total) * 100 : 100;
+
+const series = getSeriesByName(category);
+const seriesLabel = series.title ?? series.name;
+---
+
+{
+  (total > 1 || prev || next || tags.length > 0) && (
+    <nav aria-label="文章導覽" class="mt-14 rounded-2xl border border-[var(--color-border)] bg-white p-6 sm:p-8">
+      {total > 1 && (
+        <div class="mb-6">
+          <div class="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm">
+            <span class={`inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-medium ${series.badge}`}>
+              {seriesLabel}
+            </span>
+            <span class="text-chestnut/60">
+              閱讀進度：<strong class="text-chestnut">{currentIndex + 1}</strong> / {total}
+            </span>
+          </div>
+          <div class="h-1.5 w-full overflow-hidden rounded-full bg-chestnut/10">
+            <div class={`h-full rounded-full ${series.dot}`} style={`width: ${progress}%`} />
+          </div>
+        </div>
+      )}
+
+      {(prev || next) && (
+        <div class="grid gap-4 sm:grid-cols-2">
+          {prev ? (
+            <a
+              href={`/articles/${prev.slug}`}
+              class="flex flex-col rounded-xl border border-chestnut/10 bg-cream/60 p-4 transition-colors hover:border-terracotta/40"
+            >
+              <span class="text-xs text-chestnut/50">← 上一篇</span>
+              <span class="mt-1 font-serif text-sm font-semibold leading-snug text-chestnut">
+                {prev.data.title}
+              </span>
+            </a>
+          ) : (
+            <span aria-hidden="true" class="hidden sm:block" />
+          )}
+
+          {next && (
+            <a
+              href={`/articles/${next.slug}`}
+              class="flex flex-col rounded-xl bg-terracotta p-4 text-cream transition-opacity hover:opacity-90"
+            >
+              <span class="text-xs text-cream/80">下一篇（建議閱讀）→</span>
+              <span class="mt-1 font-serif text-sm font-semibold leading-snug">{next.data.title}</span>
+            </a>
+          )}
+        </div>
+      )}
+
+      {tags.length > 0 && (
+        <div class="mt-6 flex flex-wrap items-center gap-2 border-t border-chestnut/10 pt-6 text-sm">
+          <span class="text-chestnut/50">相關標籤：</span>
+          {tags.map((tag) => (
+            <a
+              href={`/articles?q=${encodeURIComponent(tag)}`}
+              class="rounded-full bg-terracotta/10 px-3 py-1 text-xs text-terracotta transition-colors hover:bg-terracotta/20"
+            >
+              #{tag}
+            </a>
+          ))}
+        </div>
+      )}
+
+      {total > 1 && (
+        <div class="mt-4 text-center">
+          <a
+            href={`/articles?series=${encodeURIComponent(category)}`}
+            class="text-sm font-medium text-terracotta hover:underline"
+          >
+            ≡ 查看「{seriesLabel}」系列所有文章
+          </a>
+        </div>
+      )}
+    </nav>
+  )
+}

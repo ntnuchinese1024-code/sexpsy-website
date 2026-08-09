@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import CoverArt from '../components/CoverArt.astro';
 import SofaCounter from '../components/SofaCounter.astro';
+import ReaderNavigation from '../components/ReaderNavigation.astro';
 
 interface Props {
   title: string;
@@ -100,6 +101,8 @@ const formattedDate = date.toLocaleDateString('zh-TW', {
         </p>
       )
     }
+
+    {slug && <ReaderNavigation category={category} tags={tags} slug={slug} />}
   </article>
 </BaseLayout>
 
