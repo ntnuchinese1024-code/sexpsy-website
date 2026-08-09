@@ -7,9 +7,20 @@ const articles = defineCollection({
     title: z.string(),
     date: z.coerce.date(),
     category: z.string(),
-    tags: z.array(z.string()).default([]),
+    /**
+     * Obsidian 留空的欄位（例如 `reference:` 後面沒接值）會被 YAML 解析成
+     * null，不是 undefined，`.optional()` 不吃 null 會讓整個網站 build 失敗。
+     * 這裡全部改用 `.nullish()`（同時接受 null 和 undefined）避免這個問題。
+     */
+    tags: z
+      .array(z.string())
+      .nullish()
+      .transform((value) => value ?? []),
     summary: z.string(),
-    reference: z.string().optional(),
+    reference: z
+      .string()
+      .nullish()
+      .transform((value) => value ?? undefined),
     /**
      * 封面圖片路徑／URL；留空時會依 category 自動產生品牌插畫。
      * 同樣的路徑寫法問題（缺開頭 /、多了 public/ 前綴）在這裡也自動修正，
@@ -17,8 +28,8 @@ const articles = defineCollection({
      */
     cover: z
       .string()
-      .optional()
-      .transform((value) => normalizeImagePath(value)),
+      .nullish()
+      .transform((value) => normalizeImagePath(value) ?? undefined),
     /**
      * 這篇文章的圖（cover 和／或內文插圖）是否由 AI 生成。由
      * scripts/generate-article-images.mjs 自動寫入，用來決定要不要顯示
@@ -38,20 +49,39 @@ const selfStudy = defineCollection({
     /** 房間內的排序，數字小的排前面 */
     order: z.number().default(0),
     summary: z.string(),
-    downloadPdf: z.string().optional(),
-    downloadWord: z.string().optional(),
+    downloadPdf: z
+      .string()
+      .nullish()
+      .transform((value) => value ?? undefined),
+    downloadWord: z
+      .string()
+      .nullish()
+      .transform((value) => value ?? undefined),
     /** AI 探索陪伴 Prompt；沒填就不顯示複製卡片區塊 */
-    aiPrompt: z.string().optional(),
+    aiPrompt: z
+      .string()
+      .nullish()
+      .transform((value) => value ?? undefined),
     /** 免責提醒目前是「自學專區總則 + 房間專屬提醒」兩層結構（見
      * self-study-rooms.ts 的 disclaimer 欄位），單元本身不需要另外指定。
      * 保留這個欄位是為了未來如果某篇單元需要跳脫房間預設、換一段完全不同
      * 的免責文案時可以覆蓋，目前還沒有任何單元用到覆蓋邏輯。 */
     disclaimerType: z.string().default('standard-healing'),
-    tags: z.array(z.string()).default([]),
+    tags: z
+      .array(z.string())
+      .nullish()
+      .transform((value) => value ?? []),
     /** 預計完成時間（分鐘），顯示在單元標題旁邊 */
-    estimatedMinutes: z.number().positive().optional(),
+    estimatedMinutes: z
+      .number()
+      .positive()
+      .nullish()
+      .transform((value) => value ?? undefined),
     /** 難易度；先開放兩級，之後真的需要更多層再擴充 */
-    difficulty: z.enum(['入門', '進階']).optional(),
+    difficulty: z
+      .enum(['入門', '進階'])
+      .nullish()
+      .transform((value) => value ?? undefined),
     /** 延伸閱讀：對應 src/content/articles/ 的文章 slug，會做成連結卡片 */
     relatedArticles: z.array(reference('articles')).default([]),
   }),
