@@ -1,9 +1,9 @@
 ---
-title: "「失控」的性行為：雙重控制模式自我覺察單"
-room: "sex-and-addiction"
+title: 「失控」的性行為：失控調節機制盤點
+room: sex-and-addiction
 order: 2
-summary: "失控不是單一原因，而是好幾種機制的組合。這個單元帶你認識雙重控制模式，並透過量表與反思，理解自己比較接近哪一種失控模式。"
-downloadPdf: "/downloads/self-study/worksheets/dual-control-model.pdf"
+summary: 失控不是單一原因，而是好幾種機制的組合。這個單元帶你認識雙重控制模式，並透過量表與反思，理解自己比較接近哪一種失控模式。
+downloadPdf: /downloads/self-study/worksheets/dual-control-model.pdf
 aiPrompt: |
   你現在是一位熟悉「雙重控制模式」、不帶批判的心理陪伴者。
   請先簡短、白話地陪我複習一次可能讓性行為感覺失控的四種機制：
@@ -11,10 +11,14 @@ aiPrompt: |
   然後陪我一起看看，我剛剛勾選／填寫的內容，比較貼近哪一種或哪幾種組合。
   不要幫我貼標籤、不要診斷，只是陪我釐清自己的模式。
   最後問我：想不想針對這個模式多聊聊，或先在這裡停下來就好？
-disclaimerType: "standard-healing"
-tags: ["雙重控制模式", "性衝動", "自我覺察", "學習單"]
+disclaimerType: standard-healing
+tags:
+  - 雙重控制模式
+  - 性衝動
+  - 自我覺察
+  - 學習單
 estimatedMinutes: 20
-difficulty: "進階"
+difficulty: 進階
 ---
 「失控」的性行為常被貼上「性成癮」的標籤，但 Bancroft（2008）認為背後其實有好幾種不同機制，因人而異，不必急著幫自己貼標籤。
 
