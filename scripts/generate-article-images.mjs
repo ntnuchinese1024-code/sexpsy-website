@@ -35,6 +35,7 @@ import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import matter from 'gray-matter';
 import sharp from 'sharp';
+import { normalizePunctuation } from '../src/lib/normalize-punctuation.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -221,7 +222,10 @@ function buildCoverSvg({ title, category }) {
   const accentHex = complementaryHex(identityHex); // 對比色，只用在小點點裝飾
   const badge = SERIES_BADGE[category] ?? DEFAULT_BADGE; // 跟網站上實際 badge 一致的底色/字色
 
-  const titleLines = wrapTitle(title);
+  // Obsidian 打字習慣偶爾會混到半形標點（例如「路上,覺察」），緊鄰中文字
+  // 的半形標點在這個字重、字級下會跟全形字擠在一起、留白很不平均，統一
+  // 轉成全形再排版。
+  const titleLines = wrapTitle(normalizePunctuation(title));
   const lineHeight = 118; // 拉大行距，原本 92 偏擠
   const titleBlockHeight = (titleLines.length - 1) * lineHeight;
   const startY = HEIGHT / 2 - titleBlockHeight / 2 + 20;
@@ -268,11 +272,14 @@ function buildCoverSvg({ title, category }) {
   <!-- 分類 badge -->
   <rect x="${badgeX}" y="${badgeY}" width="${badgeWidth}" height="${badgeHeight}" rx="${badgeHeight / 2}" fill="${badge.bg}" />
   <text x="${badgeX + badgeWidth / 2}" y="${badgeY + badgeHeight / 2 + badgeFontSize * 0.35}" text-anchor="middle"
-        font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif"
+        font-family="'PingFang TC',sans-serif"
         font-size="${badgeFontSize}" font-weight="600" letter-spacing="2" fill="${badge.text}">${escapeXml(category)}</text>
 
-  <!-- 標題 -->
-  <text font-family="'Noto Serif TC','Songti TC',serif" font-size="76" font-weight="700" fill="#3C2A21">${titleTspans}</text>
+  <!-- 標題：字型只列本機（macOS）實際裝的「Songti TC」，不再列 Noto Serif TC——
+       那個字型根本沒裝，讓 librsvg 去 fontconfig 解析一個不存在的字型再
+       fallback，偶爾會導致個別字元（全形標點）解析到不對的替代字型，
+       看起來像半形、間距也不對。同理 badge 那邊也只留有裝的 PingFang TC。 -->
+  <text font-family="'Songti TC',serif" font-size="76" font-weight="700" fill="#3C2A21">${titleTspans}</text>
 </svg>`;
 }
 
