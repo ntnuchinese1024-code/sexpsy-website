@@ -16,13 +16,36 @@ const { unit } = Astro.props;
 const room = getRoomBySlug(unit.data.room)!;
 const { Content } = await unit.render();
 
-const relatedArticles =
-  unit.data.relatedArticles.length > 0
-    ? (await getEntries(unit.data.relatedArticles)).map((article) => ({
-        slug: article.slug,
-        title: article.data.title,
-      }))
-    : [];
+/** 從陣列中隨機挑 count 篇，不重複 */
+function pickRandom<T>(pool: T[], count: number): T[] {
+  const copy = [...pool];
+  const picked: T[] = [];
+  while (picked.length < count && copy.length > 0) {
+    const i = Math.floor(Math.random() * copy.length);
+    picked.push(copy.splice(i, 1)[0]);
+  }
+  return picked;
+}
+
+const RANDOM_RELATED_COUNT = 3;
+
+let relatedArticles: { slug: string; title: string }[];
+let relatedArticlesIsRandom = false;
+
+if (unit.data.relatedArticles.length > 0) {
+  relatedArticles = (await getEntries(unit.data.relatedArticles)).map((article) => ({
+    slug: article.slug,
+    title: article.data.title,
+  }));
+} else {
+  // 沒有指定延伸閱讀時，隨機推薦幾篇文章，避免這個區塊整個消失
+  const allArticles = await getCollection('articles');
+  relatedArticles = pickRandom(allArticles, RANDOM_RELATED_COUNT).map((article) => ({
+    slug: article.slug,
+    title: article.data.title,
+  }));
+  relatedArticlesIsRandom = true;
+}
 
 const roomUnits = await getCollection('self-study', (entry) => entry.data.room === room.slug);
 const units = roomUnits
