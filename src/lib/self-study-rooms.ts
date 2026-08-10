@@ -1,5 +1,5 @@
 export interface StudyRoom {
-  slug: 'sex-and-addiction' | 'intimacy' | 'body';
+  slug: 'sex-and-addiction' | 'intimacy' | 'body' | 'sex-education';
   icon: string;
   name: string;
   tagline: string;
@@ -53,6 +53,18 @@ export const STUDY_ROOMS: StudyRoom[] = [
     hex: '#8A9A86',
     disclaimer:
       '這個房間會邀請你重新靠近身體的感受與情緒起伏，過程中可能會觸碰到身體意象、身心失衡或強烈情緒。這裡提供的是自我覺察練習，不能取代醫療或心理專業評估。如果出現持續的身心不適，或有安全上的疑慮，請優先聯繫衛福部安心專線 1925 或生命線 1995。',
+  },
+  {
+    slug: 'sex-education',
+    icon: '📖',
+    name: '性教育自學室',
+    tagline: '破除迷思與尷尬，把正確的性知識找回來。',
+    border: 'border-caramel/50',
+    badge: 'bg-caramel text-chestnut',
+    dot: 'bg-caramel',
+    hex: '#D49B6A',
+    disclaimer:
+      '這個房間提供的是性教育的基礎知識，幫助你破除迷思、更了解身體與性這件事，不能取代學校性教育課程、醫療評估或心理諮商。如果你有更進一步的個別化需求（例如健康疑問、關係困擾），歡迎聯繫生命線 1995，或到求助資源列表裡找合適的管道。',
   },
 ];
 

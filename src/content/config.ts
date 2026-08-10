@@ -45,7 +45,7 @@ const selfStudy = defineCollection({
   schema: z.object({
     title: z.string(),
     /** 對應 src/lib/self-study-rooms.ts 的房間 slug，決定這篇單元歸在哪個自學室 */
-    room: z.enum(['sex-and-addiction', 'intimacy', 'body']),
+    room: z.enum(['sex-and-addiction', 'intimacy', 'body', 'sex-education']),
     /** 房間內的排序，數字小的排前面 */
     order: z.number().default(0),
     summary: z.string(),
