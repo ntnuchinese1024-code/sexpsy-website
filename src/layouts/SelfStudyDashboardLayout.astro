@@ -18,14 +18,33 @@ interface Props {
 
 const { room, units, activeSlug, title, description } = Astro.props;
 const allTags = [...new Set(units.flatMap((unit) => unit.tags))];
+
+const isUnitPage = Boolean(activeSlug);
+const roomUrl = `/self-study/${room.slug}`;
+const breadcrumbs = [
+  { name: '首頁', url: '/' },
+  { name: '自學專區', url: '/self-study' },
+  { name: room.name, url: roomUrl },
+  ...(isUnitPage ? [{ name: title, url: `${roomUrl}/${activeSlug}` }] : []),
+];
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={title} description={description} breadcrumbs={breadcrumbs}>
   <section class="mx-auto max-w-6xl px-6 py-12">
     <nav class="mb-8 flex flex-wrap items-center gap-2 text-sm text-chestnut/50" aria-label="麵包屑">
       <a href="/self-study" class="hover:text-terracotta">自學專區</a>
       <span aria-hidden="true">／</span>
-      <span class="text-chestnut/80">{room.icon} {room.name}</span>
+      {
+        isUnitPage ? (
+          <a href={roomUrl} class="hover:text-terracotta">
+            {room.icon} {room.name}
+          </a>
+        ) : (
+          <span class="text-chestnut/80">
+            {room.icon} {room.name}
+          </span>
+        )
+      }
     </nav>
 
     <div class="grid gap-8 lg:grid-cols-[280px_1fr]">

@@ -5,6 +5,7 @@ import SofaCounter from '../components/SofaCounter.astro';
 import ReaderNavigation from '../components/ReaderNavigation.astro';
 import SelfStudyReference from '../components/SelfStudyReference.astro';
 import { wrapTitleHtml } from '../lib/wrap-title';
+import { getSeriesByName } from '../lib/series';
 
 interface Props {
   title: string;
@@ -25,9 +26,25 @@ const formattedDate = date.toLocaleDateString('zh-TW', {
   month: 'long',
   day: 'numeric',
 });
+
+const series = getSeriesByName(category);
+const seriesUrl = `/articles?series=${encodeURIComponent(category)}`;
+const breadcrumbs = [
+  { name: '首頁', url: '/' },
+  { name: '所有文章', url: '/articles' },
+  { name: series.name, url: seriesUrl },
+  { name: title, url: slug ? `/articles/${slug}` : '/articles' },
+];
 ---
 
-<BaseLayout title={title} description={summary}>
+<BaseLayout
+  title={title}
+  description={summary}
+  image={cover}
+  type="article"
+  article={{ publishedTime: date.toISOString(), tags, section: category }}
+  breadcrumbs={breadcrumbs}
+>
   <div
     id="reading-progress"
     class="fixed left-0 top-0 z-[60] h-1 w-0 bg-terracotta transition-[width] duration-150"
@@ -40,6 +57,12 @@ const formattedDate = date.toLocaleDateString('zh-TW', {
   </div>
 
   <article id="article-content" class="mx-auto max-w-[680px] px-6 py-16">
+    <nav class="mb-6 flex flex-wrap items-center gap-2 text-sm text-chestnut/50" aria-label="麵包屑">
+      <a href="/articles" class="hover:text-terracotta">所有文章</a>
+      <span aria-hidden="true">／</span>
+      <a href={seriesUrl} class="hover:text-terracotta">{series.name}</a>
+    </nav>
+
     <div class="mb-10 overflow-hidden rounded-2xl">
       {
         cover ? (

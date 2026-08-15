@@ -6,15 +6,17 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build",
+    "build": "astro check && node scripts/generate-llms-txt.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "generate:images": "node scripts/generate-article-images.mjs",
+    "generate:llms": "node scripts/generate-llms-txt.mjs",
     "hooks:install": "node scripts/install-hooks.mjs",
     "prepare": "node scripts/install-hooks.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
+    "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.2.1",
     "@astrojs/tailwind": "^5.1.5",
     "@tailwindcss/typography": "^0.5.20",

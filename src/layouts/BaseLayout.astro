@@ -3,15 +3,101 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
 
+interface ArticleMeta {
+  publishedTime: string;
+  modifiedTime?: string;
+  tags?: string[];
+  section?: string;
+}
+
+interface Breadcrumb {
+  name: string;
+  /** 站內相對路徑，例如 /articles 或帶 query string 的 /articles?series=xxx */
+  url: string;
+}
+
 interface Props {
   title: string;
   description?: string;
+  /** 站內相對路徑（例如文章的 cover），沒帶時 fallback 用品牌預設分享圖 */
+  image?: string;
+  type?: 'website' | 'article';
+  /** type="article" 時才用得到，帶去產生 Article 結構化資料 */
+  article?: ArticleMeta;
+  /** 從首頁開始的完整路徑，帶了才會產生 BreadcrumbList 結構化資料 */
+  breadcrumbs?: Breadcrumb[];
 }
+
+const SITE_NAME = '沙發上的性心理';
 
 const {
   title,
   description = '沙發上的性心理——用心理學視角談性、談愛、談自己。',
+  image = '/images/og-default.jpg',
+  type = 'website',
+  article,
+  breadcrumbs,
 } = Astro.props;
+
+const pageTitle = `${title} ｜ ${SITE_NAME}`;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const imageURL = new URL(image, Astro.site);
+const logoURL = new URL('/images/og-default.jpg', Astro.site);
+
+// 網站整體的可信度宣告（Organization，不是虛構的個人 Person schema——
+// About 頁面本身刻意不公開創辦人姓名，這裡的結構化資料只能誠實反映
+// 網站實際公開揭露的資訊，不能替使用者發明一個具名的人物設定）
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE_NAME,
+  alternateName: 'Sexpsy.tw',
+  url: Astro.site?.toString(),
+  logo: logoURL.toString(),
+  description: '以心理學與性諮商專業為基礎的中文知識分享網站，內容由執業心理師撰寫。',
+  knowsAbout: ['性議題諮商', '成癮與復元', '親密關係', '創傷知情實務', '生涯與自我探索'],
+};
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE_NAME,
+  url: Astro.site?.toString(),
+  inLanguage: 'zh-Hant',
+  publisher: { '@type': 'Organization', name: SITE_NAME },
+};
+
+const articleSchema = article && {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  image: imageURL.toString(),
+  datePublished: article.publishedTime,
+  dateModified: article.modifiedTime ?? article.publishedTime,
+  inLanguage: 'zh-Hant',
+  author: { '@type': 'Organization', name: SITE_NAME },
+  publisher: {
+    '@type': 'Organization',
+    name: SITE_NAME,
+    logo: { '@type': 'ImageObject', url: logoURL.toString() },
+  },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalURL.toString() },
+  ...(article.section && { articleSection: article.section }),
+  ...(article.tags && article.tags.length > 0 && { keywords: article.tags.join(', ') }),
+};
+
+const breadcrumbSchema = breadcrumbs &&
+  breadcrumbs.length > 0 && {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbs.map((crumb, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: crumb.name,
+      item: new URL(crumb.url, Astro.site).toString(),
+    })),
+  };
 ---
 
 <!doctype html>
@@ -20,9 +106,40 @@ const {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="alternate" type="application/rss+xml" title={SITE_NAME} href="/rss.xml" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
-    <title>{title} ｜ 沙發上的性心理</title>
+    <title>{pageTitle}</title>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={imageURL} />
+    <meta property="og:locale" content="zh_TW" />
+    {
+      article && (
+        <>
+          <meta property="article:published_time" content={article.publishedTime} />
+          {article.tags?.map((tag) => <meta property="article:tag" content={tag.replace(/^#/, '')} />)}
+        </>
+      )
+    }
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageURL} />
+
+    <!-- 結構化資料：給 Google／AI 搜尋引擎判斷網站可信度與內容用 -->
+    <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} is:inline />
+    <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} is:inline />
+    {articleSchema && <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} is:inline />}
+    {breadcrumbSchema && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} is:inline />}
   </head>
   <body class="flex min-h-screen flex-col bg-cream text-chestnut">
     <Header />

@@ -1,0 +1,39 @@
+# 沙發上的性心理 Sexpsy.tw
+
+> 「沙發上的性心理」是一個以心理學與性諮商專業為基礎的中文知識分享網站，
+> 用溫柔、誠實又不失研究嚴謹的口吻，陪讀者梳理親密關係、身體、情慾與自我
+> 覺察裡那些說不出口的困惑。
+
+## 專業背景（E-E-A-T）
+
+內容由一位執業心理師（諮商心理師）撰寫，同時是博士班研究生，研究領域聚焦
+性成癮、藥癮復元與創傷知情實務。文章多半從實證研究、臨床實務觀察與真實
+陪伴經驗出發，兼具學術文獻依據（Experience／Expertise）與可受公評的
+專業執照身分（Authoritativeness）；網站保持長期更新與透明的作者揭露，
+建立可信任（Trustworthiness）的內容關係。專長領域包含：性議題諮商、成癮
+與復元、親密關係、創傷知情實務、生涯與自我探索。
+
+## 六大專欄
+
+- [馬鈴薯嗑論文](https://www.sexpsy.tw/articles?series=%E9%A6%AC%E9%88%B4%E8%96%AF%E5%97%91%E8%AB%96%E6%96%87): 把厚重的學術論文，嗑成聽得懂的日常語言。
+- [沙發夜聊室](https://www.sexpsy.tw/articles?series=%E6%B2%99%E7%99%BC%E5%A4%9C%E8%81%8A%E5%AE%A4): 關係、依附，與那些說不出口的親密日常。
+- [情慾實驗室](https://www.sexpsy.tw/articles?series=%E6%83%85%E6%85%BE%E5%AF%A6%E9%A9%97%E5%AE%A4): 誠實面對身體、慾望與性的每一種樣子。
+- [心理急救包](https://www.sexpsy.tw/articles?series=%E5%BF%83%E7%90%86%E6%80%A5%E6%95%91%E5%8C%85): 情緒炸裂的時候，先給自己一個急救箱。
+- [耍廢自癒角](https://www.sexpsy.tw/articles?series=%E8%80%8D%E5%BB%A2%E8%87%AA%E7%99%92%E8%A7%92): 耍廢不是逃避，是一種溫柔的自我照顧。
+- [翻頁餘溫](https://www.sexpsy.tw/articles?series=%E7%BF%BB%E9%A0%81%E9%A4%98%E6%BA%AB): 那些閱讀過的書籍，都在生命裡活躍了起來。
+
+## 自學專區
+
+不只是文章，網站也提供結構化的自我覺察練習單元，分為四間自學室：性與癮、
+親密關係、身體與情感、性教育。
+
+## 核心連結
+
+- [網站首頁](https://www.sexpsy.tw/)
+- [文章總覽](https://www.sexpsy.tw/articles)
+- [自學專區](https://www.sexpsy.tw/self-study)
+- [關於創辦人](https://www.sexpsy.tw/about)
+- [聯絡我們](https://www.sexpsy.tw/contact)
+- [完整文章清單（含摘要與關鍵字）](https://www.sexpsy.tw/llms-full.txt)
+- [RSS 訂閱](https://www.sexpsy.tw/rss.xml)
+- [Sitemap](https://www.sexpsy.tw/sitemap-index.xml)
