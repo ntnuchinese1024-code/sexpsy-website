@@ -37,13 +37,13 @@ function pickRandom<T>(pool: T[], count: number): T[] {
   return picked;
 }
 
-// 同系列沒有上一篇／下一篇可接續時，改用「標籤相似優先、不夠再隨機補」的方式推薦文章，
-// 讓讀完單篇文章的人還是有地方可以繼續逛，不會卡在頁尾。
+// 不論系列內有沒有上一篇／下一篇可接續，都用「標籤相似優先、不夠再隨機補」的方式推薦文章，
+// 讓讀者在系列導覽之外還能看到隨機文章，擴散閱讀的感受跟嗜好，不會被困在同一個系列裡。
 const RECOMMEND_COUNT = 3;
 let recommended: typeof allArticles = [];
 let recommendedIsRandom = false;
 
-if (!prev && !next) {
+{
   const others = allArticles.filter((entry) => entry.slug !== slug);
   const tagMatched = others
     .map((entry) => ({
