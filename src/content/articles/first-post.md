@@ -2,6 +2,7 @@
 title: 為什麼我們讀論文讀到最後都變成一顆馬鈴薯？
 date: 2026-08-06
 category: 馬鈴薯嗑論文
+deck: gp14-squirting-scripts
 tags:
   - 依附理論
   - 文獻閱讀

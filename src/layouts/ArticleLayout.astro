@@ -4,6 +4,7 @@ import CoverArt from '../components/CoverArt.astro';
 import SofaCounter from '../components/SofaCounter.astro';
 import ReaderNavigation from '../components/ReaderNavigation.astro';
 import SelfStudyReference from '../components/SelfStudyReference.astro';
+import SlideDeck from '../components/SlideDeck.astro';
 import { wrapTitleHtml } from '../lib/wrap-title';
 import { getSeriesByName } from '../lib/series';
 
@@ -17,9 +18,12 @@ interface Props {
   cover?: string;
   slug?: string;
   aiGenerated?: boolean;
+  /** 文末要掛的簡報 id（對應 src/content/decks/），沒填就不顯示 */
+  deck?: string;
 }
 
-const { title, date, category, tags, summary, reference, cover, slug, aiGenerated } = Astro.props;
+const { title, date, category, tags, summary, reference, cover, slug, aiGenerated, deck } =
+  Astro.props;
 
 const formattedDate = date.toLocaleDateString('zh-TW', {
   year: 'numeric',
@@ -119,6 +123,8 @@ const breadcrumbs = [
         </footer>
       )
     }
+
+    {deck && <SlideDeck deck={deck} category={category} />}
 
     {
       aiGenerated && (
