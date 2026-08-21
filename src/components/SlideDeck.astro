@@ -1,0 +1,1153 @@
+---
+import { getCollection } from 'astro:content';
+import { getSeriesByName } from '../lib/series';
+import { renderEmphasis } from '../lib/deck-emphasis';
+import DeckFigure from './DeckFigure.astro';
+import Logo from './Logo.astro';
+
+interface Props {
+  /** 對應 src/content/decks/<deck>.json 的檔名 */
+  deck: string;
+  /** 文章所屬系列，決定強調色 */
+  category: string;
+}
+
+const { deck, category } = Astro.props;
+
+// 刻意用 getCollection().find() 而不是 getEntry()：文章的 deck 欄位是手打的字串，
+// 打錯字時這裡拿到 undefined、整個區塊安靜地不顯示，不會讓整站 build 掛掉。
+const decks = await getCollection('decks');
+const entry = decks.find((item) => item.id === deck);
+
+const series = getSeriesByName(category);
+const slides = entry?.data.slides ?? [];
+---
+
+{
+  entry && (
+    <section
+      class="deck-shell mt-16 xl:-mx-[100px]"
+      style={`--deck-accent: ${series.hex};`}
+      aria-labelledby={`deck-title-${deck}`}
+    >
+      <header class="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <div>
+          <p class="font-serif text-sm font-semibold uppercase tracking-[0.15em] text-chestnut/60">
+            延伸簡報
+          </p>
+          <h2 id={`deck-title-${deck}`} class="mt-1 font-serif text-lg font-semibold text-chestnut">
+            {entry.data.title}
+          </h2>
+          {entry.data.subtitle && (
+            <p class="mt-0.5 font-serif text-sm italic text-chestnut/55">{entry.data.subtitle}</p>
+          )}
+        </div>
+        <p class="text-xs text-chestnut/45">共 {slides.length} 頁 · 可左右翻閱</p>
+      </header>
+
+      <div
+        class="deck"
+        data-deck
+        tabindex="0"
+        role="group"
+        aria-roledescription="簡報"
+        aria-label={`${entry.data.title}，共 ${slides.length} 頁`}
+      >
+        <div class="deck-stage">
+          {slides.map((slide, index) => (
+            <article
+              class="deck-slide"
+              data-deck-slide
+              data-index={index}
+              aria-roledescription="投影片"
+              aria-label={`第 ${index + 1} 頁，共 ${slides.length} 頁`}
+            >
+              <div class={`deck-canvas deck-layout-${slide.layout}`}>
+                {/* 每頁右下角的品牌落款，取代原始匯出檔的產生器浮水印 */}
+                <div class="deck-brand" aria-hidden="true">
+                  <Logo class="deck-brand-mark" />
+                  <span>沙發上的性心理</span>
+                </div>
+
+                {slide.layout === 'cover' && (
+                  <div class="deck-cover">
+                    <div class="deck-cover-art" aria-hidden="true">
+                      <DeckFigure figure={{ type: 'ripple', items: [] }} />
+                    </div>
+                    <div class="deck-cover-text">
+                      {slide.kicker && <p class="deck-kicker">{slide.kicker}</p>}
+                      {slide.heading && <h3 class="deck-title">{slide.heading}</h3>}
+                      {slide.subtitle && <p class="deck-subtitle">{slide.subtitle}</p>}
+                      {slide.lead.map((line) => (
+                        <p class="deck-cover-lead" set:html={renderEmphasis(line)} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 一般內頁的標題。封面與結尾頁有自己的排版，不走這條 */}
+                {!['cover', 'closing', 'feature', 'quote'].includes(slide.layout) && slide.heading && (
+                  <h3 class="deck-heading">{slide.heading}</h3>
+                )}
+
+                {slide.layout === 'feature' && (
+                  <div class="deck-feature">
+                    {slide.figure && (
+                      <div class="deck-feature-art" aria-hidden="true">
+                        <DeckFigure figure={slide.figure} />
+                      </div>
+                    )}
+                    <div class="deck-feature-text">
+                      {slide.heading && <h3 class="deck-feature-title">{slide.heading}</h3>}
+                      {slide.subheading && <p class="deck-feature-sub">{slide.subheading}</p>}
+                      {slide.lead.map((line) => (
+                        <p class="deck-lead" set:html={renderEmphasis(line)} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {slide.layout === 'bullets' && (
+                  <div class={slide.figure ? 'deck-body deck-body-split' : 'deck-body'}>
+                    <div class="deck-body-main">
+                      {slide.lead.map((line) => (
+                        <p class="deck-lead" set:html={renderEmphasis(line)} />
+                      ))}
+                      {slide.bullets.length > 0 && (
+                        <ul class="deck-bullets">
+                          {slide.bullets.map((bullet) => (
+                            <li>
+                              {bullet.label && <strong>{bullet.label}</strong>}
+                              <span set:html={renderEmphasis(bullet.text)} />
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    {slide.figure && (
+                      <div class="deck-body-aside">
+                        <DeckFigure figure={slide.figure} />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {slide.layout === 'columns' && (
+                  <div class="deck-columns">
+                    {slide.lead.length > 0 && (
+                      <div class="deck-columns-intro">
+                        {slide.lead.map((line) => (
+                          <p class="deck-lead" set:html={renderEmphasis(line)} />
+                        ))}
+                      </div>
+                    )}
+                    <div class="deck-columns-row">
+                      {slide.columns.map((column) => (
+                        <div class:list={['deck-column', column.tinted && 'deck-column-tinted']}>
+                          <h4 class="deck-column-heading">{column.heading}</h4>
+                          {column.label && <p class="deck-column-label">{column.label}</p>}
+                          {column.lead.map((line) => (
+                            <p class="deck-lead" set:html={renderEmphasis(line)} />
+                          ))}
+                          {column.bullets.length > 0 && (
+                            <ul class="deck-bullets">
+                              {column.bullets.map((bullet) => (
+                                <li>
+                                  {bullet.label && <strong>{bullet.label}</strong>}
+                                  <span set:html={renderEmphasis(bullet.text)} />
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {slide.layout === 'grid4' && (
+                  <div class="deck-grid4">
+                    {slide.items.map((item) => (
+                      <div class="deck-grid4-cell">
+                        {item.figure && (
+                          <div class="deck-grid4-icon" aria-hidden="true">
+                            <DeckFigure figure={item.figure} />
+                          </div>
+                        )}
+                        <h4 class="deck-item-title">
+                          {item.title}
+                          {item.subtitle && <span class="deck-item-en"> {item.subtitle}</span>}
+                        </h4>
+                        {item.text && <p class="deck-item-text" set:html={renderEmphasis(item.text)} />}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {slide.layout === 'flow' && (
+                  <div class="deck-flow">
+                    {slide.items.map((item, itemIndex) => (
+                      <>
+                        {itemIndex > 0 && <span class="deck-flow-arrow" aria-hidden="true" />}
+                        <div
+                          class:list={['deck-flow-step', itemIndex > 0 && 'deck-flow-step-accent']}
+                        >
+                          <h4 class="deck-item-title">
+                            {item.title}
+                            {item.subtitle && <span class="deck-item-en"> {item.subtitle}</span>}
+                          </h4>
+                          {item.text && (
+                            <p class="deck-item-text" set:html={renderEmphasis(item.text)} />
+                          )}
+                        </div>
+                      </>
+                    ))}
+                  </div>
+                )}
+
+                {slide.layout === 'spectrum' && (
+                  <div class="deck-spectrum">
+                    <div class="deck-spectrum-heads">
+                      {slide.items.map((item) => (
+                        <div class="deck-spectrum-head">
+                          <h4 class="deck-item-title">{item.title}</h4>
+                          {item.subtitle && <p class="deck-item-en">{item.subtitle}</p>}
+                        </div>
+                      ))}
+                    </div>
+                    <div class="deck-spectrum-track" aria-hidden="true">
+                      <span class="deck-spectrum-seg deck-spectrum-seg-wave" />
+                      <span class="deck-spectrum-seg deck-spectrum-seg-solid" />
+                      <span class="deck-spectrum-seg deck-spectrum-seg-dashed" />
+                    </div>
+                    <div class="deck-spectrum-notes">
+                      {slide.items.map((item) => (
+                        <p class="deck-item-text" set:html={renderEmphasis(item.text ?? '')} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {slide.layout === 'quote' && (
+                  <blockquote class="deck-quote">
+                    {slide.quote && <p class="deck-quote-src" set:html={renderEmphasis(slide.quote)} />}
+                    {slide.translation && (
+                      <p class="deck-quote-zh" set:html={renderEmphasis(slide.translation)} />
+                    )}
+                    {slide.attribution && <cite>— {slide.attribution}</cite>}
+                  </blockquote>
+                )}
+
+                {slide.layout === 'converge' && (
+                  <div class="deck-converge">
+                    <div class="deck-columns-row">
+                      {slide.columns.map((column) => (
+                        <div class="deck-column deck-column-boxed">
+                          <h4 class="deck-column-heading">{column.heading}</h4>
+                          <ul class="deck-bullets">
+                            {column.bullets.map((bullet) => (
+                              <li>
+                                {bullet.label && <strong>{bullet.label}</strong>}
+                                <span set:html={renderEmphasis(bullet.text)} />
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                    {slide.focus && (
+                      <div class="deck-converge-focus">
+                        <span class="deck-converge-stem" aria-hidden="true" />
+                        <p set:html={renderEmphasis(slide.focus)} />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {slide.layout === 'closing' && (
+                  <div class="deck-closing">
+                    {slide.kicker && <p class="deck-kicker deck-kicker-left">{slide.kicker}</p>}
+                    <div class="deck-closing-body">
+                      {slide.lead.map((line) => (
+                        <p class="deck-lead deck-lead-center" set:html={renderEmphasis(line)} />
+                      ))}
+                      {slide.statement && (
+                        <p class="deck-statement" set:html={renderEmphasis(slide.statement)} />
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {slide.note && (
+                  <p
+                    class:list={['deck-note', slide.layout === 'closing' && 'deck-note-quiet']}
+                    set:html={renderEmphasis(slide.note)}
+                  />
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div class="deck-controls" data-deck-controls hidden>
+          <button type="button" class="deck-arrow" data-deck-prev aria-label="上一頁">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+          </button>
+
+          <div class="deck-dots" data-deck-dots>
+            {slides.map((_slide, index) => (
+              <button type="button" class="deck-dot" data-deck-dot data-index={index} aria-label={`第 ${index + 1} 頁`} />
+            ))}
+          </div>
+
+          <button type="button" class="deck-arrow" data-deck-next aria-label="下一頁">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+          </button>
+
+          <p class="deck-counter" data-deck-counter aria-live="polite">1 / {slides.length}</p>
+        </div>
+      </div>
+
+      <footer class="deck-footnotes">
+        {entry.data.source && (
+          <p>
+            <span class="deck-footnote-label">原始文獻</span>
+            {entry.data.source}
+          </p>
+        )}
+        {entry.data.disclaimers.map((line) => (
+          <p>{line}</p>
+        ))}
+        {(entry.data.downloadPdf || entry.data.downloadPptx) && (
+          <p class="deck-downloads">
+            {entry.data.downloadPdf && (
+              <a href={entry.data.downloadPdf} download>
+                下載簡報 PDF
+              </a>
+            )}
+            {entry.data.downloadPptx && (
+              <a href={entry.data.downloadPptx} download>
+                下載簡報 PPTX
+              </a>
+            )}
+          </p>
+        )}
+      </footer>
+    </section>
+  )
+}
+
+<style is:global>
+  /* 凝書體（沛辰的品牌標題字）。整份 OTF 有 3.6MB，直接掛上去會拖垮文章頁，
+     所以只取簡報實際用到的字元做成子集 woff2，見 scripts/build-deck-font.mjs。 */
+  /* renderEmphasis() 產生的 <span> 是 set:html 插進去的，不會帶 Astro 的作用域屬性，
+     所以這條要寫在全域（限定在 .deck-canvas 底下，不會影響版面其他地方）。 */
+  .deck-canvas .deck-em {
+    color: var(--deck-accent);
+  }
+
+
+  @font-face {
+    font-family: 'NingShuTi';
+    src: url('/fonts/ningshuti-deck.woff2') format('woff2');
+    font-weight: 400 700;
+    font-display: swap;
+  }
+</style>
+
+<style>
+  /* ── 舞台 ───────────────────────────────────────────────────────────────
+     沒有 JS 時所有頁面直接由上而下疊著顯示（列印時也是這個樣子），
+     JS 接手後才切成一次一頁的翻閱模式。這樣簡報文字永遠留在 DOM 裡，
+     搜尋引擎讀得到，也不會因為 JS 失敗就整塊空白。 */
+  .deck {
+    border: 1px solid rgb(60 42 33 / 0.12);
+    border-radius: 1rem;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .deck:focus-visible {
+    outline: 2px solid var(--deck-accent);
+    outline-offset: 3px;
+  }
+
+  .deck-stage {
+    container-type: inline-size;
+  }
+
+  .deck-slide + .deck-slide {
+    border-top: 1px solid rgb(60 42 33 / 0.1);
+  }
+
+  .deck-canvas {
+    --deck-ink: #3c2a21;
+    --deck-wave-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='14' viewBox='0 0 44 14'%3E%3Cpath d='M0,7 q5.5,-5.5 11,0 t11,0 t11,0 t11,0' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+    --deck-display: 'NingShuTi', 'Noto Serif TC', 'Songti TC', serif;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem 1.25rem 2.5rem;
+    background: #fdfcf9;
+    color: var(--deck-ink);
+    font-family: theme('fontFamily.serif');
+  }
+
+  /* JS 啟動後：一次只顯示一頁 */
+  .deck[data-deck-ready] .deck-slide {
+    display: none;
+    border-top: 0;
+  }
+
+  .deck[data-deck-ready] .deck-slide[data-active] {
+    display: block;
+  }
+
+  /* ── 品牌落款 ───────────────────────────────────────────────────────── */
+  .deck-brand {
+    position: absolute;
+    right: 1.25rem;
+    bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    color: rgb(60 42 33 / 0.4);
+    font-size: 0.6875rem;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .deck-brand-mark {
+    width: 1.6em;
+    height: auto;
+    opacity: 0.75;
+  }
+
+  /* ── 共用排版元素 ───────────────────────────────────────────────────── */
+  .deck-kicker {
+    color: rgb(60 42 33 / 0.55);
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+  }
+
+  .deck-title,
+  .deck-heading,
+  .deck-feature-title,
+  .deck-feature-sub,
+  .deck-statement,
+  .deck-column-heading,
+  .deck-item-title,
+  .deck-quote-zh {
+    font-family: var(--deck-display);
+  }
+
+  .deck-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .deck-subtitle {
+    color: var(--deck-accent);
+    font-size: 0.9375rem;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .deck-heading {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .deck-heading::after {
+    content: '';
+    display: block;
+    width: 2.5rem;
+    margin-top: 0.6rem;
+    border-top: 2px solid var(--deck-accent);
+  }
+
+  .deck-lead {
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  .deck-body,
+  .deck-columns,
+  .deck-converge {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .deck-bullets {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    list-style: none;
+  }
+
+  .deck-bullets li {
+    position: relative;
+    padding-left: 1.1em;
+  }
+
+  .deck-bullets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.4em;
+    height: 0.4em;
+    border-radius: 50%;
+    background: var(--deck-accent);
+  }
+
+  .deck-bullets strong {
+    font-weight: 600;
+  }
+
+  .deck-bullets strong::after {
+    content: '：';
+  }
+
+  /* 封面 */
+  .deck-cover {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.25rem;
+  }
+
+  .deck-cover-art {
+    width: 42%;
+    max-width: 190px;
+    color: var(--deck-accent);
+    opacity: 0.55;
+  }
+
+  .deck-cover-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .deck-cover-lead {
+    color: rgb(60 42 33 / 0.7);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  /* 大標頁（feature） */
+  .deck-feature {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .deck-feature-art {
+    width: 38%;
+    max-width: 160px;
+    color: var(--deck-accent);
+    opacity: 0.5;
+  }
+
+  .deck-feature-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .deck-feature-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .deck-feature-sub {
+    color: var(--deck-accent);
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* 兩欄／匯聚 */
+  .deck-columns-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .deck-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    flex: 1;
+  }
+
+  .deck-columns-row > .deck-column {
+    padding: 1rem 0;
+  }
+
+  .deck-column-tinted,
+  .deck-column-boxed {
+    padding: 1rem 1.1rem;
+    border-radius: 0.75rem;
+  }
+
+  .deck-column-tinted {
+    background: color-mix(in srgb, var(--deck-accent) 12%, transparent);
+  }
+
+  .deck-column-boxed {
+    border: 1px solid color-mix(in srgb, var(--deck-accent) 40%, transparent);
+  }
+
+  .deck-column-heading {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .deck-column-heading::after {
+    content: '';
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem;
+    border-top: 2px solid color-mix(in srgb, var(--deck-accent) 55%, transparent);
+  }
+
+  .deck-column-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .deck-converge-focus {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .deck-converge-focus p {
+    padding: 0.7rem 1.2rem;
+    border-radius: 0.75rem;
+    background: var(--deck-accent);
+    color: #f9f6f0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .deck-converge-stem {
+    width: 1px;
+    height: 1.4rem;
+    background: color-mix(in srgb, var(--deck-accent) 50%, transparent);
+  }
+
+  /* 四宮格 */
+  .deck-grid4 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .deck-grid4-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    text-align: center;
+  }
+
+  .deck-grid4-icon {
+    width: 3rem;
+    color: var(--deck-accent);
+  }
+
+  .deck-item-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .deck-item-en {
+    margin-left: 0.35em;
+    color: rgb(60 42 33 / 0.6);
+    font-weight: 400;
+  }
+
+  .deck-item-text {
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+
+  /* 流程（上下兩塊＋箭頭） */
+  .deck-flow {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .deck-flow-step {
+    padding: 1rem 1.1rem;
+    border: 1px solid color-mix(in srgb, var(--deck-accent) 35%, transparent);
+    border-radius: 0.75rem;
+  }
+
+  .deck-flow-step-accent {
+    border-color: var(--deck-accent);
+    background: color-mix(in srgb, var(--deck-accent) 10%, transparent);
+  }
+
+  .deck-flow-arrow {
+    align-self: center;
+    width: 1px;
+    height: 1.5rem;
+    background: color-mix(in srgb, var(--deck-accent) 60%, transparent);
+    position: relative;
+  }
+
+  .deck-flow-arrow::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-right: 1px solid color-mix(in srgb, var(--deck-accent) 60%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--deck-accent) 60%, transparent);
+    transform: translate(-50%, 20%) rotate(45deg);
+  }
+
+  /* 三段光譜 */
+  .deck-spectrum {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .deck-spectrum-heads,
+  .deck-spectrum-notes {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .deck-spectrum-head {
+    text-align: center;
+  }
+
+  .deck-spectrum-track {
+    display: none;
+  }
+
+  /* 引言 */
+  .deck-quote {
+    margin: 0;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .deck-quote-src {
+    font-size: 1.15rem;
+    font-style: italic;
+    line-height: 1.5;
+    color: rgb(60 42 33 / 0.8);
+  }
+
+  .deck-quote-zh {
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+
+  .deck-quote cite {
+    color: rgb(60 42 33 / 0.5);
+    font-size: 0.8125rem;
+    font-style: normal;
+  }
+
+  /* 結尾 */
+  .deck-closing {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .deck-closing-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .deck-kicker-left {
+    text-align: left;
+  }
+
+  .deck-lead-center {
+    color: rgb(60 42 33 / 0.7);
+  }
+
+  .deck-statement {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .deck-note {
+    margin-top: auto;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgb(60 42 33 / 0.12);
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+
+  .deck-note-quiet {
+    border-top: 0;
+    color: rgb(60 42 33 / 0.55);
+    font-style: italic;
+    text-align: center;
+  }
+
+  /* ── 寬版：兩欄／四宮格真正並排 ─────────────────────────────────────── */
+  @container (min-width: 560px) {
+    .deck-columns-row {
+      flex-direction: row;
+      gap: 4cqw;
+    }
+
+    .deck-grid4 {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.4cqw 4cqw;
+    }
+
+    .deck-grid4-icon {
+      width: 7cqw;
+    }
+
+    /* 四宮格一頁要塞四組圖文，字級比其他版面再收一階才不會撐破 16:9 */
+    .deck-grid4 .deck-item-title { font-size: 2.2cqw; }
+    .deck-grid4 .deck-item-en { font-size: 1.85cqw; }
+    .deck-grid4 .deck-item-text { font-size: 1.75cqw; }
+
+    .deck-spectrum-heads,
+    .deck-spectrum-notes {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3cqw;
+    }
+
+    .deck-spectrum-notes {
+      text-align: left;
+    }
+
+    .deck-spectrum-track {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: center;
+      gap: 3cqw;
+      height: 14px;
+    }
+
+    .deck-spectrum-seg {
+      height: 2px;
+      border-radius: 2px;
+    }
+
+    /* 第一段是「自然流動」的波浪、第二段轉為直線、第三段斷成虛線，
+       三段的形狀差異就是這一頁要講的異化過程，不能三段長得一樣。
+       波形用遮罩畫，顏色才吃得到系列色變數。 */
+    .deck-spectrum-seg-wave {
+      height: 14px;
+      background: color-mix(in srgb, var(--deck-accent) 85%, transparent);
+      -webkit-mask: var(--deck-wave-mask) repeat-x center / 44px 14px;
+      mask: var(--deck-wave-mask) repeat-x center / 44px 14px;
+    }
+
+    .deck-spectrum-seg-solid {
+      background: color-mix(in srgb, var(--deck-accent) 80%, transparent);
+    }
+
+    .deck-spectrum-seg-dashed {
+      background: repeating-linear-gradient(
+        90deg,
+        var(--deck-ink) 0 55%,
+        transparent 55% 100%
+      );
+      background-size: 22px 100%;
+      opacity: 0.75;
+    }
+
+    /* 封面／大標頁在寬版改成左右分欄，裝飾圖靠左、文字靠右 */
+    .deck-cover,
+    .deck-feature {
+      flex-direction: row;
+      align-items: center;
+      gap: 6cqw;
+    }
+
+    .deck-cover-art {
+      width: 26cqw;
+      max-width: none;
+      flex: none;
+    }
+
+    .deck-feature-art {
+      width: 22cqw;
+      max-width: none;
+      flex: none;
+    }
+
+    .deck-cover-text,
+    .deck-feature-text {
+      flex: 1;
+    }
+  }
+
+  /* ── 桌機：回到 16:9 的簡報比例 ─────────────────────────────────────────
+     字級用 cqw（容器寬度百分比）換算，讓整頁比例跟原簡報一致；
+     窄螢幕則退回 rem 字級、高度自由撐開，避免 16:9 把中文字壓到看不清楚。 */
+  @container (min-width: 560px) {
+    .deck-canvas {
+      aspect-ratio: 16 / 9;
+      justify-content: center;
+      gap: 2.4cqw;
+      padding: 5cqw 5.5cqw;
+    }
+
+    .deck-kicker { font-size: 1.85cqw; }
+    .deck-title { font-size: 4.4cqw; }
+    .deck-subtitle { font-size: 2.1cqw; }
+    .deck-cover-lead { font-size: 1.9cqw; }
+    .deck-heading { font-size: 3.1cqw; }
+    .deck-feature-title { font-size: 5cqw; }
+    .deck-feature-sub { font-size: 2.9cqw; }
+    .deck-lead { font-size: 2.05cqw; }
+    .deck-bullets { font-size: 2cqw; gap: 1.2cqw; }
+    .deck-column-heading { font-size: 2.4cqw; }
+    .deck-column-label { font-size: 2cqw; }
+    .deck-item-title { font-size: 2.4cqw; }
+    .deck-item-en { font-size: 2cqw; }
+    .deck-item-text { font-size: 1.85cqw; }
+    .deck-quote-src { font-size: 3cqw; }
+    .deck-quote-zh { font-size: 2.6cqw; }
+    .deck-quote cite { font-size: 1.6cqw; }
+    .deck-statement { font-size: 3.8cqw; }
+    .deck-note { font-size: 1.95cqw; }
+    .deck-converge-focus p { font-size: 2.2cqw; }
+    .deck-brand { font-size: 1.35cqw; }
+  }
+
+  /* ── 控制列 ─────────────────────────────────────────────────────────── */
+  .deck-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid rgb(60 42 33 / 0.1);
+    background: #fff;
+  }
+
+  .deck-arrow {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    border: 1px solid rgb(60 42 33 / 0.18);
+    border-radius: 50%;
+    color: #3c2a21;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .deck-arrow svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .deck-arrow:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--deck-accent) 14%, transparent);
+    border-color: var(--deck-accent);
+  }
+
+  .deck-arrow:disabled {
+    opacity: 0.3;
+  }
+
+  .deck-dots {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .deck-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: rgb(60 42 33 / 0.18);
+    transition: background-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .deck-dot[data-active] {
+    background: var(--deck-accent);
+    transform: scale(1.35);
+  }
+
+  .deck-counter {
+    flex: none;
+    min-width: 3.5rem;
+    color: rgb(60 42 33 / 0.5);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  /* ── 附註區 ─────────────────────────────────────────────────────────── */
+  .deck-footnotes {
+    margin-top: 0.9rem;
+    overflow-wrap: anywhere;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    color: rgb(60 42 33 / 0.5);
+    font-size: 0.75rem;
+    line-height: 1.7;
+  }
+
+  .deck-footnote-label {
+    display: inline-block;
+    margin-right: 0.5em;
+    padding: 0.05em 0.5em;
+    border-radius: 0.25rem;
+    background: color-mix(in srgb, var(--deck-accent) 16%, transparent);
+    color: rgb(60 42 33 / 0.75);
+    font-weight: 600;
+  }
+
+  .deck-downloads {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    margin-top: 0.2rem;
+  }
+
+  .deck-footnotes a {
+    color: #c87d65;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* 列印：全部攤開 */
+  @media print {
+    .deck[data-deck-ready] .deck-slide {
+      display: block;
+      break-inside: avoid;
+    }
+
+    .deck-controls {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  /** 文末簡報：一次顯示一頁，支援方向鍵、頁碼點與手機滑動。 */
+  function setupDeck(deck: HTMLElement) {
+    const slides = Array.from(deck.querySelectorAll<HTMLElement>('[data-deck-slide]'));
+    const dots = Array.from(deck.querySelectorAll<HTMLElement>('[data-deck-dot]'));
+    const controls = deck.querySelector<HTMLElement>('[data-deck-controls]');
+    const prev = deck.querySelector<HTMLButtonElement>('[data-deck-prev]');
+    const next = deck.querySelector<HTMLButtonElement>('[data-deck-next]');
+    const counter = deck.querySelector<HTMLElement>('[data-deck-counter]');
+    if (slides.length === 0) return;
+
+    let current = 0;
+
+    function show(index: number) {
+      current = Math.min(Math.max(index, 0), slides.length - 1);
+
+      slides.forEach((slide, i) => {
+        const active = i === current;
+        slide.toggleAttribute('data-active', active);
+        // 非目前頁留在 DOM 裡（SEO 與列印需要），但要擋掉鍵盤焦點與螢幕閱讀器
+        slide.inert = !active;
+        slide.setAttribute('aria-hidden', active ? 'false' : 'true');
+      });
+
+      dots.forEach((dot, i) => dot.toggleAttribute('data-active', i === current));
+
+      if (prev) prev.disabled = current === 0;
+      if (next) next.disabled = current === slides.length - 1;
+      if (counter) counter.textContent = `${current + 1} / ${slides.length}`;
+    }
+
+    prev?.addEventListener('click', () => show(current - 1));
+    next?.addEventListener('click', () => show(current + 1));
+    dots.forEach((dot, i) => dot.addEventListener('click', () => show(i)));
+
+    // 方向鍵只在簡報本身被聚焦時生效，不搶走整頁的捲動操作
+    deck.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        show(current - 1);
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        show(current + 1);
+      }
+    });
+
+    // 手機滑動：只認水平位移明顯大於垂直位移的手勢，避免干擾正常上下捲動
+    let startX = 0;
+    let startY = 0;
+    deck.addEventListener(
+      'touchstart',
+      (event) => {
+        startX = event.changedTouches[0].clientX;
+        startY = event.changedTouches[0].clientY;
+      },
+      { passive: true }
+    );
+    deck.addEventListener(
+      'touchend',
+      (event) => {
+        const dx = event.changedTouches[0].clientX - startX;
+        const dy = event.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+          show(dx < 0 ? current + 1 : current - 1);
+        }
+      },
+      { passive: true }
+    );
+
+    deck.setAttribute('data-deck-ready', '');
+    if (controls) controls.hidden = false;
+    show(0);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-deck]').forEach(setupDeck);
+</script>

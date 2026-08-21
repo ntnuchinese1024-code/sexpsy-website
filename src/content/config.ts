@@ -37,6 +37,14 @@ const articles = defineCollection({
      * 寫死全站顯示，要靠這個欄位判斷。
      */
     aiGenerated: z.boolean().default(false),
+    /**
+     * 這篇文章要在文末掛哪一份簡報（對應 src/content/decks/<slug>.json 的檔名）。
+     * 留空就完全不顯示簡報區塊，所以沒有簡報的文章不受任何影響。
+     */
+    deck: z
+      .string()
+      .nullish()
+      .transform((value) => value ?? undefined),
   }),
 });
 
@@ -87,8 +95,118 @@ const selfStudy = defineCollection({
   }),
 });
 
+
+/**
+ * 文末簡報（目前用於「馬鈴薯嗑論文」系列）。
+ *
+ * 內容來源是沛辰在 NotebookLM 產生的簡報，但 NotebookLM 匯出的 pptx/pdf 每一頁
+ * 都是「整頁壓平的點陣圖」、沒有任何可抽取的文字，所以這裡不是把原檔嵌進來，
+ * 而是把逐頁文字重新輸入成結構化資料，再用網站自己的視覺重新排版。好處是手機
+ * 上字不會縮到看不見、簡報文字能被搜尋引擎索引，也不會每篇多扛十幾 MB 的圖。
+ */
+/** Obsidian／手寫 JSON 常留空值，統一把 null 收斂成 undefined */
+const nullableString = z
+  .string()
+  .nullish()
+  .transform((value) => value ?? undefined);
+
+/** 條列項目：label 是粗體前綴（例如「典範現狀」），沒有就整句一般字重 */
+const bulletSchema = z.object({
+  label: nullableString,
+  text: z.string(),
+});
+
+/** 右側／背景的示意圖。原簡報是點陣圖，這裡改成用 inline SVG 重畫的幾何圖形 */
+const figureSchema = z
+  .object({
+    type: z.enum(['venn3', 'ripple', 'waves', 'target', 'strands']),
+    /** 只有 venn3 需要：三個圓的字母與標籤 */
+    items: z.array(z.object({ letter: z.string(), label: z.string() })).default([]),
+  })
+  .nullish()
+  .transform((value) => value ?? undefined);
+
+const slideSchema = z.object({
+  layout: z.enum([
+    'cover',
+    'feature',
+    'bullets',
+    'columns',
+    'grid4',
+    'flow',
+    'spectrum',
+    'quote',
+    'converge',
+    'closing',
+  ]),
+  /** 標題上方的小標 */
+  kicker: nullableString,
+  heading: nullableString,
+  /** 主標下方的次級標題（feature 版面用） */
+  subheading: nullableString,
+  /** 封面的英文／文獻原名 */
+  subtitle: nullableString,
+  /** 段落文字；用 [[雙中括號]] 包住的片段會套系列強調色 */
+  lead: z.array(z.string()).default([]),
+  bullets: z.array(bulletSchema).default([]),
+  columns: z
+    .array(
+      z.object({
+        heading: z.string(),
+        /** 欄內的次級標籤（例如「無可辯駁的收據」） */
+        label: nullableString,
+        lead: z.array(z.string()).default([]),
+        bullets: z.array(bulletSchema).default([]),
+        /** true 時這一欄套淡色底，對應原簡報的色塊欄 */
+        tinted: z.boolean().default(false),
+      })
+    )
+    .default([]),
+  /** grid4／flow／spectrum 共用的項目清單 */
+  items: z
+    .array(
+      z.object({
+        title: z.string(),
+        /** 英文對照或次標 */
+        subtitle: nullableString,
+        text: nullableString,
+        figure: figureSchema,
+      })
+    )
+    .default([]),
+  /** converge 版面中央那個匯聚方塊的文字 */
+  focus: nullableString,
+  quote: nullableString,
+  /** 引言的中文對照翻譯 */
+  translation: nullableString,
+  attribution: nullableString,
+  /** closing 頁的大字宣言 */
+  statement: nullableString,
+  /** 頁面底部的一句話（原簡報的色塊橫幅或註腳提問） */
+  note: nullableString,
+  figure: figureSchema,
+});
+
+const decks = defineCollection({
+  type: 'data',
+  schema: z.object({
+    title: z.string(),
+    /** 副標／英文標題，通常是文獻原名 */
+    subtitle: nullableString,
+    /** 文獻出處（APA7），顯示在簡報下方的附註區 */
+    source: nullableString,
+    /** 產製方式聲明（AI 協作、使用限制等），逐條列出 */
+    disclaimers: z.array(z.string()).default([]),
+    /** 原始匯出檔的下載路徑，沒有就不顯示對應的下載鍵 */
+    downloadPdf: nullableString,
+    downloadPptx: nullableString,
+    slides: z.array(slideSchema).min(1),
+  }),
+});
+
 export const collections = {
   articles,
   // key 必須跟 src/content/ 底下的資料夾名稱一模一樣（self-study，不是 selfStudy）
   'self-study': selfStudy,
+  decks,
 };
