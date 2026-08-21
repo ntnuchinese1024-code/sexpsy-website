@@ -197,8 +197,9 @@ const decks = defineCollection({
     source: nullableString,
     /** 產製方式聲明（AI 協作、使用限制等），逐條列出 */
     disclaimers: z.array(z.string()).default([]),
-    /** 原始匯出檔的下載路徑（放 public/downloads/decks/），沒有就不顯示下載鍵 */
+    /** 原始匯出檔的下載路徑，沒有就不顯示對應的下載鍵 */
     downloadPdf: nullableString,
+    downloadPptx: nullableString,
     slides: z.array(slideSchema).min(1),
   }),
 });

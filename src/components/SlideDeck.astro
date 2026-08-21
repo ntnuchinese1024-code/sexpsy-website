@@ -318,11 +318,18 @@ const slides = entry?.data.slides ?? [];
         {entry.data.disclaimers.map((line) => (
           <p>{line}</p>
         ))}
-        {entry.data.downloadPdf && (
-          <p>
-            <a href={entry.data.downloadPdf} download>
-              下載簡報 PDF
-            </a>
+        {(entry.data.downloadPdf || entry.data.downloadPptx) && (
+          <p class="deck-downloads">
+            {entry.data.downloadPdf && (
+              <a href={entry.data.downloadPdf} download>
+                下載簡報 PDF
+              </a>
+            )}
+            {entry.data.downloadPptx && (
+              <a href={entry.data.downloadPptx} download>
+                下載簡報 PPTX
+              </a>
+            )}
           </p>
         )}
       </footer>
@@ -1040,6 +1047,13 @@ const slides = entry?.data.slides ?? [];
     background: color-mix(in srgb, var(--deck-accent) 16%, transparent);
     color: rgb(60 42 33 / 0.75);
     font-weight: 600;
+  }
+
+  .deck-downloads {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    margin-top: 0.2rem;
   }
 
   .deck-footnotes a {

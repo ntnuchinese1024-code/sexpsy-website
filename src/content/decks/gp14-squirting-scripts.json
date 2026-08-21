@@ -1,5 +1,5 @@
 {
-  "title": "高潮至上主義？探討男女性行為間潮吹腳本之四大態樣",
+  "title": "高潮至上主義？探討男女性行為間，潮吹腳本之四大態樣",
   "subtitle": "Squirting Scripts：Validation, Avoidance, Desire, and Coercion",
   "source": "Påfs, J. (2026). Squirting scripts: Navigating validation, avoidance, desire, and coercion in sexual encounters between women and men. Archives of Sexual Behavior, 55, 1161–1171. https://doi.org/10.1007/s10508-026-03425-1",
   "disclaimers": [
@@ -12,7 +12,9 @@
       "layout": "cover",
       "heading": "潮吹腳本 Squirting Scripts",
       "subtitle": "一滴水，牽動的關係心理學",
-      "lead": ["解析女性與男性性互動中的肯認、迴避、渴望與脅迫"]
+      "lead": [
+        "解析女性與男性性互動中的肯認、迴避、渴望與脅迫"
+      ]
     },
     {
       "layout": "columns",
@@ -46,25 +48,33 @@
           "title": "被肯認",
           "subtitle": "Validated",
           "text": "視為中性的身體反應，伴侶給予平靜的接納與支持。",
-          "figure": { "type": "ripple" }
+          "figure": {
+            "type": "ripple"
+          }
         },
         {
           "title": "被迴避",
           "subtitle": "Avoided",
           "text": "視為不受歡迎的干擾，伴侶感到困惑、退縮或沉默。",
-          "figure": { "type": "waves" }
+          "figure": {
+            "type": "waves"
+          }
         },
         {
           "title": "被渴望",
           "subtitle": "Desired",
           "text": "視為性能力的具體證明，伴侶將其視為個人成就與高潮的確證。",
-          "figure": { "type": "target" }
+          "figure": {
+            "type": "target"
+          }
         },
         {
           "title": "被脅迫",
           "subtitle": "Coerced",
           "text": "視為必須達成的展演壓力，女性感到被推迫以滿足伴侶的期待。",
-          "figure": { "type": "strands" }
+          "figure": {
+            "type": "strands"
+          }
         }
       ]
     },
@@ -72,7 +82,9 @@
       "layout": "feature",
       "heading": "被肯認",
       "subheading": "中性回應的療癒力量",
-      "figure": { "type": "ripple" },
+      "figure": {
+        "type": "ripple"
+      },
       "lead": [
         "當伴侶給予中性且不具戲劇性的回應（例如：「沒關係，這很自然」），能極大程度卸除女性的焦慮。",
         "將身體反應視為日常——不高舉為奇觀，也不貶低為失控。這種「[[平靜的接納]]」，是女性能專注於自身真實愉悅，而非擔憂伴侶眼光的關鍵。"
@@ -82,7 +94,9 @@
       "layout": "feature",
       "heading": "被迴避",
       "subheading": "缺失的腳本與尷尬的沉默",
-      "figure": { "type": "waves" },
+      "figure": {
+        "type": "waves"
+      },
       "lead": [
         "伴侶的沉默、困惑，甚至本能的退縮，往往源於文化中缺乏對此生理現象的正確認知。",
         "因為害怕造成後續清理的麻煩，這份身體反應常被框架為一種不受歡迎的「專案」與干擾。為了避免破壞氣氛，許多女性因此選擇在當下壓抑身體，或盡可能避免其發生。"
@@ -122,7 +136,9 @@
       "layout": "feature",
       "heading": "被脅迫",
       "subheading": "表現壓力如何凌駕身體自主",
-      "figure": { "type": "strands" },
+      "figure": {
+        "type": "strands"
+      },
       "lead": [
         "當潮吹成為伴侶眼中的「最高成就」與追逐目標時，女性的真實主觀感受往往被邊緣化。這是本研究最具原創性與警示性的發現。",
         "伴侶可能過度執著於引發特定身體反應，卻忽視了女性的疼痛拒絕與身體提示。此時，身體自主權被迫讓位給了滿足對方期待的「表現壓力」，使[[愉悅淪為一種無形的脅迫]]。"
@@ -169,5 +185,7 @@
       "layout": "closing",
       "statement": "如果一個身體反應本可以只是「[[發生]]」，我們是從什麼時候開始，需要它「[[被證明]]」？"
     }
-  ]
+  ],
+  "downloadPdf": "/downloads/articles/gp14-squirting-scripts.pdf",
+  "downloadPptx": "/downloads/articles/gp14-squirting-scripts.pptx"
 }
