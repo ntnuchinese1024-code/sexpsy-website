@@ -1,20 +1,16 @@
 ---
 title: 高潮至上主義？探討男女性行為間，潮吹腳本之四大態樣
-date: 2026-08-09T00:00:00.000Z
+date: 2026-08-20T00:00:00.000Z
 category: 馬鈴薯嗑論文
 tags:
-  - '#高潮至上主義'
-  - '#性腳本'
-  - '#潮吹'
-  - '#性愉悅'
-summary: >-
-  本篇質性研究（瑞典，16 位順性別女性深度訪談，反身性主題分析）以「性腳本理論」（sexual scripts
-  theory）為框架，探討「潮吹／女性射精」在異性性互動中如何被賦予人際意義——歸納出四種「潮吹腳本」：（一）被肯認：中性身體反應，獲支持性回應；（二）被迴避：被視為不受歡迎的性反應，遭負向或忽視回應；（三）被渴望：被當作性能力／高潮的具體證明，常與女性自身主觀經驗脫節；（四）被脅迫：女性感受到需超越自身界線以滿足伴侶期待的壓力——揭示潮吹絕非單純的生理事件，而是一個被文化敘事、伴侶回應、性別權力關係共同協商、深具社會意涵的經驗。
-reference: >-
-  Påfs, J. (2026). Squirting Scripts: Navigating Validation, Avoidance, Desire,
-  and Coercion in Sexual Encounters Between Women and Men. Archives of Sexual
-  Behavior, 55(3), 1161–1171. https://doi.org/10.1007/s10508-026-03425-1
+  - "#高潮至上主義"
+  - "#性腳本"
+  - "#潮吹"
+  - "#性愉悅"
+summary: 本篇質性研究（瑞典，16 位順性別女性深度訪談，反身性主題分析）以「性腳本理論」（sexual scripts theory）為框架，探討「潮吹／女性射精」在異性性互動中如何被賦予人際意義——歸納出四種「潮吹腳本」：（一）被肯認：中性身體反應，獲支持性回應；（二）被迴避：被視為不受歡迎的性反應，遭負向或忽視回應；（三）被渴望：被當作性能力／高潮的具體證明，常與女性自身主觀經驗脫節；（四）被脅迫：女性感受到需超越自身界線以滿足伴侶期待的壓力——揭示潮吹絕非單純的生理事件，而是一個被文化敘事、伴侶回應、性別權力關係共同協商、深具社會意涵的經驗。
+reference: "Påfs, J. (2026). Squirting Scripts: Navigating Validation, Avoidance, Desire, and Coercion in Sexual Encounters Between Women and Men. Archives of Sexual Behavior, 55(3), 1161–1171. https://doi.org/10.1007/s10508-026-03425-1"
 cover: /images/cover-gp14-squirting-scripts.webp
+deck: gp14-squirting-scripts
 ---
 
 女性的聲音，長期在父權為主導的文化中「失聲」，而女性的性愉悅與高潮，也因著缺乏想像與理解的對話，「缺席」且「不可見」，然而，這卻是當今台灣本土社會中，許多伴侶帶入性諮商中的主訴議題，由此可見，相關議題的知識與討論，在實務工作中正逐步萌發與推展開來。
@@ -35,13 +31,13 @@ cover: /images/cover-gp14-squirting-scripts.webp
 
 ## 研究發現：四種潮吹腳本（Squirting Scripts）
 
-**主題一：被肯認（Validated）——潮吹作為被接受的中性性反應**
+### **主題一：被肯認（Validated）——潮吹作為被接受的中性性反應**
 
 <mark>研究中發現，中性、不帶評價的伴侶回應在敘事中相對罕見，卻對女性的性經驗至關重要——讓女性能放鬆地聚焦自身感受，而非聚焦「這件事本身」</mark>。對曾有負向經驗的女性而言，伴侶「冷靜以對」的態度本身就極具療癒力；甚至伴侶明確口頭「允許」，能成為釋放長期壓抑經驗的關鍵觸發點。
 
 此劇本要能夠成功在伴侶性互動之間呈現，關係的連結與安全感，以及雙方性溝通的能力，是十分重要的關鍵。
 
-**主題二：被迴避（Avoided）——潮吹作為不受歡迎的性反應**
+### **主題二：被迴避（Avoided）——潮吹作為不受歡迎的性反應**
 
 有些研究參與者分享伴侶以沉默、明確表示不喜歡、或主動阻止來回應的敘事，有時伴隨明顯的生理厭惡反應；此部分可能因為不熟悉潮吹的伴侶，常誤認體液為尿液或「意外」，因困惑而拉開情感距離。
 
@@ -49,7 +45,7 @@ cover: /images/cover-gp14-squirting-scripts.webp
 
 <mark>我在想，這些受挫經驗在女性的性歷史中留下了印記，而這些印記很有可能是影響某些女性面對性愉悅時採取壓抑與迴避態度的因素之一</mark>。
 
-**主題三：被渴望（Desired）——潮吹作為性滿足與性能力的具體證明**
+### **主題三：被渴望（Desired）——潮吹作為性滿足與性能力的具體證明**
 
 在某些情況下，潮吹被伴侶歡迎，並被賦予「成就」與「驗證」的雙重意涵——男性常將此解讀為自己性能力的證明（「好在床上」），但這個詮釋常與女性自身的主觀經驗產生落差。
 
@@ -57,7 +53,7 @@ cover: /images/cover-gp14-squirting-scripts.webp
 
 部分男性伴侶將誘發潮吹視為需要「精進」的技術性挑戰而非情感連結，使女性的身體成為驗證男性自尊的載體。
 
-**主題四：被脅迫（Coerced）——潮吹作為一種被施壓的性表現**
+### **主題四：被脅迫（Coerced）——潮吹作為一種被施壓的性表現**
 
 <mark>這是本研究最具原創性、也最令人憂心的發現</mark>，某些伴侶因為對潮吹的強烈渴望，有時會轉化為壓力，使女性感覺被迫妥協自身界線，以滿足伴侶並「提供」一次潮吹。
 
@@ -72,11 +68,3 @@ cover: /images/cover-gp14-squirting-scripts.webp
 正如本研究提醒我們，<mark>潮吹絕非單純的生理事件，而是一個被文化敘事、伴侶回應、性別權力關係共同協商、深具社會意涵的經驗</mark>。
 
 或許，我們可以思考，身體反應本可以只是臨在當下的「發生」，究竟，我們是從什麼時候開始，需要它能夠「被證明」呢？
-
-<div class="mt-8 rounded-2xl border border-terracotta/20 bg-terracotta/5 p-6 text-center">
-  <p class="font-serif text-chestnut">📎 想更完整地了解這篇研究，歡迎下載延伸簡報</p>
-  <div class="mt-3 flex flex-wrap items-center justify-center gap-3">
-    <a href="/downloads/articles/gp14-squirting-scripts.pdf" class="inline-block rounded-full bg-terracotta px-5 py-2 text-sm font-medium text-cream no-underline">下載簡報 PDF</a>
-    <a href="/downloads/articles/gp14-squirting-scripts.pptx" class="inline-block rounded-full border border-terracotta px-5 py-2 text-sm font-medium text-terracotta no-underline">下載簡報 PPTX</a>
-  </div>
-</div>
