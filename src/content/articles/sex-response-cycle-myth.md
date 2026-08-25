@@ -1,17 +1,14 @@
 ---
 title: 性愛總是照劇本走？打破性反應週期的固有迷思
-date: 2026-08-09T00:00:00.000Z
+date: 2026-08-26T00:00:00.000Z
 category: 情慾實驗室
 tags:
-  - '#性反應週期'
-  - '#性行為'
-  - '#性腳本'
-  - '#親密關係'
-summary: >-
-  性愛總是照著劇本走，最後只剩交差了事的空虛與失落嗎？許多人深受色情影像與「射精才算結束」的單一想像制約，反而丟失了關係的親密溫度。本文帶你打破性反應週期的固有框架，透過誠實對話與感受覺察，擺脫預期焦慮，在多元探索中重新找回彼此自在又深刻的情感連結。
-reference: >-
-  Masters, W. H., & Johnson, V. E. (1966). Human Sexual Response. Little, Brown
-  and Company.
+  - "#性反應週期"
+  - "#性行為"
+  - "#性腳本"
+  - "#親密關係"
+summary: 性愛總是照著劇本走，最後只剩交差了事的空虛與失落嗎？許多人深受色情影像與「射精才算結束」的單一想像制約，反而丟失了關係的親密溫度。本文帶你打破性反應週期的固有框架，透過誠實對話與感受覺察，擺脫預期焦慮，在多元探索中重新找回彼此自在又深刻的情感連結。
+reference: Masters, W. H., & Johnson, V. E. (1966). Human Sexual Response. Little, Brown and Company.
 cover: /images/cover-sex-response-cycle-myth.webp
 ---
 
