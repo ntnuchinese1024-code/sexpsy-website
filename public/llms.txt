@@ -15,12 +15,12 @@
 
 ## 六大專欄
 
-- [馬鈴薯嗑論文](https://www.sexpsy.tw/articles?series=%E9%A6%AC%E9%88%B4%E8%96%AF%E5%97%91%E8%AB%96%E6%96%87): 把厚重的學術論文，嗑成聽得懂的日常語言。
-- [沙發夜聊室](https://www.sexpsy.tw/articles?series=%E6%B2%99%E7%99%BC%E5%A4%9C%E8%81%8A%E5%AE%A4): 關係、依附，與那些說不出口的親密日常。
-- [情慾實驗室](https://www.sexpsy.tw/articles?series=%E6%83%85%E6%85%BE%E5%AF%A6%E9%A9%97%E5%AE%A4): 誠實面對身體、慾望與性的每一種樣子。
-- [心理急救包](https://www.sexpsy.tw/articles?series=%E5%BF%83%E7%90%86%E6%80%A5%E6%95%91%E5%8C%85): 情緒炸裂的時候，先給自己一個急救箱。
-- [耍廢自癒角](https://www.sexpsy.tw/articles?series=%E8%80%8D%E5%BB%A2%E8%87%AA%E7%99%92%E8%A7%92): 耍廢不是逃避，是一種溫柔的自我照顧。
-- [翻頁餘溫](https://www.sexpsy.tw/articles?series=%E7%BF%BB%E9%A0%81%E9%A4%98%E6%BA%AB): 那些閱讀過的書籍，都在生命裡活躍了起來。
+- [馬鈴薯嗑論文](https://sexpsy.tw/articles?series=%E9%A6%AC%E9%88%B4%E8%96%AF%E5%97%91%E8%AB%96%E6%96%87): 把厚重的學術論文，嗑成聽得懂的日常語言。
+- [沙發夜聊室](https://sexpsy.tw/articles?series=%E6%B2%99%E7%99%BC%E5%A4%9C%E8%81%8A%E5%AE%A4): 關係、依附，與那些說不出口的親密日常。
+- [情慾實驗室](https://sexpsy.tw/articles?series=%E6%83%85%E6%85%BE%E5%AF%A6%E9%A9%97%E5%AE%A4): 誠實面對身體、慾望與性的每一種樣子。
+- [心理急救包](https://sexpsy.tw/articles?series=%E5%BF%83%E7%90%86%E6%80%A5%E6%95%91%E5%8C%85): 情緒炸裂的時候，先給自己一個急救箱。
+- [耍廢自癒角](https://sexpsy.tw/articles?series=%E8%80%8D%E5%BB%A2%E8%87%AA%E7%99%92%E8%A7%92): 耍廢不是逃避，是一種溫柔的自我照顧。
+- [翻頁餘溫](https://sexpsy.tw/articles?series=%E7%BF%BB%E9%A0%81%E9%A4%98%E6%BA%AB): 那些閱讀過的書籍，都在生命裡活躍了起來。
 
 ## 自學專區
 
@@ -29,11 +29,11 @@
 
 ## 核心連結
 
-- [網站首頁](https://www.sexpsy.tw/)
-- [文章總覽](https://www.sexpsy.tw/articles)
-- [自學專區](https://www.sexpsy.tw/self-study)
-- [關於創辦人](https://www.sexpsy.tw/about)
-- [聯絡我們](https://www.sexpsy.tw/contact)
-- [完整文章清單（含摘要與關鍵字）](https://www.sexpsy.tw/llms-full.txt)
-- [RSS 訂閱](https://www.sexpsy.tw/rss.xml)
-- [Sitemap](https://www.sexpsy.tw/sitemap-index.xml)
+- [網站首頁](https://sexpsy.tw/)
+- [文章總覽](https://sexpsy.tw/articles)
+- [自學專區](https://sexpsy.tw/self-study)
+- [關於創辦人](https://sexpsy.tw/about)
+- [聯絡我們](https://sexpsy.tw/contact)
+- [完整文章清單（含摘要與關鍵字）](https://sexpsy.tw/llms-full.txt)
+- [RSS 訂閱](https://sexpsy.tw/rss.xml)
+- [Sitemap](https://sexpsy.tw/sitemap-index.xml)

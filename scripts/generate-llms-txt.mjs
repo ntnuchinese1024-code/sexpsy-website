@@ -28,7 +28,9 @@ const ARTICLES_DIR = join(ROOT, 'src/content/articles');
 const SELF_STUDY_DIR = join(ROOT, 'src/content/self-study');
 const PUBLIC_DIR = join(ROOT, 'public');
 
-const SITE_URL = 'https://www.sexpsy.tw';
+// 2026-08-31：改成不加 www，跟 astro.config.mjs 的 site 設定與實際 301 方向一致
+// （www 版本會被轉址到這個版本，見 astro.config.mjs 裡的說明）。
+const SITE_URL = 'https://sexpsy.tw';
 
 // 對應 src/lib/series.ts —— 六大專欄
 const SERIES = [
