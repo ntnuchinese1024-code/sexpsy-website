@@ -1,0 +1,1589 @@
+<title>三圈復元群島</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+:root { color-scheme: light; }
+body { background: #F9F6F0; color: #3C2A21; }
+/* 三圈復元群島：所有樣式都限定在 #tc-app 底下，避免和全站 Tailwind 樣式互相干擾 */
+/* 版面：上方分頁；地圖頁桌機為「左海圖、右面板」，手機為單欄、編輯器改成底部抽屜。
+   色票沿用 sexpsy.tw（燕麥白、深栗棕、赤陶、鼠尾草、酒紅、亞麻），刻意維持網站的單一淺色調。 */
+#tc-app {
+  --cream: #F9F6F0;
+  --paper: #FFFDF9;
+  --ink: #3C2A21;
+  --muted: #7A6A60;
+  --line: #E5DCD2;
+  --terracotta: #C87D65;
+  --terracotta-ink: #9A5641;
+  --wine: #A35D6A;
+  --wine-soft: #F3E1E1;
+  --sage: #8A9A86;
+  --sage-ink: #566B57;
+  --sage-soft: #E5ECE2;
+  --flax: #E6C594;
+  --flax-soft: #F6ECDA;
+  --indigo: #5B6C7D;
+  --indigo-soft: #E3EAEE;
+  --serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  /* 黏在頁面上方時要避開的高度；放進 sexpsy.tw 時由頁面改成網站頁首的高度 */
+  --tc-sticky-top: 16px;
+  color-scheme: light;
+}
+#tc-app, #tc-app * { box-sizing: border-box; }
+#tc-app {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.7;
+}
+#tc-app h1, #tc-app h2, #tc-app h3 { font-family: var(--serif); text-wrap: balance; line-height: 1.35; margin: 0; }
+#tc-app p { margin: 0; }
+#tc-app button, #tc-app input, #tc-app textarea, #tc-app select { font: inherit; color: inherit; }
+#tc-app :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; }
+
+#tc-app .wrap {
+  max-width: 1200px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 64px;
+}
+
+/* 頁首 */
+#tc-app .top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+#tc-app .brand small { display: block; font-size: 12px; letter-spacing: .2em; color: var(--terracotta-ink); }
+#tc-app .brand h1 { font-size: clamp(24px, 4vw, 32px); }
+#tc-app .tabs {
+  display: flex; gap: 4px; padding: 4px; border-radius: 999px;
+  background: var(--paper); border: 1px solid var(--line); overflow-x: auto; max-width: 100%;
+}
+#tc-app .tabs button {
+  border: 0; background: none; padding: 7px 15px; border-radius: 999px; cursor: pointer;
+  white-space: nowrap; color: var(--muted);
+}
+#tc-app .tabs button[aria-selected="true"] { background: var(--ink); color: var(--cream); }
+
+#tc-app .banner {
+  margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+  padding: 10px 14px; border-radius: 12px; background: var(--flax-soft); font-size: 14px;
+}
+#tc-app .banner.warn { background: var(--wine-soft); }
+#tc-app .banner p { flex: 1 1 260px; min-width: 0; }
+
+#tc-app section.view { margin-top: 20px; }
+
+/* 共用按鈕 */
+#tc-app .btn {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--paper); border-radius: 10px;
+  padding: 7px 14px; font-size: 14px;
+}
+#tc-app .btn:hover { border-color: var(--muted); }
+#tc-app .btn.primary { background: var(--terracotta-ink); border-color: var(--terracotta-ink); color: var(--paper); }
+#tc-app .btn.danger { color: var(--wine); border-color: color-mix(in srgb, var(--wine) 45%, var(--line)); }
+#tc-app .btn.danger.armed { background: var(--wine); color: var(--paper); }
+#tc-app .btn.ghost { border-color: transparent; background: none; }
+#tc-app .btn.small { padding: 4px 10px; font-size: 13px; }
+#tc-app .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#tc-app .text-in {
+  flex: 1 1 200px; min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--cream);
+  padding: 7px 10px; font-size: 15px;
+}
+
+/* 地圖頁 */
+#tc-app .layout { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); }
+#tc-app .chart-card {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 12px;
+  min-width: 0;
+}
+#tc-app .chart-tools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; padding: 4px 4px 10px; }
+#tc-app .chart-tools .hint { font-size: 13px; color: var(--muted); flex: 1 1 260px; }
+#tc-app .sea { border-radius: 14px; overflow: hidden; }
+/* 手機上地圖放大到可讀的尺寸，在自己的容器裡左右滑動 */
+#tc-app .sea-hint { display: none; font-size: 12px; color: var(--muted); text-align: center; padding-top: 6px; }
+@media (max-width: 700px) { #tc-app .sea-hint { display: block; } }
+#tc-app #map { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
+@media (max-width: 700px) { #tc-app .sea { overflow-x: auto; overscroll-behavior-x: contain; } #tc-app #map { width: 720px; max-width: none; } }
+#tc-app #map .isl { cursor: grab; touch-action: none; }
+#tc-app #map .isl:focus { outline: none; }
+#tc-app #map .isl:focus-visible .isl-top { stroke: var(--terracotta-ink); stroke-width: 4; }
+#tc-app #map .wave { animation: drift 7s ease-in-out infinite alternate; }
+#tc-app #map .wave:nth-child(3n) { animation-duration: 9s; animation-delay: -3s; }
+#tc-app #map .wave:nth-child(3n+1) { animation-duration: 11s; animation-delay: -6s; }
+@keyframes drift { to { transform: translateX(12px); } }
+#tc-app .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; font-size: 13px; color: var(--muted); padding: 10px 0 2px; }
+#tc-app .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+
+#tc-app .side { min-width: 0; }
+#tc-app .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 18px; min-width: 0; }
+#tc-app .panel h2 { font-size: 19px; }
+#tc-app .lede { color: var(--muted); font-size: 14px; margin-top: 6px; }
+#tc-app .ov-ring { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+#tc-app .ov-ring header { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+#tc-app .ov-ring header b { font-family: var(--serif); font-size: 16px; }
+#tc-app .ov-ring header span { font-size: 13px; color: var(--muted); }
+#tc-app .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; align-self: center; }
+#tc-app .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+#tc-app .chip {
+  border: 1px solid var(--line); background: var(--cream); border-radius: 999px;
+  padding: 4px 12px; font-size: 13px; cursor: pointer;
+}
+#tc-app .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+#tc-app .chip.add { border-style: dashed; color: var(--muted); background: none; }
+#tc-app .chip.custom { border-style: dotted; }
+#tc-app .chip.del { background: var(--wine-soft); border-color: var(--wine); color: var(--wine); }
+
+/* 編輯器 */
+#tc-app .ed-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+#tc-app .ring-tag { font-size: 12px; letter-spacing: .08em; padding: 2px 10px; border-radius: 999px; }
+#tc-app .ring-tag.inner { background: var(--wine-soft); color: var(--wine); }
+#tc-app .ring-tag.middle { background: var(--flax-soft); color: #8A6122; }
+#tc-app .ring-tag.outer { background: var(--sage-soft); color: var(--sage-ink); }
+#tc-app .ring-tag.people { background: var(--indigo-soft); color: var(--indigo); }
+#tc-app .field { display: grid; gap: 4px; margin-top: 14px; }
+#tc-app .field label, #tc-app .field .lbl { font-weight: 500; font-size: 14px; }
+#tc-app .field .help, #tc-app .help { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+#tc-app .field input[type=text], #tc-app .field input[type=number], #tc-app .field input[type=date], #tc-app .field textarea, #tc-app .field select, #tc-app .paste {
+  width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--cream);
+  padding: 8px 10px; font-size: 15px; line-height: 1.6;
+}
+#tc-app .field textarea { min-height: 72px; resize: vertical; }
+#tc-app .title-input { font-family: var(--serif); font-size: 18px !important; font-weight: 600; }
+#tc-app .look { margin-top: 14px; border: 1px solid var(--line); border-radius: 14px; padding: 4px 12px; background: var(--cream); }
+#tc-app .look summary { cursor: pointer; font-weight: 500; font-size: 14px; padding: 6px 0; }
+#tc-app .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 4px; margin-top: 6px; }
+#tc-app .icons button {
+  border: 1px solid transparent; background: var(--paper); border-radius: 10px; font-size: 20px; line-height: 1;
+  padding: 7px 0; cursor: pointer;
+}
+#tc-app .icons button[aria-pressed="true"] { border-color: var(--ink); background: var(--flax-soft); }
+#tc-app .terrains { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+#tc-app .terrains button {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--paper);
+  border-radius: 999px; padding: 3px 10px 3px 4px; font-size: 13px; cursor: pointer;
+}
+#tc-app .terrains button i { width: 20px; height: 20px; border-radius: 50%; display: inline-block; box-shadow: inset 0 -5px 0 rgba(0, 0, 0, .18); }
+#tc-app .terrains button[aria-pressed="true"] { border-color: var(--ink); }
+#tc-app .dialectic { display: grid; gap: 10px; margin-top: 14px; }
+#tc-app .dialectic .side-in, #tc-app .dialectic .side-out { border-radius: 12px; padding: 10px 12px 12px; }
+#tc-app .dialectic .side-in { background: var(--wine-soft); }
+#tc-app .dialectic .side-out { background: var(--sage-soft); }
+#tc-app .dialectic .field { margin-top: 0; }
+#tc-app .dialectic textarea { background: var(--paper) !important; }
+#tc-app .depth { margin-top: 14px; padding: 12px; border-radius: 12px; background: var(--cream); }
+#tc-app .depth input[type=range] { width: 100%; accent-color: var(--terracotta-ink); }
+#tc-app .depth .ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+#tc-app .depth .now { font-weight: 500; }
+#tc-app .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 6px; }
+#tc-app .week button {
+  border: 1px solid var(--line); background: var(--cream); border-radius: 8px; padding: 6px 0;
+  font-size: 12px; cursor: pointer; line-height: 1.3;
+}
+#tc-app .week button[aria-pressed="true"] { background: var(--sage); border-color: var(--sage); color: var(--paper); }
+#tc-app .week button.today { border-color: var(--ink); }
+#tc-app .memories { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 8px; }
+#tc-app .memories li {
+  background: var(--indigo-soft); border-radius: 12px; padding: 8px 12px; display: grid;
+  grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; font-size: 14px;
+}
+#tc-app .memories li small { color: var(--muted); font-variant-numeric: tabular-nums; }
+#tc-app .memories li p { grid-column: 1; }
+#tc-app .memories li button { grid-row: 1 / span 2; grid-column: 2; align-self: start; }
+#tc-app .mem-add { display: grid; gap: 6px; margin-top: 8px; }
+#tc-app .from-box { margin-top: 16px; padding: 12px; border-radius: 12px; border: 1px dashed var(--line); }
+#tc-app .ed-foot { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+#tc-app .backdrop { position: fixed; inset: 0; background: rgba(60, 42, 33, .28); z-index: 60; }
+
+/* 地圖旁邊放面板要夠寬才不會把地圖擠小，所以到 1180px 才分成兩欄 */
+@media (min-width: 1180px) {
+  #tc-app .layout { grid-template-columns: minmax(0, 1fr) 390px; align-items: start; }
+  #tc-app .side { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--tc-sticky-top)); max-height: calc(100vh - var(--tc-sticky-top) - 16px); overflow: auto; border-radius: 20px; }
+  #tc-app .side.editing #overview { display: none; }
+  #tc-app #editor:not(.open) { display: none; }
+  #tc-app .backdrop { display: none; }
+}
+@media (max-width: 1179px) {
+  #tc-app #editor {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 65; margin-inline: auto; max-width: 720px; max-height: 86vh; overflow: auto;
+    border-radius: 20px 20px 0 0; transform: translateY(105%); transition: transform .28s ease;
+    padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 30px rgba(60, 42, 33, .16);
+  }
+  #tc-app #editor.open { transform: none; }
+  #tc-app #editor::before { content: ""; display: block; width: 40px; height: 4px; border-radius: 4px; background: var(--line); margin: -6px auto 12px; }
+}
+
+/* 今日 */
+#tc-app .grid2 { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 860px) { #tc-app .grid2 { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; } }
+#tc-app .stack { display: grid; gap: 20px; min-width: 0; }
+#tc-app .affirm { border-radius: 20px; padding: 22px; background: var(--ink); color: var(--cream); }
+#tc-app .affirm small { letter-spacing: .15em; font-size: 12px; opacity: .75; }
+#tc-app .affirm textarea {
+  width: 100%; margin-top: 8px; border: 0; background: transparent; color: var(--cream); resize: none;
+  font-family: var(--serif); font-size: clamp(19px, 2.6vw, 23px); line-height: 1.55; min-height: 3.2em; padding: 0;
+}
+#tc-app .affirm textarea::placeholder { color: rgba(249, 246, 240, .5); }
+#tc-app .affirm textarea:focus-visible { outline: 1px dashed rgba(249, 246, 240, .5); outline-offset: 6px; }
+#tc-app .tally { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+#tc-app .tally strong { font-family: var(--serif); font-size: 44px; line-height: 1; font-variant-numeric: tabular-nums; }
+#tc-app .strip { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 4px; margin-top: 14px; }
+#tc-app .strip span { aspect-ratio: 1; max-width: 100%; border-radius: 4px; border: 1px solid var(--line); background: var(--paper); }
+#tc-app .strip span.held { background: var(--sage); border-color: var(--sage); }
+#tc-app .strip span.shaky { background: var(--flax); border-color: var(--flax); }
+#tc-app .strip span.slip { background: var(--wine-soft); border-color: var(--wine); }
+#tc-app .strip span.is-today { outline: 2px solid var(--ink); outline-offset: 1px; }
+#tc-app .strip-key { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 8px; }
+#tc-app .strip-key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+#tc-app .status { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+#tc-app .status button {
+  border: 1px solid var(--line); background: var(--cream); border-radius: 12px; padding: 10px 6px; cursor: pointer; line-height: 1.35;
+}
+#tc-app .status button small { display: block; font-size: 11.5px; color: var(--muted); }
+#tc-app .status button[aria-pressed="true"][data-s=held] { background: var(--sage-soft); border-color: var(--sage-ink); }
+#tc-app .status button[aria-pressed="true"][data-s=shaky] { background: var(--flax-soft); border-color: #B08A4E; }
+#tc-app .status button[aria-pressed="true"][data-s=slip] { background: var(--wine-soft); border-color: var(--wine); }
+#tc-app .scale { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+#tc-app .scale.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+#tc-app .scale button { border: 1px solid var(--line); background: var(--cream); border-radius: 8px; padding: 6px 0; cursor: pointer; font-variant-numeric: tabular-nums; }
+#tc-app .scale button[aria-pressed="true"] { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+#tc-app .scale-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+#tc-app .slip-note { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--wine-soft); font-size: 14px; display: grid; gap: 8px; }
+#tc-app .saved { font-size: 12px; color: var(--muted); }
+
+/* 百寶箱 */
+#tc-app .kinds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+#tc-app .kinds button { border: 1px solid var(--line); background: var(--cream); border-radius: 10px; padding: 7px 6px; cursor: pointer; font-size: 14px; }
+#tc-app .kinds button[aria-pressed="true"][data-kind=strategy] { background: var(--sage-soft); border-color: var(--sage-ink); }
+#tc-app .kinds button[aria-pressed="true"][data-kind=risk] { background: var(--wine-soft); border-color: var(--wine); }
+#tc-app .tb-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 10px; }
+#tc-app .tb-item { border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; display: grid; gap: 6px; background: var(--paper); }
+#tc-app .tb-item.strategy { border-left: 4px solid var(--sage); }
+#tc-app .tb-item.risk { border-left: 4px solid var(--wine); }
+#tc-app .tb-main { display: flex; gap: 8px; align-items: baseline; }
+#tc-app .tb-main p { min-width: 0; }
+#tc-app .tb-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; }
+#tc-app .unplaced { color: var(--terracotta-ink); }
+#tc-app .tb-item select { flex: 1 1 180px; min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--cream); padding: 5px 8px; font-size: 13.5px; }
+#tc-app .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+
+/* 回顧 */
+#tc-app .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+#tc-app .stat { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+#tc-app .stat b { display: block; font-family: var(--serif); font-size: 28px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+#tc-app .stat span { font-size: 13px; color: var(--muted); }
+#tc-app .bar-list { display: grid; gap: 12px; margin-top: 12px; }
+#tc-app .bar-row { display: grid; gap: 4px; }
+#tc-app .bar-row header { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+#tc-app .bar-row header span { color: var(--muted); font-size: 13px; white-space: nowrap; }
+#tc-app .track { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--wine-soft), var(--flax-soft), var(--sage-soft)); }
+#tc-app .track i { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); border: 3px solid var(--paper); transform: translate(-50%, -50%); }
+#tc-app .prog { height: 10px; border-radius: 999px; background: var(--cream); border: 1px solid var(--line); overflow: hidden; }
+#tc-app .prog i { display: block; height: 100%; background: var(--sage); }
+#tc-app .entries { display: grid; gap: 10px; margin-top: 12px; }
+#tc-app .entry { border-top: 1px solid var(--line); padding-top: 10px; font-size: 14px; display: grid; gap: 2px; }
+#tc-app .entry header { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+#tc-app .entry header b { font-variant-numeric: tabular-nums; }
+#tc-app .pill { font-size: 12px; padding: 1px 8px; border-radius: 999px; white-space: nowrap; flex: none; }
+#tc-app .pill.held { background: var(--sage-soft); color: var(--sage-ink); }
+#tc-app .pill.shaky { background: var(--flax-soft); color: #8A6122; }
+#tc-app .pill.slip { background: var(--wine-soft); color: var(--wine); }
+#tc-app .muted { color: var(--muted); }
+#tc-app .empty { color: var(--muted); font-size: 14px; padding: 8px 0; }
+
+/* 設定 */
+#tc-app .settings { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 860px) { #tc-app .settings { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+#tc-app .paste { min-height: 110px; font-family: ui-monospace, Menlo, monospace; font-size: 12px !important; margin-top: 10px; }
+#tc-app .res { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
+#tc-app .res li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 14px; }
+#tc-app .res li:first-child { border-top: 0; padding-top: 0; }
+#tc-app .res a, #tc-app .res b { color: var(--terracotta-ink); font-weight: 700; font-variant-numeric: tabular-nums; user-select: all; }
+
+/* 對話框、鎖定畫面、提示 */
+#tc-app .modal-wrap { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 16px; background: rgba(60, 42, 33, .4); }
+#tc-app .modal {
+  background: var(--paper); border-radius: 20px; width: min(560px, 100%); max-height: 90vh; overflow: auto;
+  padding: 22px; box-shadow: 0 20px 60px rgba(60, 42, 33, .25);
+}
+#tc-app .modal h2 { font-size: 21px; }
+#tc-app .steps { list-style: none; counter-reset: s; padding: 0; margin: 16px 0 0; display: grid; gap: 14px; }
+#tc-app .steps > li { counter-increment: s; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; }
+#tc-app .steps > li::before {
+  content: counter(s); width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--wine-soft); color: var(--wine); font-weight: 700; font-size: 14px;
+}
+#tc-app .steps b { display: block; }
+#tc-app .steps .help { font-size: 13.5px; }
+#tc-app .steps textarea { width: 100%; margin-top: 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--cream); padding: 8px 10px; min-height: 60px; }
+#tc-app .lock { position: fixed; inset: 0; z-index: 80; background: var(--cream); display: grid; place-items: center; padding: 16px; }
+#tc-app .lock .box { width: min(340px, 100%); text-align: center; display: grid; gap: 12px; }
+#tc-app .lock input { text-align: center; letter-spacing: .5em; font-size: 22px; border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: var(--paper); width: 100%; }
+#tc-app .toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  z-index: 90; background: var(--ink); color: var(--cream); padding: 10px 16px; border-radius: 12px; font-size: 14px;
+  width: max-content; max-width: calc(100vw - 32px);
+}
+#tc-app .export-img { width: 100%; border-radius: 12px; border: 1px solid var(--line); margin-top: 12px; }
+@media (prefers-reduced-motion: reduce) { #tc-app #editor { transition: none; } #tc-app #map .wave { animation: none; } }
+
+</style>
+<div id="tc-app">
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <small>沙發上的性心理・復元工具</small>
+      <h1>三圈復元群島</h1>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="頁面">
+      <button role="tab" data-tab="map" aria-selected="true">群島地圖</button>
+      <button role="tab" data-tab="today" aria-selected="false">今日</button>
+      <button role="tab" data-tab="box" aria-selected="false">百寶箱</button>
+      <button role="tab" data-tab="review" aria-selected="false">回顧</button>
+      <button role="tab" data-tab="settings" aria-selected="false">備份與設定</button>
+    </nav>
+  </header>
+  <div id="banner"></div>
+
+  <!-- 群島地圖 -->
+  <section class="view" id="view-map">
+    <div class="layout">
+      <div class="chart-card">
+        <div class="chart-tools">
+          <span class="hint">點島嶼編輯，拖曳可以移動。中圈島嶼離中心越遠，代表越靠近外圈；外海的離島放支持你的人。</span>
+          <div class="row">
+            <button class="btn small" data-act="rename">為群島命名</button>
+            <button class="btn small" data-act="slipkit">失手急救包</button>
+            <button class="btn small" data-act="png">存成圖片</button>
+          </div>
+        </div>
+        <div class="sea">
+          <svg id="map" viewBox="0 0 1000 860" role="group" aria-label="三圈復元群島地圖"><g id="base"></g><g id="labels"></g><g id="routes"></g><g id="isles"></g></svg>
+        </div>
+        <p class="sea-hint">← 左右滑動看整張地圖 →</p>
+        <div class="legend" id="legend"></div>
+      </div>
+      <aside class="side" id="side">
+        <div class="panel" id="overview"></div>
+        <div class="panel" id="editor" role="dialog" aria-label="編輯島嶼"></div>
+      </aside>
+    </div>
+    <div class="backdrop" id="backdrop" hidden></div>
+  </section>
+
+  <section class="view" id="view-today" hidden></section>
+  <section class="view" id="view-box" hidden></section>
+  <section class="view" id="view-review" hidden></section>
+  <section class="view" id="view-settings" hidden></section>
+</div>
+
+<div id="modal-root"></div>
+<div id="lock-root"></div>
+<div id="toast-root"></div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- 基本工具 ---------- */
+const KEY = 'sexpsy-three-circles-v1';
+const $ = (s, el = document) => el.querySelector(s);
+if (!document.getElementById('tc-app')) return;
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const todayStr = () => fmt(new Date());
+const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return fmt(d); };
+const md = (d) => (d || '').slice(5).replace('-', '/');
+const WEEKDAY = ['日', '一', '二', '三', '四', '五', '六'];
+function weekDates() {
+  const t = new Date(); const off = (t.getDay() + 6) % 7; const out = [];
+  for (let i = 0; i < 7; i++) { const d = new Date(t); d.setDate(t.getDate() - off + i); out.push(fmt(d)); }
+  return out;
+}
+function hashStr(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { let a = seed; return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function trunc(s, n) { const a = [...s]; return a.length > n ? a.slice(0, n).join('') + '…' : s; }
+
+/* ---------- 圈層、欄位、外觀 ---------- */
+const RINGS = {
+  inner: { name: '內圈', full: '內圈・界線島', desc: '我清楚設限、不再做的事', color: '#B9867F' },
+  middle: { name: '中圈', full: '中圈・辯證島', desc: '灰色地帶：可能往內，也可能往外', color: '#D9B57A' },
+  outer: { name: '外圈', full: '外圈・建構島', desc: '我想積極擴大的生活', color: '#8FA87F' },
+  people: { name: '離島', full: '離島・人際資源', desc: '支持我的人，和我們共同的記憶', color: '#7F92A6' },
+};
+const FIELDS = {
+  inner: [
+    ['boundary', '我的界線', '具體寫下「我不做什麼」。例如：不使用任何派對藥物，包括朋友說的「一點點」。'],
+    ['signals', '靠近時的警訊', '身體、情緒、想法上的訊號。例如：連續兩晚失眠、開始想「只是看看」。'],
+    ['selfcare', '遇到風險時，我為自己做的事', '例如：離開現場、洗個熱水澡、吃點東西、早點睡。'],
+    ['resources', '我可以找的資源', '人名、電話、團體、諮商師。一行寫一個。失手急救包會自動帶入這裡的內容。'],
+    ['strategies', '具體可行的策略', '越具體越好：誰、什麼時候、怎麼做。'],
+  ],
+  middle: [
+    ['context', '這是什麼情境', '描述這個項目，以及它滿足了我什麼需求。'],
+    ['toInner', '往內圈陷落：怎樣會變危險', '觸發點、使用方式、時間、地點、身邊的人。'],
+    ['toOuter', '往外圈移動：怎樣能幫我建構生活', '同樣的需求，可以用什麼比較安全的方式滿足。'],
+    ['guard', '我替自己設的防護', '例如：只在白天使用、設定時間上限、事先告訴支持者。'],
+  ],
+  outer: [
+    ['vision', '我想要的生活樣貌', '這座島長大之後，我的日子會是什麼樣子？'],
+    ['why', '為什麼這對我重要', '它連結到我的哪些價值或需求。'],
+    ['planA', 'Plan A・狀態好的時候', '完整的版本。'],
+    ['planB', 'Plan B・有點累的時候', '簡化的版本。'],
+    ['planC', 'Plan C・最低限度', '再糟的日子也做得到的一小步。'],
+  ],
+  people: [
+    ['relation', '他是誰', '和我的關係，例如：支持團體夥伴、姊姊、諮商師。'],
+    ['support', '他怎麼支持我', '他做了什麼、說了什麼，讓我覺得被接住。'],
+    ['contact', '怎麼聯絡', '電話、LINE、什麼時間方便。失手急救包會帶入這裡。'],
+  ],
+};
+const fieldLabel = (ring, key) => (FIELDS[ring] || []).find((f) => f[0] === key)?.[1] || key;
+const TERRAINS = {
+  rock: { name: '岩岸', top: '#B9867F', side: '#7E5150', sand: '#DCC3B6' },
+  sand: { name: '沙洲', top: '#E9CF9C', side: '#B48F63', sand: '#F4E7C9' },
+  grass: { name: '草地', top: '#9DB38E', side: '#6C7E5D', sand: '#EBDAB4' },
+  forest: { name: '森林', top: '#6F8B6A', side: '#4C5E48', sand: '#E2D2AC' },
+  clay: { name: '紅土', top: '#D49A7C', side: '#985D46', sand: '#EFD8C0' },
+  bloom: { name: '花園', top: '#DCA8B0', side: '#9C6A73', sand: '#F2DFD9' },
+  slate: { name: '藍石', top: '#93A3B3', side: '#5B6C7D', sand: '#DEE3E6' },
+};
+const DEFAULT_NAMES = { map: '我的復元群島', inner: '內圈・界線', middle: '中圈・辯證與管控', outer: '外圈・積極建構', people: '離島・人際資源' };
+const ringLabel = (r) => (S.names && S.names[r] && S.names[r].trim()) || DEFAULT_NAMES[r];
+const DEFAULT_TERRAIN = { inner: 'rock', middle: 'sand', outer: 'grass', people: 'slate' };
+const DEFAULT_ICON = { inner: '⚓', middle: '🧭', outer: '🌱', people: '🤝' };
+const ICONS = ['⚓', '🛑', '🚪', '🧱', '🔒', '⛔', '🧭', '📱', '🌙', '🍷', '🎲', '🎮', '💻', '🌃',
+  '🌱', '🌳', '🌻', '🏃', '🧘', '📚', '🎸', '🎨', '🍳', '☕', '🐕', '🐈', '🌊', '⛰️',
+  '🏕️', '🏡', '💞', '💬', '🙏', '☀️', '⭐', '🎵', '🚲', '🧩', '🤝', '👥', '👤', '💌', '🎁', '📷', '🕯️', '🧸', '📺', '💰'];
+
+const EMOTIONS = ['平靜', '焦慮', '孤單', '渴望', '疲憊', '煩躁', '羞愧', '難過', '有動力', '被支持', '開心'];
+const STATUS = { held: ['守住了', '沒有進入內圈'], shaky: ['有些搖晃', '靠近了，但守住'], slip: ['失手了', '進入了內圈'] };
+const KINDS = { strategy: '有幫助的策略', risk: '發現的風險' };
+/* 百寶箱的項目可以放進哪些欄位 */
+const PLACE = {
+  strategy: { inner: ['selfcare', 'strategies', 'resources'], middle: ['toOuter', 'guard'], outer: ['planA', 'planB', 'planC'], people: ['support'] },
+  risk: { inner: ['signals'], middle: ['toInner'], outer: [], people: [] },
+};
+const QUICK = { strategy: { inner: 'strategies', middle: 'toOuter', outer: 'planB' }, risk: { inner: 'signals', middle: 'toInner' } };
+const RESOURCES = [
+  ['緊急救護／消防', '119', 'tel:119'],
+  ['衛福部安心專線（24 小時）', '1925', 'tel:1925'],
+  ['生命線協談專線（24 小時）', '1995', 'tel:1995'],
+  ['張老師專線', '1980', 'tel:1980'],
+  ['毒品危害防制戒癮專線（24 小時）', '0800-770-885', 'tel:0800770885'],
+  ['台灣同志諮詢熱線', '02-2392-1970', 'tel:0223921970'],
+];
+
+/* 範本：[圈層, 標題, 欄位, 中圈位置／外圈每週目標／離島記憶, 圖示, 地形] */
+const TEMPLATES = {
+  chemsex: { label: '藥物與性（chemsex）', islands: [
+    ['inner', '使用派對藥物', { boundary: '不使用 G 水、安非他命或任何派對藥物，包括朋友說的「一點點」。', signals: '週五晚上開始焦躁、反覆打開 App、腦中出現以前派對的畫面。', selfcare: '把手機放遠、去便利商店買點吃的、洗個熱水澡、早點睡。', resources: '支持團體夥伴 小安\n個管師（週二、週四可以聯絡）\n毒品危害防制戒癮專線 0800-770-885', strategies: '週五晚上提前和朋友約吃飯；手機設定晚上 11 點後鎖住交友 App。' }, null, '🛑'],
+    ['inner', '參加有藥物的性派對', { boundary: '不參加任何會出現藥物的聚會。', signals: '有人私訊「今晚有局」，身體開始期待。', selfcare: '直接回覆「我不去」，然後把對話靜音。', resources: '小安\n諮商師', strategies: '把拒絕的句子先存在備忘錄，需要時複製貼上。' }, null, '🚪'],
+    ['middle', '交友軟體', { context: '想被看見、想有連結，也想要親密。', toInner: '用約砲取向的 App、深夜一個人滑、對方提到「嗨」「玩」「有東西嗎」。', toOuter: '用以交友為主的平台、白天使用、先約在公開場所喝咖啡。', guard: '只在晚上 10 點前使用；打開前先問自己現在的心情。' }, 0.58, '📱'],
+    ['middle', '週末深夜獨處', { context: '一個人的時間，有時是休息，有時是空虛。', toInner: '沒有安排、喝了酒、開始滑手機找人。', toOuter: '事先安排一件喜歡的小事：看電影、拼圖、打給朋友。', guard: '週五白天先寫好週末計畫。' }, 0.3, '🌙'],
+    ['middle', '以前一起用藥的朋友', { context: '有真實的情誼，也有一起使用的記憶。', toInner: '約在對方家、聊起以前的派對。', toOuter: '約在白天、公開場所，聊彼此現在的生活。', guard: '見面前先告訴支持者，結束後回報。' }, 0.42, '👥', 'clay'],
+    ['outer', '規律運動', { vision: '身體有力氣，睡得比較好。', why: '運動讓我重新感覺身體是自己的。', planA: '健身房 60 分鐘', planB: '快走 20 分鐘', planC: '在家伸展 5 分鐘' }, 3, '🏃'],
+    ['outer', '參加支持團體', { vision: '有一群懂我的人，不用解釋太多。', why: '一個人撐太累了。', planA: '參加實體聚會', planB: '參加線上聚會', planC: '在群組裡說一句話' }, 1, '💬', 'forest'],
+    ['outer', '清醒時的親密關係', { vision: '能在清醒的狀態下和人靠近、被接住。', why: '我想知道清醒的親密是什麼感覺。', planA: '和約會對象好好吃一頓飯', planB: '和朋友聊聊心裡的事', planC: '寫下今天想念誰' }, 1, '💞', 'bloom'],
+    ['people', '小安', { relation: '支持團體夥伴', support: '半夜也願意接我的電話，不會說教。', contact: 'LINE：小安（晚上 12 點前）' }, [[48, '第一次參加團體後，他陪我在便利商店坐到半夜。'], [9, '我失手後隔天，他只說：「你回來就好。」']], '🤝'],
+    ['people', '姊姊', { relation: '家人', support: '願意陪我去看醫生，不追問細節。', contact: '手機通訊錄「姊」' }, [[400, '小時候一起在頂樓放風箏，她把線讓給我。']], '🏡', 'bloom'],
+  ] },
+  sex: { label: '性／色情', islands: [
+    ['inner', '上班時間看色情內容', { boundary: '上班時間、工作用的電腦和手機，不看任何色情內容。', signals: '下午開始發呆、想「休息一下」、一直滑社群。', selfcare: '起身走一走、去倒水、換個工作地點。', resources: '諮商師\n信任的朋友 阿哲', strategies: '工作電腦裝過濾軟體；下午 3 點固定休息 10 分鐘。' }, null, '💻'],
+    ['inner', '付費性服務', { boundary: '不使用任何付費性服務。', signals: '出差、一個人住飯店、很想被觸碰。', selfcare: '打電話給伴侶或朋友、去飯店健身房。', resources: '阿哲\n諮商師', strategies: '出差時把行程排滿到晚上，回房前先和家人視訊。' }, null, '🚪'],
+    ['middle', '睡前在床上滑手機', { context: '放鬆、轉移一天的壓力。', toInner: '關燈後一個人滑、點進推薦影片、告訴自己「再看一下就好」。', toOuter: '用來和朋友聊天、看喜歡的創作者、聽助眠音樂。', guard: '手機放客廳充電；11 點後開啟專注模式。' }, 0.38, '📱'],
+    ['middle', '加班後的壓力夜晚', { context: '很累，想要立刻感覺好一點。', toInner: '覺得「我值得放縱一下」、沒有吃飯就回家。', toOuter: '先吃一頓熱的、洗澡、做一件讓身體放鬆的事。', guard: '加班日先跟伴侶說，回家路上打一通電話。' }, 0.45, '🌃'],
+    ['outer', '睡前儀式', { vision: '每天睡得夠，早上醒來比較有餘裕。', why: '睡不好時，我最容易失守。', planA: '11 點前上床，看紙本書 20 分鐘', planB: '聽 10 分鐘放鬆音檔', planC: '關燈前深呼吸 5 次' }, 5, '📚'],
+    ['outer', '和伴侶的真實連結', { vision: '能談心裡的事，也能談身體和慾望。', why: '我想要的是被理解的親密。', planA: '一起散步、聊這週的心情', planB: '吃飯時放下手機', planC: '說一句謝謝或擁抱一下' }, 3, '💞', 'bloom'],
+    ['outer', '屬於自己的興趣', { vision: '有一件讓我專注又快樂的事。', why: '我需要除了工作和螢幕以外的生活。', planA: '練吉他 30 分鐘', planB: '練一首歌的副歌', planC: '把吉他拿出來彈一個和弦' }, 2, '🎸', 'forest'],
+    ['people', '阿哲', { relation: '大學室友', support: '知道我的狀況，會直接問我「最近還好嗎」。', contact: '手機通訊錄「阿哲」' }, [[200, '畢業旅行在花蓮海邊聊到天亮。']], '🤝'],
+  ] },
+  alcohol: { label: '酒精', islands: [
+    ['inner', '一個人在家喝酒', { boundary: '家裡不放酒，不一個人喝。', signals: '下班後特別煩、經過便利商店時放慢腳步。', selfcare: '買一瓶氣泡水、打給家人、先洗澡。', resources: '戒酒互助團體\n諮商師\n家人', strategies: '下班換一條不經過便利商店的路回家。' }, null, '🍷'],
+    ['inner', '喝酒後開車', { boundary: '只要喝了任何一口，就不開車。', signals: '聚餐地點離家遠、想說「才喝一點」。', selfcare: '叫車或請朋友載。', resources: '叫車 App\n朋友', strategies: '聚餐前就把車停在家裡。' }, null, '⛔'],
+    ['middle', '聚餐應酬', { context: '工作需要，也想融入同事。', toInner: '續攤、被勸酒、沒吃東西就開始喝。', toOuter: '點無酒精飲料、早點離席、只參加第一攤。', guard: '事先說「我最近在調整身體，不喝酒」。' }, 0.4, '👥'],
+    ['middle', '週五的放鬆時間', { context: '一週結束，想犒賞自己。', toInner: '覺得「這週太辛苦了，喝一點沒關係」。', toOuter: '換成一頓好吃的晚餐、看場電影。', guard: '週五晚上先安排好活動。' }, 0.5, '🌙'],
+    ['outer', '晨間運動', { vision: '早上有精神，身體輕鬆。', why: '清醒的早晨讓我覺得自己有能力。', planA: '晨跑 30 分鐘', planB: '散步 15 分鐘', planC: '拉筋 3 分鐘' }, 3, '☀️'],
+    ['outer', '和家人吃晚餐', { vision: '家裡的晚餐時間是放鬆的。', why: '我想讓孩子看到清醒的我。', planA: '一起煮飯、一起吃', planB: '一起吃外帶', planC: '吃飯時陪在旁邊聊天' }, 4, '🍳', 'clay'],
+    ['people', '團體的學長', { relation: '戒酒互助團體', support: '他走過一樣的路，會分享自己怎麼撐過去。', contact: '每週三團體見' }, [[30, '他送我一枚 30 天的紀念幣。']], '🤝'],
+  ] },
+  gambling: { label: '賭博', islands: [
+    ['inner', '線上博弈', { boundary: '不使用任何線上博弈網站或 App。', signals: '收到優惠簡訊、手頭緊、想「贏回來」。', selfcare: '刪掉簡訊、把手機交給家人保管一小時。', resources: '家人\n諮商師\n生命線 1995', strategies: '手機安裝封鎖程式；信用卡關閉線上博弈交易。' }, null, '🎲'],
+    ['inner', '借錢下注', { boundary: '不向任何人、任何管道借錢下注。', signals: '開始算「下一把如果贏了……」。', selfcare: '打開記帳 App 看還款計畫。', resources: '家人\n財務諮詢', strategies: '薪水入帳後自動轉到家人管理的帳戶。' }, null, '🔒'],
+    ['middle', '看球賽與運彩', { context: '喜歡運動、喜歡和朋友一起看比賽。', toInner: '下注、一個人看、一直看賠率。', toOuter: '和朋友一起看、專注在比賽本身、去現場看球。', guard: '不在手機上安裝運彩 App；看球時不帶卡。' }, 0.45, '📺'],
+    ['middle', '發薪日', { context: '手上突然有錢，有種想做點什麼的感覺。', toInner: '帶現金、一個人外出、想「試試手氣」。', toOuter: '先還款、存錢，再用一小筆犒賞自己。', guard: '發薪日當天和家人一起吃飯。' }, 0.35, '💰'],
+    ['outer', '記帳與還款計畫', { vision: '慢慢還清債務，心裡比較踏實。', why: '我想重新被家人信任。', planA: '每天記帳，週末檢查一次', planB: '記今天最大的一筆', planC: '打開 App 看一眼' }, 7, '📚'],
+    ['outer', '週末家庭時間', { vision: '週末有固定和家人在一起的時間。', why: '家人是我最想守護的。', planA: '一起出遊半天', planB: '一起去公園', planC: '一起吃一頓飯' }, 1, '🏡', 'forest'],
+    ['people', '太太', { relation: '伴侶', support: '雖然很受傷，還是願意一起面對。', contact: '手機通訊錄「老婆」' }, [[900, '我們在淡水看夕陽的那天，我求婚了。']], '💌', 'bloom'],
+  ] },
+  blank: { label: '空白地圖', islands: [] },
+};
+
+const SLIP_STEPS = [
+  ['先讓自己安全', '如果身體不舒服、意識不清，或擔心用量過多，請撥 119。身邊有人的話，讓他陪著你。'],
+  ['對自己說', 'say'],
+  ['聯絡一個人', 'contacts'],
+  ['降低傷害', '如果已經使用了：不要一個人、不要再混用其他東西、補充水分、安排安全回家的方式。'],
+  ['平靜後回看', '等狀態穩定，寫下發生了什麼：在哪裡、什麼時間、身邊有誰、當時的感覺。再回地圖看看，是哪座中圈島嶼往內漂了，也可以把發現的風險收進百寶箱。'],
+  ['明天回到哪座外圈島嶼', 'next'],
+];
+
+/* ---------- 地圖幾何（俯視角度的海圖：水平半徑 × K 得到垂直半徑） ---------- */
+const W = 1000, H = 860, C = 500, CY = 440, K = 0.62;
+const ZONE = { inner: 178, middle: 306, outer: 440 };
+const BANDS = { inner: [48, 134], middle: [216, 278], outer: [352, 414] };
+const PEOPLE_SLOTS = [[885, 96], [910, 730], [90, 730], [640, 62], [330, 790], [670, 790], [935, 300], [70, 310]];
+const SANS_SVG = "'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif";
+const SERIF_SVG = "'Noto Serif TC','Songti TC',serif";
+
+/* ---------- 狀態 ---------- */
+function newIsland(ring, extra = {}) {
+  return {
+    id: uid(), ring, title: '', f: {}, angle: 0, depth: ring === 'middle' ? 0.5 : ring === 'inner' ? 0.75 : 0.55, target: 3,
+    log: [], hist: [], memories: [], icon: DEFAULT_ICON[ring], terrain: DEFAULT_TERRAIN[ring], seed: Math.floor(Math.random() * 1e9),
+    ...extra,
+  };
+}
+function buildIslands(key, withExamples) {
+  const tpl = TEMPLATES[key] || TEMPLATES.blank;
+  const by = { inner: [], middle: [], outer: [], people: [] };
+  tpl.islands.forEach((r) => by[r[0]].push(r));
+  const offset = { inner: 0, middle: 36, outer: -12 };
+  const out = [];
+  for (const ring of Object.keys(by)) {
+    by[ring].forEach((r, k) => {
+      const n = by[ring].length;
+      const is = newIsland(ring, { title: r[1], f: { ...r[2] }, icon: r[4] || DEFAULT_ICON[ring], terrain: r[5] || DEFAULT_TERRAIN[ring] });
+      if (ring === 'people') {
+        [is.px, is.py] = PEOPLE_SLOTS[k % PEOPLE_SLOTS.length];
+        is.memories = (r[3] || []).map(([d, text]) => ({ id: uid(), d: daysAgo(d), text }));
+      } else {
+        // 內圈空間小，島嶼左右錯開放；其他圈避開正上方的圈名
+        is.angle = ring === 'inner' ? (90 + k * (360 / n)) % 360 : (30 + (k + 0.5) * (300 / n) + offset[ring] + 360) % 360;
+        if (ring === 'middle') is.depth = r[3] ?? 0.5;
+        if (ring === 'outer') is.target = r[3] ?? 3;
+      }
+      if (withExamples && ring === 'outer') {
+        const week = weekDates().filter((d) => d <= todayStr());
+        is.log = week.filter((_, i) => i % 2 === 0).slice(0, Math.max(1, is.target - 1));
+      }
+      if (withExamples && ring === 'middle') {
+        is.hist = [10, 6, 3, 0].map((n2, i) => ({ d: daysAgo(n2), p: clamp(is.depth + (i - 1.5) * 0.08 * (k % 2 ? -1 : 1), 0, 1) }));
+        is.depth = is.hist[is.hist.length - 1].p;
+      }
+      out.push(is);
+    });
+  }
+  return out;
+}
+function exampleCheckins(islands) {
+  const mids = islands.filter((i) => i.ring === 'middle').map((i) => i.id);
+  const c = {};
+  const plan = [
+    [13, 'held', 3, 2, ['平靜']], [12, 'held', 3, 1, ['有動力']], [11, 'shaky', 2, 4, ['孤單', '渴望'], '週五晚上滑了很久的 App，最後打給小安。'],
+    [10, 'held', 3, 2, ['疲憊']], [9, 'held', 4, 1, ['被支持'], '去了支持團體。'], [7, 'slip', 1, 5, ['焦慮', '羞愧'], '朋友傳了邀請，我去了。'],
+    [6, 'held', 2, 3, ['難過', '疲憊'], '打開急救包，跟諮商師約了時間。'], [5, 'held', 3, 2, ['平靜']], [4, 'held', 3, 2, ['有動力']],
+    [3, 'shaky', 3, 3, ['煩躁'], '加班，很想放縱一下。'], [2, 'held', 4, 1, ['開心']], [1, 'held', 4, 1, ['平靜', '被支持']],
+  ];
+  plan.forEach(([n, status, mood, craving, emotions, note], i) => {
+    c[daysAgo(n)] = { status, mood, craving, emotions, middle: status !== 'held' && mids.length ? [mids[i % mids.length]] : [], note: note || '' };
+  });
+  return c;
+}
+function exampleToolbox(islands) {
+  const inner = islands.find((i) => i.ring === 'inner');
+  return [
+    { id: uid(), kind: 'strategy', text: '焦慮的時候去頂樓吹風 10 分鐘，回來比較能想清楚。', d: daysAgo(0), placed: [] },
+    { id: uid(), kind: 'risk', text: '收到前任的訊息時，會很想打開約砲 App。', d: daysAgo(1), placed: [] },
+    { id: uid(), kind: 'strategy', text: '把「我今天不去」存成手機的文字快捷鍵。', d: daysAgo(4), placed: inner ? [{ id: inner.id, field: 'strategies' }] : [] },
+  ];
+}
+function makeState(key, sample) {
+  const islands = buildIslands(key, sample);
+  return {
+    v: 2, sample, template: key, islands, names: { ...DEFAULT_NAMES },
+    checkins: sample ? exampleCheckins(islands) : {},
+    toolbox: sample ? exampleToolbox(islands) : [],
+    customEmotions: sample ? ['想被抱'] : [],
+    affirmation: sample ? '我不需要完美，我只需要今天再選擇一次自己。' : '',
+    slip: { say: '這是一次失手，不是全部歸零。我守住的那些日子都還在。' },
+    pinHash: null, lastBackup: null, updated: Date.now(),
+  };
+}
+/* 舊版資料補上新欄位 */
+function migrate(s) {
+  s.toolbox = Array.isArray(s.toolbox) ? s.toolbox : [];
+  s.customEmotions = Array.isArray(s.customEmotions) ? s.customEmotions : [];
+  s.slip = s.slip || { say: '' };
+  s.checkins = s.checkins || {};
+  s.names = { ...DEFAULT_NAMES, ...(s.names || {}) };
+  let slot = 0;
+  s.islands.forEach((i) => {
+    i.f = i.f || {}; i.log = i.log || []; i.hist = i.hist || []; i.memories = i.memories || [];
+    i.icon = i.icon || DEFAULT_ICON[i.ring] || '🌱';
+    i.terrain = TERRAINS[i.terrain] ? i.terrain : DEFAULT_TERRAIN[i.ring] || 'grass';
+    if (typeof i.seed !== 'number') i.seed = hashStr(i.id);
+    if (i.ring === 'people' && typeof i.px !== 'number') [i.px, i.py] = PEOPLE_SLOTS[slot++ % PEOPLE_SLOTS.length];
+  });
+  s.v = 2;
+  return s;
+}
+function load() {
+  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s && Array.isArray(s.islands)) return migrate(s); } } catch (e) { /* 無法讀取時用範例 */ }
+  return null;
+}
+let S = load() || makeState('chemsex', true);
+let saveTimer = null;
+function save() { S.updated = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* 私密視窗等情況存不了 */ } }
+function saveSoon() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 300); }
+const find = (id) => S.islands.find((i) => i.id === id);
+
+/* 使用者第一次動手修改時，範例的每日紀錄與百寶箱就清掉，島嶼內容留給他改 */
+function touched() {
+  if (!S.sample) return;
+  S.sample = false; S.checkins = {}; S.toolbox = []; S.affirmation = ''; S.customEmotions = [];
+  S.islands.forEach((i) => { i.log = []; i.hist = []; });
+  toast('已切換成你自己的地圖：範例紀錄已清除，島嶼內容保留給你修改。');
+  renderBanner();
+}
+
+/* ---------- 共用 UI ---------- */
+function toast(msg) {
+  const root = $('#toast-root');
+  root.innerHTML = `<div class="toast" role="status">${esc(msg)}</div>`;
+  clearTimeout(toast.t); toast.t = setTimeout(() => { root.innerHTML = ''; }, 3800);
+}
+function openModal(html, onMount) {
+  const root = $('#modal-root');
+  root.innerHTML = `<div class="modal-wrap" data-close="1"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  root.querySelector('.modal-wrap').addEventListener('click', (e) => { if (e.target.dataset.close || e.target.closest('[data-close-btn]')) closeModal(); });
+  onMount && onMount(root.querySelector('.modal'));
+}
+function closeModal() { $('#modal-root').innerHTML = ''; }
+/* 兩段式確認：第一次點按鈕會變成「確定？」，三秒內再點一次才執行 */
+function armed(btn, label, fn) {
+  if (btn.classList.contains('armed')) { btn.classList.remove('armed'); fn(); return; }
+  const orig = btn.textContent; btn.classList.add('armed'); btn.textContent = label;
+  setTimeout(() => { if (btn.isConnected) { btn.classList.remove('armed'); btn.textContent = orig; } }, 3000);
+}
+function renderBanner() {
+  const el = $('#banner');
+  if (S.sample) {
+    el.innerHTML = `<div class="banner"><p><b>這是範例地圖</b>（藥物與性的情境），每日紀錄和百寶箱也是範例。直接修改任何內容，就會變成你自己的地圖；也可以到「備份與設定」換一個範本。</p><button class="btn small" data-act="go-settings">選擇範本</button></div>`;
+    return;
+  }
+  const stale = !S.lastBackup || Date.now() - S.lastBackup > 14 * 864e5;
+  // 第一次備份前，等累積三天紀錄再提醒，避免一開始就催促
+  const hasData = S.lastBackup ? true : Object.keys(S.checkins).length >= 3;
+  if (stale && hasData && S.updated > (S.lastBackup || 0)) {
+    el.innerHTML = `<div class="banner warn"><p>${S.lastBackup ? '已經超過兩週沒有備份了。' : '你的資料只存在這個瀏覽器裡，還沒有備份過。'}換手機或清除瀏覽器資料時，沒有備份就找不回來。</p><button class="btn small" data-act="go-settings">去備份</button></div>`;
+    return;
+  }
+  el.innerHTML = '';
+}
+
+/* ---------- 地圖：底圖 ---------- */
+function lerpColor(stops, t) {
+  const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  for (let i = 0; i < stops.length - 1; i++) {
+    const [a, ca] = stops[i]; const [b, cb] = stops[i + 1];
+    if (t <= b) { const u = (t - a) / (b - a); const x = hex(ca), y = hex(cb); return '#' + x.map((v, k) => Math.round(v + (y[k] - v) * u).toString(16).padStart(2, '0')).join(''); }
+  }
+  return stops[stops.length - 1][1];
+}
+const MID_STOPS = [[0, '#B0545F'], [0.5, '#E2A94F'], [1, '#6E9A68']];
+function smoothClosed(pts) {
+  const n = pts.length; let d = '';
+  for (let i = 0; i < n; i++) {
+    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+    if (i === 0) d += `M${p1[0].toFixed(1)},${p1[1].toFixed(1)}`;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += `C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d + 'Z';
+}
+/* 不規則的海域邊界，讓三圈像真的淺灘，而不是圓規畫的圓 */
+function zonePath(r, seed, amp) {
+  const rnd = rng(seed); const ph = [rnd() * 6.28, rnd() * 6.28, rnd() * 6.28]; const pts = [];
+  for (let i = 0; i < 56; i++) {
+    const a = (i / 56) * Math.PI * 2;
+    const f = 1 + amp * (0.55 * Math.sin(3 * a + ph[0]) + 0.3 * Math.sin(5 * a + ph[1]) + 0.15 * Math.sin(9 * a + ph[2]));
+    pts.push([C + Math.cos(a) * r * f, CY + Math.sin(a) * r * f * K]);
+  }
+  return smoothClosed(pts);
+}
+function blobPath(seed, rx, ry) {
+  const rnd = rng(seed); const n = 10; const pts = [];
+  for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; const f = 0.8 + rnd() * 0.32; pts.push([Math.cos(a) * rx * f, Math.sin(a) * ry * f]); }
+  return smoothClosed(pts);
+}
+function renderBase() {
+  let h = `<defs>
+    <linearGradient id="g-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D3E1E4"/><stop offset="1" stop-color="#BCD0D6"/></linearGradient>
+    <radialGradient id="g-out" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#E6EFE6"/><stop offset="1" stop-color="#D2E2D6"/></radialGradient>
+    <radialGradient id="g-mid" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#F7EEDB"/><stop offset="1" stop-color="#EBDDBF"/></radialGradient>
+    <radialGradient id="g-in" cx="50%" cy="40%" r="62%"><stop offset="0" stop-color="#F4E1DE"/><stop offset="1" stop-color="#E7C8C6"/></radialGradient>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#g-sea)"/>`;
+  // 外海的浪花
+  const rnd = rng(7);
+  for (let i = 0; i < 46; i++) {
+    const x = 30 + rnd() * (W - 60), y = 24 + rnd() * (H - 48);
+    const ex = (x - C) / (ZONE.outer + 30), ey = (y - CY) / ((ZONE.outer + 30) * K);
+    if (ex * ex + ey * ey < 1) continue;
+    const s = 0.7 + rnd() * 0.7;
+    h += `<path class="wave" d="M${x.toFixed(0)},${y.toFixed(0)} q${(7 * s).toFixed(1)},${(-6 * s).toFixed(1)} ${(14 * s).toFixed(1)},0 t${(14 * s).toFixed(1)},0" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" opacity="${(0.45 + rnd() * 0.4).toFixed(2)}"/>`;
+  }
+  // 三層像台地一樣疊起來的海域：下方深色偏移是陰影，白色描邊是浪花
+  [['outer', 'g-out', '#7E9C92', 11], ['middle', 'g-mid', '#B79F70', 23], ['inner', 'g-in', '#B78585', 37]].forEach(([z, g, shade, seed]) => {
+    const d = zonePath(ZONE[z], seed, 0.045);
+    h += `<path d="${d}" transform="translate(0,12)" fill="${shade}" opacity="0.28"/>`;
+    h += `<path d="${d}" fill="url(#${g})"/>`;
+    h += `<path d="${zonePath(ZONE[z] * 0.86, seed + 1, 0.05)}" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-dasharray="2 9" stroke-linecap="round" opacity="0.8"/>`;
+    h += `<path d="${d}" fill="none" stroke="#FFFFFF" stroke-width="3.5" opacity="0.9"/>`;
+  });
+  // 羅盤
+  h += `<g transform="translate(56,580)" opacity="0.75"><circle r="26" fill="#FFFDF9" opacity="0.7"/><path d="M0,-22 L6,0 L0,22 L-6,0 Z" fill="#5B6C7D"/><path d="M0,-22 L6,0 L-6,0 Z" fill="#A35D6A"/><text y="-30" text-anchor="middle" font-family="${SANS_SVG}" font-size="13" fill="#5B6C7D">N</text></g>`;
+  $('#base').innerHTML = h;
+}
+/* 圈層名稱分別放在各自海域的邊上（外圈左上、中圈右上、內圈正上方），不再疊在同一條線上 */
+const LABEL_AT = { outer: [-44, '#566B57'], middle: [44, '#8A6122'], inner: [0, '#8E4A57'] };
+function renderLabels() {
+  let h = '';
+  for (const z of ['outer', 'middle', 'inner']) {
+    const [deg, color] = LABEL_AT[z]; const t = (deg - 90) * Math.PI / 180;
+    const x = C + Math.cos(t) * ZONE[z], y = CY + Math.sin(t) * ZONE[z] * K;
+    const text = trunc(ringLabel(z), 12); const w = textWidth(text, 19) + 30;
+    h += `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><rect x="${(-w / 2).toFixed(1)}" y="-17" width="${w.toFixed(1)}" height="34" rx="17" fill="#FFFDF9" stroke="${color}" stroke-opacity="0.45" stroke-width="1.5"/><text text-anchor="middle" dominant-baseline="central" font-family="${SANS_SVG}" font-size="19" font-weight="500" letter-spacing="1.5" fill="${color}">${esc(text)}</text></g>`;
+  }
+  // 左上角的地圖標題框，點一下可以重新命名
+  const name = trunc(S.names.map || DEFAULT_NAMES.map, 12); const nw = Math.max(250, textWidth(name, 32) + 56);
+  h += `<g transform="translate(26,22)" data-act="rename" style="cursor:pointer" role="button" aria-label="為群島命名">
+    <rect width="${nw.toFixed(0)}" height="92" rx="12" fill="#FFFDF9" opacity="0.94"/>
+    <rect x="6" y="6" width="${(nw - 12).toFixed(0)}" height="80" rx="8" fill="none" stroke="#9A5641" stroke-width="1.4" stroke-dasharray="1 0"/>
+    <text x="24" y="34" font-family="${SANS_SVG}" font-size="14" letter-spacing="3" fill="#9A5641">三圈復元地圖 ✎</text>
+    <text x="24" y="70" font-family="${SERIF_SVG}" font-size="32" font-weight="700" fill="#3C2A21">${esc(name)}</text>
+  </g>`;
+  $('#labels').innerHTML = h;
+  $('#legend').innerHTML = ['inner', 'middle', 'outer', 'people'].map((r) => `<span><i style="background:${RINGS[r].color}"></i>${esc(ringLabel(r))}</span>`).join('');
+}
+
+/* ---------- 地圖：島嶼 ---------- */
+let sel = null;
+function weekCount(is) { const w = new Set(weekDates()); return (is.log || []).filter((d) => w.has(d)).length; }
+function islandSize(is) {
+  if (is.ring === 'inner') return 54;
+  if (is.ring === 'middle') return 50;
+  if (is.ring === 'people') return 42;
+  return 44 + Math.min(weekCount(is), 7) * 4;
+}
+const HEIGHT = { inner: 26, middle: 18, outer: 20, people: 15 };
+function pos(is) {
+  if (is.ring === 'people') return [is.px, is.py];
+  const [a, b] = BANDS[is.ring]; const r = a + (b - a) * is.depth; const t = (is.angle - 90) * Math.PI / 180;
+  return [C + r * Math.cos(t), CY + r * Math.sin(t) * K];
+}
+function textWidth(s, fs) { let w = 0; for (const ch of s) w += ch.charCodeAt(0) > 0x2E80 ? fs : fs * 0.58; return w; }
+function islandSVG(is, label) {
+  const [ldx, labelY] = label || [0, null];
+  const [x, y] = pos(is); const T = TERRAINS[is.terrain] || TERRAINS.grass;
+  const rx = islandSize(is), ry = rx * 0.62, h = HEIGHT[is.ring]; const seed = is.seed;
+  const title = is.title.trim() || '未命名';
+  const top = blobPath(seed, rx, ry);
+  let s = `<g class="isl" data-id="${is.id}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" tabindex="0" role="button" aria-label="${esc(RINGS[is.ring].name + '：' + title)}">`;
+  s += `<path d="${blobPath(seed + 3, rx * 1.28, ry * 1.32)}" transform="translate(4,${h + 4})" fill="#2F4650" opacity="0.14"/>`;
+  s += `<path d="${blobPath(seed + 5, rx * 1.16, ry * 1.22)}" transform="translate(0,${h})" fill="#FFFFFF" opacity="0.7"/>`;
+  if (is.id === sel) s += `<path d="${blobPath(seed + 5, rx * 1.42, ry * 1.5)}" transform="translate(0,${h})" fill="none" stroke="#9A5641" stroke-width="3" stroke-dasharray="7 6"/>`;
+  for (let k = h; k > 0; k -= 2) s += `<path d="${top}" transform="translate(0,${k})" fill="${T.side}"/>`;
+  s += `<path class="isl-top" d="${top}" fill="${T.sand}"/>`;
+  s += `<path d="${blobPath(seed + 11, rx * 0.8, ry * 0.76)}" transform="translate(${(rx * 0.04).toFixed(1)},-2)" fill="${T.top}"/>`;
+  s += `<ellipse cx="${(-rx * 0.3).toFixed(1)}" cy="${(-ry * 0.38).toFixed(1)}" rx="${(rx * 0.26).toFixed(1)}" ry="${(ry * 0.16).toFixed(1)}" fill="#FFFFFF" opacity="0.25"/>`;
+  s += `<text y="${(-ry * 0.12).toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="${(rx * 0.74).toFixed(0)}">${esc(is.icon)}</text>`;
+  if (is.ring === 'middle') {
+    // 旗子的顏色代表目前位置：紅色靠近內圈、綠色靠近外圈
+    const fx = rx * 0.62, fy = -ry * 0.05;
+    s += `<line x1="${fx.toFixed(1)}" y1="${fy.toFixed(1)}" x2="${fx.toFixed(1)}" y2="${(fy - 34).toFixed(1)}" stroke="#5A4636" stroke-width="2.4" stroke-linecap="round"/>`;
+    s += `<path d="M${fx.toFixed(1)},${(fy - 34).toFixed(1)} l20,6 l-20,7 Z" fill="${lerpColor(MID_STOPS, is.depth)}"/>`;
+  }
+  const fs = is.ring === 'people' ? 20 : 22; const w = textWidth(trunc(title, 8), fs) + 24; const ly = labelY ?? h + ry + 22;
+  const pillStroke = { inner: '#B9867F', middle: '#D9B57A', outer: '#8FA87F', people: '#7F92A6' }[is.ring];
+  // 名牌被擠開時，用虛線連回自己的島
+  if (labelY !== null && (ldx !== 0 || Math.abs(ly - (h + ry + 22)) > 2)) {
+    const fromY = ly < 0 ? -ry * 0.7 : h + ry * 0.7; const toY = ly < 0 ? ly + 16 : ly - 16;
+    s += `<line x1="0" y1="${fromY.toFixed(1)}" x2="${ldx.toFixed(1)}" y2="${toY.toFixed(1)}" stroke="#5A4636" stroke-width="1.6" stroke-dasharray="2 4" stroke-linecap="round" opacity="0.6"/>`;
+  }
+  s += `<g transform="translate(${ldx.toFixed(1)},${ly.toFixed(1)})"><rect x="${(-w / 2).toFixed(1)}" y="-16" width="${w.toFixed(1)}" height="32" rx="16" fill="#FFFDF9" opacity="0.94" stroke="${pillStroke}" stroke-width="1.6"/><text text-anchor="middle" dominant-baseline="central" font-family="${SERIF_SVG}" font-size="${fs}" font-weight="600" fill="#3C2A21">${esc(trunc(title, 8))}</text></g>`;
+  if (is.ring === 'outer') {
+    s += `<text x="${ldx.toFixed(1)}" y="${(ly + 33).toFixed(1)}" text-anchor="middle" font-family="${SANS_SVG}" font-size="16" fill="#3F5541" paint-order="stroke" stroke="#FFFDF9" stroke-width="4" stroke-linejoin="round">本週 ${weekCount(is)}/${is.target}</text>`;
+  }
+  if (is.ring === 'people' && is.memories.length) {
+    s += `<text x="${ldx.toFixed(1)}" y="${(ly + 32).toFixed(1)}" text-anchor="middle" font-family="${SANS_SVG}" font-size="14" fill="#44556A" paint-order="stroke" stroke="#FFFDF9" stroke-width="4" stroke-linejoin="round">${is.memories.length} 段記憶</text>`;
+  }
+  return s + '</g>';
+}
+function renderMap() {
+  // 離島到主群島的航線
+  let r = '';
+  S.islands.filter((i) => i.ring === 'people').forEach((is) => {
+    const [x, y] = pos(is); const t = Math.atan2((y - CY) / K, x - C);
+    const tx = C + Math.cos(t) * ZONE.outer * 0.98, ty = CY + Math.sin(t) * ZONE.outer * 0.98 * K;
+    const mx = (x + tx) / 2 + (ty - y) * 0.18, my = (y + ty) / 2 - (tx - x) * 0.18;
+    r += `<path d="M${x.toFixed(1)},${(y + 6).toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}" fill="none" stroke="#FFFDF9" stroke-width="3" stroke-dasharray="1 10" stroke-linecap="round" opacity="0.95"/>`;
+  });
+  $('#routes').innerHTML = r;
+  const list = [...S.islands].sort((a, b) => pos(a)[1] - pos(b)[1]);
+  const labels = layoutLabels(list);
+  let h = list.map((is) => islandSVG(is, labels.get(is.id))).join('');
+  if (!S.islands.length) h = `<text x="${C}" y="${CY + 6}" text-anchor="middle" font-family="${SANS_SVG}" font-size="20" fill="#7A6A60">在右邊（手機在下方）新增第一座島嶼</text>`;
+  $('#isles').innerHTML = h;
+}
+
+/* 名牌避讓：由上往下排，碰到其他名牌或其他島身時就往下挪 */
+function layoutLabels(list) {
+  const placed = list.map((is) => {
+    const [x, y] = pos(is); const rx = islandSize(is); const ry = rx * 0.62;
+    return { id: is.id, x, w: rx * 2, top: y - ry, bottom: y + HEIGHT[is.ring] + ry * 0.9 };
+  });
+  const out = new Map();
+  for (const is of list) {
+    const [x, y] = pos(is); const rx = islandSize(is); const title = trunc(is.title.trim() || '未命名', 8);
+    const fs = is.ring === 'people' ? 20 : 22; const w = textWidth(title, fs) + 24;
+    const hh = 32 + (is.ring === 'outer' || (is.ring === 'people' && is.memories.length) ? 22 : 0);
+    const hitAt = (dx, t) => placed.find((p) => p.id !== is.id && Math.abs(p.x - (x + dx)) < (p.w + w) / 2 + 6 && t < p.bottom + 4 && t + hh > p.top - 4);
+    const below = y + HEIGHT[is.ring] + rx * 0.62 + 22 - 16;
+    const above = y - rx * 0.62 - hh - 10;
+    const shift = Math.min(w * 0.4, 80);
+    // 依序試：正下方、正上方、下方偏左右、上方偏左右；都擋住才一路往下挪
+    const tries = [[0, below], [0, above], [-shift, below], [shift, below], [-shift, above], [shift, above]].filter(([, t]) => t > 8 && t + hh < H - 6);
+    let [dx, top] = tries.find(([d, t]) => !hitAt(d, t)) || [0, below];
+    for (let n = 0; n < 8 && hitAt(dx, top); n++) top = hitAt(dx, top).bottom + 6;
+    top = Math.min(top, H - hh - 6);
+    placed.push({ x: x + dx, w, top, bottom: top + hh });
+    out.set(is.id, [dx, top + 16 - y]);
+  }
+  return out;
+}
+
+/* 拖曳：移動位置；沒有移動就當作點擊 */
+let drag = null;
+function toSvg(e) { const svg = $('#map'); const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); }
+function bindMap() {
+  const svg = $('#map');
+  svg.addEventListener('pointerdown', (e) => {
+    const g = e.target.closest('.isl'); if (!g) return;
+    drag = { id: g.dataset.id, x: e.clientX, y: e.clientY, moved: false };
+    svg.setPointerCapture(e.pointerId);
+  });
+  svg.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    drag.moved = true;
+    const is = find(drag.id); if (!is) return;
+    const p = toSvg(e);
+    if (is.ring === 'people') {
+      is.px = clamp(p.x, 40, W - 40); is.py = clamp(p.y, 30, H - 60);
+    } else {
+      const dx = p.x - C, dy = (p.y - CY) / K;
+      let ang = Math.atan2(dy, dx) * 180 / Math.PI + 90; if (ang < 0) ang += 360;
+      const [a, b] = BANDS[is.ring];
+      is.angle = ang; is.depth = clamp((Math.hypot(dx, dy) - a) / (b - a), 0, 1);
+    }
+    renderMap();
+    if (sel === is.id && is.ring === 'middle') syncDepth(is);
+  });
+  const end = () => {
+    if (!drag) return; const d = drag; drag = null;
+    if (!d.moved) { openEditor(d.id); return; }
+    const is = find(d.id); if (!is) return;
+    touched();
+    if (is.ring === 'middle') { recordHist(is); if (sel === is.id) renderEditor(); }
+    save(); renderOverview(); renderMap();
+  };
+  svg.addEventListener('pointerup', end);
+  svg.addEventListener('pointercancel', () => { drag = null; });
+  svg.addEventListener('keydown', (e) => {
+    const g = e.target.closest('.isl'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openEditor(g.dataset.id); }
+  });
+}
+function recordHist(is) {
+  const d = todayStr(); is.hist = is.hist || [];
+  const last = is.hist[is.hist.length - 1];
+  if (last && last.d === d) last.p = is.depth; else is.hist.push({ d, p: is.depth });
+  if (is.hist.length > 180) is.hist = is.hist.slice(-180);
+}
+function placeNew(is) {
+  if (is.ring === 'people') {
+    const used = S.islands.filter((i) => i.ring === 'people').map((i) => `${i.px},${i.py}`);
+    const slot = PEOPLE_SLOTS.find(([x, y]) => !used.includes(`${x},${y}`)) || [120 + Math.random() * 760, 60 + Math.random() * 40];
+    [is.px, is.py] = slot; return;
+  }
+  const angs = S.islands.filter((i) => i.ring === is.ring && i !== is).map((i) => i.angle).sort((a, b) => a - b);
+  if (!angs.length) { is.angle = is.ring === 'inner' ? 120 : 60; return; }
+  let best = 0, gap = -1;
+  angs.forEach((a, k) => { const b = k + 1 < angs.length ? angs[k + 1] : angs[0] + 360; if (b - a > gap) { gap = b - a; best = (a + gap / 2) % 360; } });
+  is.angle = best;
+}
+function addIsland(ring) {
+  touched();
+  const is = newIsland(ring); placeNew(is);
+  S.islands.push(is);
+  if (ring === 'middle') recordHist(is);
+  save(); openEditor(is.id, true);
+  setTimeout(() => $('#ed-title')?.focus(), 320);
+}
+
+/* ---------- 面板：總覽 ---------- */
+function renderOverview() {
+  let h = `<div class="ed-head"><h2>${esc(S.names.map || DEFAULT_NAMES.map)}</h2><button class="btn ghost small" data-act="rename">命名 ✎</button></div><p class="lede">三圈模型來自十二步驟團體，這裡加入減害與辯證的觀點：內圈是界線，中圈是可以往內也可以往外的灰色地帶，外圈是你想積極長大的生活。外海的離島，放那些支持你的人。</p>`;
+  for (const ring of ['inner', 'middle', 'outer', 'people']) {
+    const list = S.islands.filter((i) => i.ring === ring);
+    h += `<div class="ov-ring"><header><span class="dot" style="background:${RINGS[ring].color}"></span><b>${esc(ringLabel(ring))}</b><span>${RINGS[ring].desc}</span></header><div class="chips">`;
+    list.forEach((i) => { h += `<button class="chip" data-open="${i.id}">${esc(i.icon)} ${esc(i.title.trim() || '未命名')}</button>`; });
+    h += `<button class="chip add" data-add="${ring}">＋ 新增${RINGS[ring].name}</button></div></div>`;
+  }
+  $('#overview').innerHTML = h;
+}
+
+/* ---------- 面板：編輯器 ---------- */
+function depthLabel(p) {
+  if (p < 0.2) return '非常靠近內圈';
+  if (p < 0.4) return '偏向內圈';
+  if (p <= 0.6) return '在中間';
+  if (p <= 0.8) return '偏向外圈';
+  return '非常靠近外圈';
+}
+function histSvg(is) {
+  const hs = (is.hist || []).slice(-20);
+  if (hs.length < 2) return `<p class="help">每次移動位置，都會記下當天的位置，累積後可以看到它怎麼漂。</p>`;
+  const VW = 320, VH = 76, pad = 14;
+  const xs = (i) => pad + (i / (hs.length - 1)) * (VW - pad * 2);
+  const ys = (p) => VH - 14 - p * (VH - 28);
+  const pts = hs.map((e, i) => `${xs(i).toFixed(1)},${ys(e.p).toFixed(1)}`).join(' ');
+  const lx = xs(hs.length - 1), ly = ys(hs[hs.length - 1].p);
+  return `<svg viewBox="0 0 ${VW} ${VH}" width="100%" style="display:block;max-width:340px" role="img" aria-label="位置變化">
+    <line x1="${pad}" x2="${VW - pad}" y1="${ys(0.5)}" y2="${ys(0.5)}" stroke="#E5DCD2" stroke-dasharray="3 4"/>
+    <text x="0" y="12" font-size="10" fill="#566B57">外</text><text x="0" y="${VH - 4}" font-size="10" fill="#A35D6A">內</text>
+    <polyline points="${pts}" fill="none" stroke="#9A5641" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="4" fill="#9A5641"/>
+    <text x="${pad}" y="${VH}" font-size="10" fill="#7A6A60">${esc(md(hs[0].d))}</text>
+    <text x="${VW - pad}" y="${VH}" font-size="10" fill="#7A6A60" text-anchor="end">${esc(md(hs[hs.length - 1].d))}</text>
+  </svg>`;
+}
+function fieldHTML(is, [key, label, help]) {
+  return `<div class="field"><label for="f-${key}">${label}</label><span class="help">${help}</span><textarea id="f-${key}" data-f="${key}">${esc(is.f[key] || '')}</textarea></div>`;
+}
+function lookHTML(is, open) {
+  return `<details class="look" ${open ? 'open' : ''}><summary>外觀：圖示與地形</summary>
+    <div class="icons" role="group" aria-label="圖示">${ICONS.map((ic) => `<button data-icon="${ic}" aria-pressed="${is.icon === ic}">${ic}</button>`).join('')}</div>
+    <div class="terrains" role="group" aria-label="地形">${Object.entries(TERRAINS).map(([k, t]) => `<button data-terrain="${k}" aria-pressed="${is.terrain === k}"><i style="background:${t.top}"></i>${t.name}</button>`).join('')}</div>
+    <div class="row" style="margin:10px 0 8px"><button class="btn small" data-act="reshape">換一個島嶼形狀</button></div>
+  </details>`;
+}
+function fromBoxHTML(is) {
+  const items = S.toolbox.filter((it) => !it.placed.some((p) => p.id === is.id) && QUICK[it.kind] && QUICK[it.kind][is.ring]);
+  if (!items.length) return '';
+  return `<div class="from-box"><span class="lbl">從百寶箱放進來</span><p class="help">點一下，就會加到「${fieldLabel(is.ring, QUICK.strategy[is.ring] || QUICK.risk[is.ring])}」或「${fieldLabel(is.ring, QUICK.risk[is.ring] || QUICK.strategy[is.ring])}」。</p>
+    <div class="chips">${items.slice(0, 8).map((it) => `<button class="chip" data-quick="${it.id}">${it.kind === 'risk' ? '⚠︎ ' : '＋ '}${esc(trunc(it.text, 18))}</button>`).join('')}</div></div>`;
+}
+let editorLookOpen = false;
+function renderEditor() {
+  const ed = $('#editor'); const is = find(sel);
+  if (!is) { ed.innerHTML = ''; return; }
+  const r = is.ring;
+  const ph = { inner: '例如：使用派對藥物', middle: '例如：交友軟體', outer: '例如：規律運動', people: '例如：小安' }[r];
+  let h = `<div class="ed-head"><span class="ring-tag ${r}">${esc(ringLabel(r))}</span><button class="btn ghost small" data-act="close" aria-label="關閉">關閉 ✕</button></div>
+  <div class="field"><label for="ed-title">${r === 'people' ? '名字或稱呼' : '島嶼名稱'}</label><input type="text" id="ed-title" class="title-input" maxlength="30" value="${esc(is.title)}" placeholder="${ph}"></div>`;
+  h += lookHTML(is, editorLookOpen);
+  if (r === 'middle') {
+    h += fieldHTML(is, FIELDS.middle[0]);
+    h += `<div class="dialectic"><div class="side-in">${fieldHTML(is, FIELDS.middle[1])}</div><div class="side-out">${fieldHTML(is, FIELDS.middle[2])}</div></div>`;
+    h += `<div class="depth"><label class="lbl" for="ed-depth">我現在在哪裡？ <span class="now" id="depth-now">${depthLabel(is.depth)}</span></label>
+      <input type="range" id="ed-depth" min="0" max="100" value="${Math.round(is.depth * 100)}">
+      <div class="ends"><span>← 靠近內圈</span><span>靠近外圈 →</span></div>
+      <div style="margin-top:8px" id="hist">${histSvg(is)}</div></div>`;
+    h += fieldHTML(is, FIELDS.middle[3]);
+  } else {
+    FIELDS[r].forEach((f) => { h += fieldHTML(is, f); });
+  }
+  if (r === 'inner') h += `<div class="row" style="margin-top:14px"><button class="btn" data-act="slipkit">打開失手急救包</button></div>`;
+  if (r === 'outer') {
+    const today = todayStr(); const log = new Set(is.log || []);
+    h += `<div class="field"><label for="ed-target">每週目標次數</label><input type="number" id="ed-target" min="1" max="14" value="${is.target}"></div>
+    <div class="field"><span class="lbl">本週做到的日子（任何一個 Plan 都算）</span><div class="week">`;
+    weekDates().forEach((d) => {
+      const dt = new Date(d + 'T00:00');
+      h += `<button data-day="${d}" aria-pressed="${log.has(d)}" class="${d === today ? 'today' : ''}" ${d > today ? 'disabled' : ''}>${WEEKDAY[dt.getDay()]}<br>${dt.getDate()}</button>`;
+    });
+    h += `</div><span class="help">本週已做到 ${weekCount(is)} 次，目標 ${is.target} 次。做到越多，島嶼長得越大。</span></div>`;
+  }
+  if (r === 'people') {
+    const mems = [...is.memories].sort((a, b) => (a.d < b.d ? 1 : -1));
+    h += `<div class="field"><span class="lbl">我們共同的重要記憶</span><span class="help">一起經歷過、讓你想起「我不是一個人」的時刻。</span>
+      ${mems.length ? `<ul class="memories">${mems.map((m) => `<li><small>${esc(m.d || '')}</small><p>${esc(m.text)}</p><button class="btn ghost small" data-mem-del="${m.id}" aria-label="刪除這段記憶">✕</button></li>`).join('')}</ul>` : ''}
+      <div class="mem-add"><input type="date" id="mem-d" value="${todayStr()}" max="${todayStr()}" aria-label="記憶的日期"><textarea id="mem-t" placeholder="例如：失手後隔天，他只說「你回來就好」。" aria-label="記憶內容"></textarea><div class="row"><button class="btn" data-act="mem-add">加入這段記憶</button></div></div></div>`;
+  } else {
+    h += fromBoxHTML(is);
+  }
+  if (r !== 'people') {
+    h += `<div class="field"><label for="ed-ring">移到其他圈</label><select id="ed-ring">${['inner', 'middle', 'outer'].map((k) => `<option value="${k}" ${k === r ? 'selected' : ''}>${esc(ringLabel(k))}</option>`).join('')}</select><span class="help">項目的性質改變了，可以把它移到別的圈，已經寫的內容會保留。</span></div>`;
+  }
+  h += `<div class="ed-foot"><button class="btn danger" data-act="del">刪除這座島</button><button class="btn primary" data-act="close">完成</button></div>`;
+  ed.innerHTML = h;
+}
+function syncDepth(is) {
+  const r = $('#ed-depth'); if (r) r.value = Math.round(is.depth * 100);
+  const n = $('#depth-now'); if (n) n.textContent = depthLabel(is.depth);
+}
+function isMobile() { return window.matchMedia('(max-width: 1179px)').matches; }
+function openEditor(id, lookOpen = false) {
+  sel = id; editorLookOpen = lookOpen; renderEditor(); renderMap();
+  $('#editor').classList.add('open'); $('#side').classList.add('editing');
+  if (isMobile()) $('#backdrop').hidden = false;
+  $('#editor').scrollTop = 0;
+}
+function closeEditor() {
+  sel = null; $('#editor').classList.remove('open'); $('#side').classList.remove('editing');
+  $('#backdrop').hidden = true; renderMap(); renderOverview();
+}
+function rerenderEditorKeepScroll() {
+  const ed = $('#editor'); const top = ed.scrollTop; const side = $('#side').scrollTop;
+  editorLookOpen = !!ed.querySelector('details.look[open]');
+  renderEditor(); ed.scrollTop = top; $('#side').scrollTop = side;
+}
+function bindEditor() {
+  const ed = $('#editor');
+  ed.addEventListener('input', (e) => {
+    const t = e.target; const is = find(sel); if (!is) return;
+    if (t.id === 'mem-t' || t.id === 'mem-d') return;
+    touched();
+    if (t.dataset.f) is.f[t.dataset.f] = t.value;
+    else if (t.id === 'ed-title') is.title = t.value;
+    else if (t.id === 'ed-depth') { is.depth = t.value / 100; $('#depth-now').textContent = depthLabel(is.depth); }
+    else if (t.id === 'ed-target') is.target = clamp(parseInt(t.value, 10) || 1, 1, 14);
+    else return;
+    saveSoon(); renderMap();
+  });
+  ed.addEventListener('change', (e) => {
+    const is = find(sel); if (!is) return;
+    if (e.target.id === 'ed-depth') { recordHist(is); $('#hist').innerHTML = histSvg(is); save(); renderMap(); }
+    if (e.target.id === 'ed-ring') {
+      is.ring = e.target.value; is.depth = 0.5; placeNew(is);
+      if (is.ring === 'middle') recordHist(is);
+      save(); renderEditor(); renderMap(); renderOverview();
+    }
+    if (e.target.id === 'ed-title') renderOverview();
+  });
+  ed.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return; const is = find(sel); if (!is) return;
+    if (b.dataset.act === 'close') { closeEditor(); return; }
+    if (b.dataset.act === 'del') { armed(b, '確定刪除？再按一次', () => { S.islands = S.islands.filter((i) => i.id !== sel); S.toolbox.forEach((it) => { it.placed = it.placed.filter((p) => p.id !== sel); }); save(); closeEditor(); toast('已刪除這座島嶼。'); }); return; }
+    touched();
+    if (b.dataset.day) toggleLog(is, b.dataset.day);
+    else if (b.dataset.icon) is.icon = b.dataset.icon;
+    else if (b.dataset.terrain) is.terrain = b.dataset.terrain;
+    else if (b.dataset.act === 'reshape') is.seed = Math.floor(Math.random() * 1e9);
+    else if (b.dataset.quick) { const it = S.toolbox.find((x) => x.id === b.dataset.quick); if (it) placeInto(it, is, QUICK[it.kind][is.ring]); }
+    else if (b.dataset.memDel) is.memories = is.memories.filter((m) => m.id !== b.dataset.memDel);
+    else if (b.dataset.act === 'mem-add') {
+      const text = $('#mem-t').value.trim(); if (!text) { $('#mem-t').focus(); return; }
+      is.memories.push({ id: uid(), d: $('#mem-d').value, text }); toast('已加入這段記憶。');
+    } else return;
+    save(); rerenderEditorKeepScroll(); renderMap(); renderOverview();
+  });
+  $('#backdrop').addEventListener('click', closeEditor);
+  $('#overview').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.open) openEditor(b.dataset.open);
+    if (b.dataset.add) addIsland(b.dataset.add);
+  });
+}
+function toggleLog(is, d) {
+  const s = new Set(is.log || []); s.has(d) ? s.delete(d) : s.add(d); is.log = [...s].sort();
+}
+
+/* ---------- 百寶箱 ---------- */
+let tbKind = 'strategy';
+let tbFilter = 'all';
+function placeOptions(kind) {
+  let h = '';
+  for (const ring of ['inner', 'middle', 'outer', 'people']) {
+    const fields = PLACE[kind][ring]; if (!fields.length) continue;
+    S.islands.filter((i) => i.ring === ring).forEach((is) => {
+      h += `<optgroup label="${RINGS[ring].name}・${esc(is.title || '未命名')}">${fields.map((f) => `<option value="${is.id}|${f}">${esc(fieldLabel(ring, f))}</option>`).join('')}</optgroup>`;
+    });
+  }
+  h += `<optgroup label="變成一座新島嶼">${kind === 'risk'
+    ? `<option value="new|middle">新的中圈島嶼</option><option value="new|inner">新的內圈島嶼</option>`
+    : `<option value="new|outer">新的外圈島嶼</option>`}</optgroup>`;
+  return h;
+}
+function itemHTML(it) {
+  const placed = it.placed.map((p) => { const is = find(p.id); return is ? `${is.title || '未命名'}・${fieldLabel(is.ring, p.field)}` : null; }).filter(Boolean);
+  return `<li class="tb-item ${it.kind}">
+    <div class="tb-main"><span class="pill ${it.kind === 'risk' ? 'slip' : 'held'}">${it.kind === 'risk' ? '風險' : '策略'}</span><p>${esc(it.text)}</p></div>
+    <div class="tb-meta"><span class="muted">${esc(md(it.d))}</span>${placed.length ? `<span class="muted">已放進：${esc(placed.join('、'))}</span>` : '<span class="unplaced">還沒放進島嶼</span>'}</div>
+    <div class="row"><select data-place="${it.id}" aria-label="放進島嶼"><option value="">${placed.length ? '再放進其他島嶼…' : '放進島嶼…'}</option>${placeOptions(it.kind)}</select><button class="btn ghost small" data-act="tb-del" data-id="${it.id}">刪除</button></div>
+  </li>`;
+}
+function addFormHTML(src) {
+  return `<div class="kinds" role="group" aria-label="類型">${Object.entries(KINDS).map(([k, v]) => `<button data-act="tb-kind" data-kind="${k}" aria-pressed="${tbKind === k}">${v}</button>`).join('')}</div>
+    <div class="row" style="margin-top:8px"><input type="text" class="text-in" id="tb-text-${src}" maxlength="200" placeholder="${tbKind === 'risk' ? '例如：收到前任的訊息時，很想打開 App。' : '例如：焦慮時去頂樓吹風 10 分鐘。'}" aria-label="內容"><button class="btn primary" data-act="tb-add" data-src="${src}">收進百寶箱</button></div>`;
+}
+function placeInto(it, is, field) {
+  is.f[field] = is.f[field] ? is.f[field].replace(/\s+$/, '') + '\n' + it.text : it.text;
+  it.placed.push({ id: is.id, field });
+}
+function placeItem(itemId, val) {
+  const it = S.toolbox.find((x) => x.id === itemId); if (!it || !val) return;
+  touched();
+  const [a, b] = val.split('|');
+  if (a === 'new') {
+    const is = newIsland(b, { title: trunc(it.text, 12) }); placeNew(is);
+    const field = b === 'middle' ? (it.kind === 'risk' ? 'toInner' : 'toOuter') : b === 'inner' ? 'signals' : 'planA';
+    is.f[field] = it.text; S.islands.push(is); it.placed.push({ id: is.id, field });
+    if (b === 'middle') recordHist(is);
+    toast(`已新增${RINGS[b].name}島嶼。到地圖上幫它取個名字、補上細節。`);
+  } else {
+    const is = find(a); if (!is) return;
+    placeInto(it, is, b);
+    toast(`已放進「${is.title || '未命名'}」的「${fieldLabel(is.ring, b)}」。`);
+  }
+  save(); refresh();
+}
+function renderBox() {
+  const v = $('#view-box');
+  const list = S.toolbox.filter((it) => tbFilter === 'all' || (tbFilter === 'unplaced' ? !it.placed.length : it.kind === tbFilter)).sort((a, b) => (a.d < b.d ? 1 : -1));
+  const counts = { all: S.toolbox.length, strategy: S.toolbox.filter((i) => i.kind === 'strategy').length, risk: S.toolbox.filter((i) => i.kind === 'risk').length, unplaced: S.toolbox.filter((i) => !i.placed.length).length };
+  v.innerHTML = `<div class="grid2">
+    <div class="stack">
+      <div class="panel"><h2>萬用百寶箱</h2>
+        <p class="lede">平常發現有幫助的策略、或注意到的風險，先收進來。等有空的時候，再挑選放進適合的島嶼；一個策略也可以放進好幾座島。</p>
+        ${addFormHTML('box')}
+      </div>
+      <div class="panel">
+        <div class="filters" role="group" aria-label="篩選">${[['all', '全部'], ['strategy', '策略'], ['risk', '風險'], ['unplaced', '還沒放進島嶼']].map(([k, t]) => `<button class="chip" data-act="tb-filter" data-filter="${k}" aria-pressed="${tbFilter === k}">${t}・${counts[k]}</button>`).join('')}</div>
+        ${list.length ? `<ul class="tb-list">${list.map(itemHTML).join('')}</ul>` : `<p class="empty" style="margin-top:10px">${S.toolbox.length ? '這個分類目前是空的。' : '百寶箱還是空的。可以從上面，或從「今日」的盤點區收進第一個策略。'}</p>`}
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel"><h2>怎麼放進島嶼</h2>
+        <ul class="res">
+          <li><span><b style="color:var(--sage-ink)">策略</b> → 內圈</span><span class="muted">為自己做的事、具體策略、資源</span></li>
+          <li><span><b style="color:var(--sage-ink)">策略</b> → 中圈</span><span class="muted">往外圈移動、防護</span></li>
+          <li><span><b style="color:var(--sage-ink)">策略</b> → 外圈</span><span class="muted">Plan A／B／C，或變成新的外圈島嶼</span></li>
+          <li><span><b style="color:var(--wine)">風險</b> → 內圈</span><span class="muted">靠近時的警訊</span></li>
+          <li><span><b style="color:var(--wine)">風險</b> → 中圈</span><span class="muted">往內圈陷落，或變成新的中圈島嶼</span></li>
+        </ul>
+        <p class="help" style="margin-top:10px">打開島嶼編輯時，下方也會列出百寶箱裡還沒放進這座島的項目。</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- 失手急救包 ---------- */
+function openSlipKit() {
+  const contacts = S.islands.filter((i) => i.ring === 'inner').flatMap((i) => (i.f.resources || '').split('\n')).map((s) => s.trim()).filter(Boolean);
+  const people = S.islands.filter((i) => i.ring === 'people').map((p) => `${p.icon} ${p.title || '未命名'}${p.f.relation ? `（${p.f.relation}）` : ''}${p.f.contact ? `：${p.f.contact}` : ''}`);
+  const uniq = [...new Set([...people, ...contacts])];
+  const outers = S.islands.filter((i) => i.ring === 'outer');
+  let steps = '';
+  SLIP_STEPS.forEach(([t, body]) => {
+    let inner = '';
+    if (body === 'say') inner = `<span class="help">寫一句你想在這種時候聽到的話。</span><textarea id="slip-say" aria-label="對自己說的話">${esc(S.slip.say)}</textarea>`;
+    else if (body === 'contacts') inner = uniq.length ? `<span class="help">從你的離島和內圈島嶼帶入：</span><ul class="res">${uniq.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : `<span class="help">還沒有填資源。新增一座離島，或在內圈島嶼的「我可以找的資源」寫下人名或電話，這裡就會出現。</span>`;
+    else if (body === 'next') inner = outers.length ? `<span class="help">挑一座島的 Plan C 就好：</span><ul class="res">${outers.map((o) => `<li><span>${esc(o.icon)} ${esc(o.title || '未命名')}</span><span class="muted">${esc(o.f.planC || o.f.planB || '')}</span></li>`).join('')}</ul>` : `<span class="help">還沒有外圈島嶼。之後可以新增一座，寫下最低限度的 Plan C。</span>`;
+    else inner = `<span class="help">${esc(body)}</span>`;
+    steps += `<li><div><b>${t}</b>${inner}</div></li>`;
+  });
+  openModal(`<div class="ed-head"><h2>失手急救包</h2><button class="btn ghost small" data-close-btn="1">關閉 ✕</button></div>
+    <p class="lede">失手不代表歸零。先照顧好現在的自己，其他的晚點再說。</p>
+    <ol class="steps">${steps}</ol>
+    <p class="help" style="margin-top:16px">需要即時協助：安心專線 1925、生命線 1995、戒癮專線 0800-770-885、緊急狀況 119。</p>`, (m) => {
+    m.querySelector('#slip-say')?.addEventListener('input', (e) => { S.slip.say = e.target.value; saveSoon(); });
+  });
+}
+
+/* ---------- 命名 ---------- */
+function openRename() {
+  const row = (k, label, help) => `<div class="field"><label for="nm-${k}">${label}</label>${help ? `<span class="help">${help}</span>` : ''}<input type="text" id="nm-${k}" data-nm="${k}" maxlength="${k === 'map' ? 16 : 12}" value="${esc(S.names[k] || '')}" placeholder="${esc(DEFAULT_NAMES[k])}"></div>`;
+  openModal(`<div class="ed-head"><h2>為群島命名</h2><button class="btn ghost small" data-close-btn="1">完成</button></div>
+    <p class="lede">這是你的地圖，用你自己的話來稱呼它。名字會出現在地圖左上角、各圈的標籤，以及匯出的圖片上。留空就使用預設名稱。</p>
+    ${row('map', '群島的名字', '例如：阿哲的回家群島、慢慢來群島、重新長出來的地方')}
+    ${row('inner', '內圈的名字', '例如：我的紅線、燈塔區')}
+    ${row('middle', '中圈的名字', '例如：搖擺海、要小心的地方')}
+    ${row('outer', '外圈的名字', '例如：想去的地方、生活長出來的地方')}
+    ${row('people', '離島的名字', '例如：接住我的人')}`, (m) => {
+    m.addEventListener('input', (e) => {
+      const k = e.target.dataset.nm; if (!k) return;
+      touched(); S.names[k] = e.target.value; saveSoon(); renderLabels(); renderOverview(); if (sel) rerenderEditorKeepScroll();
+    });
+  });
+}
+
+/* ---------- 匯出圖片 ---------- */
+async function exportPNG() {
+  const prev = sel; sel = null; renderMap();
+  const svg = $('#map').cloneNode(true); sel = prev; renderMap();
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); svg.setAttribute('width', String(W * 1.6)); svg.setAttribute('height', String(H * 1.6));
+  svg.querySelectorAll('[tabindex],[role],[aria-label],[class]').forEach((n) => { n.removeAttribute('tabindex'); n.removeAttribute('role'); n.removeAttribute('aria-label'); n.removeAttribute('class'); });
+  const xml = new XMLSerializer().serializeToString(svg);
+  const img = new Image();
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+  try { await img.decode(); } catch (e) { toast('圖片產生失敗，請再試一次。'); return; }
+  const cw = W * 1.6, chh = H * 1.6;
+  const cv = document.createElement('canvas'); cv.width = cw; cv.height = chh + 110;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#FFFDF9'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(img, 0, 0, cw, chh);
+  ctx.fillStyle = '#3C2A21'; ctx.font = `600 40px ${SERIF_SVG}`; ctx.fillText(S.names.map || DEFAULT_NAMES.map, 60, chh + 70);
+  ctx.fillStyle = '#7A6A60'; ctx.font = `28px ${SANS_SVG}`; ctx.textAlign = 'right'; ctx.fillText(`${todayStr()}・sexpsy.tw`, cw - 60, chh + 70);
+  let url;
+  try { url = cv.toDataURL('image/png'); } catch (e) { toast('這個瀏覽器不支援匯出圖片。'); return; }
+  openModal(`<div class="ed-head"><h2>地圖圖片</h2><button class="btn ghost small" data-close-btn="1">關閉 ✕</button></div>
+    <p class="lede">手機：長按圖片存到相簿。電腦：在圖片上按右鍵另存，或按下方按鈕下載。可以帶進諮商時一起討論。</p>
+    <img class="export-img" src="${url}" alt="三圈復元群島地圖">
+    <div class="row" style="margin-top:12px"><button class="btn primary" id="dl-png">下載圖片</button></div>`, (m) => {
+    m.querySelector('#dl-png').addEventListener('click', () => download(url, `我的復元群島-${todayStr()}.png`));
+  });
+}
+function download(href, name) {
+  const a = document.createElement('a'); a.href = href; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------- 今日 ---------- */
+let todayDate = todayStr();
+let emoManage = false;
+function heldDays() { return Object.values(S.checkins).filter((c) => c.status === 'held' || c.status === 'shaky').length; }
+function draftFor(d) { return S.checkins[d] || { status: null, mood: null, craving: null, emotions: [], middle: [], note: '' }; }
+function stripHTML(days) {
+  let h = '<div class="strip" role="img" aria-label="近 30 天的守住狀態">';
+  for (let n = days - 1; n >= 0; n--) {
+    const d = daysAgo(n); const c = S.checkins[d];
+    h += `<span class="${c && c.status ? c.status : ''} ${n === 0 ? 'is-today' : ''}" title="${d}${c && c.status ? '・' + STATUS[c.status][0] : ''}"></span>`;
+  }
+  return h + `</div><div class="strip-key"><span><i style="background:var(--sage)"></i>守住了</span><span><i style="background:var(--flax)"></i>有些搖晃</span><span><i style="background:var(--wine-soft);border:1px solid var(--wine)"></i>失手了</span><span><i style="border:1px solid var(--line)"></i>沒有紀錄</span></div>`;
+}
+function renderToday() {
+  const v = $('#view-today'); const c = draftFor(todayDate);
+  const mids = S.islands.filter((i) => i.ring === 'middle'); const outs = S.islands.filter((i) => i.ring === 'outer');
+  const scale = (key, from, to, five) => {
+    let h = `<div class="scale ${five ? 'five' : ''}">`;
+    for (let n = from; n <= to; n++) h += `<button data-scale="${key}" data-v="${n}" aria-pressed="${c[key] === n}">${n}</button>`;
+    return h + '</div>';
+  };
+  const emoChips = EMOTIONS.map((m) => `<button class="chip" data-emo="${esc(m)}" aria-pressed="${c.emotions.includes(m)}">${esc(m)}</button>`).join('')
+    + S.customEmotions.map((m) => emoManage
+      ? `<button class="chip del" data-emo-del="${esc(m)}" aria-label="刪除「${esc(m)}」">${esc(m)} ✕</button>`
+      : `<button class="chip custom" data-emo="${esc(m)}" aria-pressed="${c.emotions.includes(m)}">${esc(m)}</button>`).join('');
+  const todayItems = S.toolbox.filter((it) => it.d === todayDate);
+  v.innerHTML = `<div class="grid2">
+    <div class="stack">
+      <div class="affirm"><small>給今天的自己</small>
+        <textarea id="affirm" rows="2" placeholder="寫一句今天想對自己說的話，或面對誘惑時的通關密語。">${esc(S.affirmation)}</textarea></div>
+      <div class="panel">
+        <div class="ed-head"><h2>今日簽到</h2><input type="date" id="t-date" value="${todayDate}" max="${todayStr()}" class="btn small" aria-label="紀錄日期"></div>
+        <div class="field"><span class="lbl">今天的界線</span><div class="status">${Object.entries(STATUS).map(([k, [a, b]]) => `<button data-s="${k}" aria-pressed="${c.status === k}">${a}<small>${b}</small></button>`).join('')}</div></div>
+        ${c.status === 'slip' ? `<div class="slip-note"><p>失手不代表歸零。${heldDays() ? `你已經守住的 ${heldDays()} 天都還在。` : ''}這次的經驗也能幫你更認識自己的地圖。</p><div class="row"><button class="btn" data-act="slipkit">打開失手急救包</button></div></div>` : ''}
+        <div class="field"><span class="lbl">身心狀態</span>${scale('mood', 1, 5, true)}<div class="scale-ends"><span>很差</span><span>很好</span></div></div>
+        <div class="field"><span class="lbl">渴望強度</span>${scale('craving', 0, 5)}<div class="scale-ends"><span>沒有</span><span>非常強</span></div></div>
+        <div class="field"><span class="lbl">現在的感覺（可以多選）</span>
+          <div class="chips" style="margin-top:2px">${emoChips}</div>
+          <div class="row" style="margin-top:8px"><input type="text" class="text-in" id="emo-new" maxlength="10" placeholder="找不到的話，寫下自己的感覺" aria-label="自訂感覺"><button class="btn small" data-act="emo-add">新增</button>${S.customEmotions.length ? `<button class="btn ghost small" data-act="emo-manage">${emoManage ? '完成' : '管理自訂'}</button>` : ''}</div>
+        </div>
+        <div class="field"><span class="lbl">今天靠近了哪些中圈島嶼？</span>${mids.length ? `<div class="chips" style="margin-top:2px">${mids.map((i) => `<button class="chip" data-mid="${i.id}" aria-pressed="${c.middle.includes(i.id)}">${esc(i.icon)} ${esc(i.title || '未命名')}</button>`).join('')}</div>` : `<span class="help">地圖上還沒有中圈島嶼。</span>`}</div>
+        <div class="field"><span class="lbl">今天做了哪些外圈島嶼？</span>${outs.length ? `<div class="chips" style="margin-top:2px">${outs.map((i) => `<button class="chip" data-out="${i.id}" aria-pressed="${(i.log || []).includes(todayDate)}">${esc(i.icon)} ${esc(i.title || '未命名')}</button>`).join('')}</div><span class="help">會同步到外圈島嶼的本週打卡。</span>` : `<span class="help">地圖上還沒有外圈島嶼。</span>`}</div>
+        <div class="field"><label for="t-note">一句話筆記</label><textarea id="t-note" placeholder="今天發生了什麼？我怎麼因應？">${esc(c.note)}</textarea></div>
+        <p class="saved" style="margin-top:10px">${S.checkins[todayDate] ? '已自動儲存。' : '點選任何項目就會自動儲存。'}</p>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <div class="tally"><strong>${heldDays()}</strong><span>累積守住的日子</span></div>
+        <p class="lede">這個數字只會往上加。失手的那天不算進去，但之前的日子也不會被抹掉。</p>
+        ${stripHTML(30)}
+      </div>
+      <div class="panel">
+        <h2>今日盤點</h2>
+        <p class="lede">今天發現什麼對復元有幫助？注意到什麼風險？先收進百寶箱，可以馬上放進島嶼，也可以之後再整理。</p>
+        ${addFormHTML('today')}
+        ${todayItems.length ? `<ul class="tb-list">${todayItems.map(itemHTML).join('')}</ul>` : ''}
+        <div class="row" style="margin-top:12px"><button class="btn ghost small" data-act="go-box">打開百寶箱（${S.toolbox.length}）→</button></div>
+      </div>
+      <div class="panel">
+        <h2>本週的外圈</h2>
+        ${outs.length ? `<div class="bar-list">${outs.map((i) => { const n = weekCount(i); return `<div class="bar-row"><header><b>${esc(i.icon)} ${esc(i.title || '未命名')}</b><span>${n}/${i.target}</span></header><div class="prog"><i style="width:${Math.min(100, (n / i.target) * 100)}%"></i></div></div>`; }).join('')}</div>` : `<p class="empty">還沒有外圈島嶼。</p>`}
+      </div>
+    </div>
+  </div>`;
+}
+function bindToday() {
+  const v = $('#view-today');
+  const commit = (fn, rerender = true) => {
+    touched();
+    const c = draftFor(todayDate); fn(c); S.checkins[todayDate] = c; save();
+    if (rerender) { renderToday(); renderMap(); }
+  };
+  v.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.s) commit((c) => { c.status = c.status === b.dataset.s ? null : b.dataset.s; });
+    else if (b.dataset.scale) commit((c) => { const n = +b.dataset.v; c[b.dataset.scale] = c[b.dataset.scale] === n ? null : n; });
+    else if (b.dataset.emo) commit((c) => { const s = new Set(c.emotions); s.has(b.dataset.emo) ? s.delete(b.dataset.emo) : s.add(b.dataset.emo); c.emotions = [...s]; });
+    else if (b.dataset.emoDel) { S.customEmotions = S.customEmotions.filter((m) => m !== b.dataset.emoDel); if (!S.customEmotions.length) emoManage = false; save(); renderToday(); }
+    else if (b.dataset.act === 'emo-manage') { emoManage = !emoManage; renderToday(); }
+    else if (b.dataset.act === 'emo-add') addEmotion();
+    else if (b.dataset.mid) commit((c) => { const s = new Set(c.middle); s.has(b.dataset.mid) ? s.delete(b.dataset.mid) : s.add(b.dataset.mid); c.middle = [...s]; });
+    else if (b.dataset.out) { touched(); const is = find(b.dataset.out); if (is) { toggleLog(is, todayDate); save(); renderToday(); renderMap(); } }
+  });
+  v.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'emo-new') { e.preventDefault(); addEmotion(); } });
+  v.addEventListener('input', (e) => {
+    if (e.target.id === 'affirm') { touched(); S.affirmation = e.target.value; saveSoon(); }
+    if (e.target.id === 't-note') { const val = e.target.value; commit((c) => { c.note = val; }, false); }
+  });
+  v.addEventListener('change', (e) => {
+    if (e.target.id === 't-date' && e.target.value) { todayDate = e.target.value > todayStr() ? todayStr() : e.target.value; renderToday(); }
+  });
+  function addEmotion() {
+    const m = $('#emo-new').value.trim(); if (!m) { $('#emo-new').focus(); return; }
+    touched();
+    if (!EMOTIONS.includes(m) && !S.customEmotions.includes(m)) S.customEmotions.push(m);
+    const c = draftFor(todayDate); if (!c.emotions.includes(m)) c.emotions.push(m); S.checkins[todayDate] = c;
+    save(); renderToday(); $('#emo-new')?.focus();
+  }
+}
+
+/* ---------- 回顧 ---------- */
+function cravingChart() {
+  const VW = 640, VH = 200, L = 34, R = 12, T = 14, B = 30;
+  const days = 30; const pts = [];
+  for (let n = days - 1; n >= 0; n--) { const d = daysAgo(n); const c = S.checkins[d]; if (c && typeof c.craving === 'number') pts.push([days - 1 - n, c.craving, d]); }
+  if (pts.length < 2) return `<p class="empty">紀錄兩天以上的渴望強度，這裡就會出現趨勢圖。</p>`;
+  const x = (i) => L + (i / (days - 1)) * (VW - L - R); const y = (v) => T + (1 - v / 5) * (VH - T - B);
+  let h = `<div style="overflow-x:auto"><svg viewBox="0 0 ${VW} ${VH}" width="100%" style="min-width:420px" role="img" aria-label="近 30 天渴望強度">`;
+  for (let v = 0; v <= 5; v++) h += `<line x1="${L}" x2="${VW - R}" y1="${y(v)}" y2="${y(v)}" stroke="#E5DCD2" stroke-width="1"/><text x="${L - 10}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#7A6A60">${v}</text>`;
+  [[0, daysAgo(29)], [15, daysAgo(14)], [29, daysAgo(0)]].forEach(([i, d]) => { h += `<text x="${x(i)}" y="${VH - 8}" text-anchor="${i === 0 ? 'start' : i === 29 ? 'end' : 'middle'}" font-size="11" fill="#7A6A60">${md(d)}</text>`; });
+  const line = pts.map(([i, v]) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  h += `<polygon points="${x(pts[0][0]).toFixed(1)},${y(0)} ${line} ${x(pts[pts.length - 1][0]).toFixed(1)},${y(0)}" fill="#C87D65" opacity="0.12"/>`;
+  h += `<polyline points="${line}" fill="none" stroke="#9A5641" stroke-width="2.2" stroke-linejoin="round"/>`;
+  pts.forEach(([i, v, d]) => { const c = S.checkins[d]; h += `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${c.status === 'slip' ? 5.5 : 3.2}" fill="${c.status === 'slip' ? '#A35D6A' : '#9A5641'}" stroke="#FFFDF9" stroke-width="1.5"><title>${d}：${v}</title></circle>`; });
+  return h + `</svg></div><p class="help" style="font-size:12.5px">較大的酒紅色圓點是失手的日子。</p>`;
+}
+function renderReview() {
+  const v = $('#view-review');
+  const last30 = Array.from({ length: 30 }, (_, n) => S.checkins[daysAgo(n)]).filter(Boolean);
+  const crav = last30.filter((c) => typeof c.craving === 'number');
+  const avg = crav.length ? (crav.reduce((s, c) => s + c.craving, 0) / crav.length).toFixed(1) : '—';
+  const slips = last30.filter((c) => c.status === 'slip').length;
+  const emo = {}; last30.forEach((c) => c.emotions.forEach((m) => { emo[m] = (emo[m] || 0) + 1; }));
+  const emoSorted = Object.entries(emo).sort((a, b) => b[1] - a[1]);
+  const midCount = {}; last30.forEach((c) => c.middle.forEach((id) => { midCount[id] = (midCount[id] || 0) + 1; }));
+  const mids = S.islands.filter((i) => i.ring === 'middle'); const outs = S.islands.filter((i) => i.ring === 'outer');
+  const entries = Object.entries(S.checkins).sort((a, b) => (a[0] < b[0] ? 1 : -1)).slice(0, 14);
+  v.innerHTML = `<div class="stack">
+    <div class="stats">
+      <div class="stat"><b>${heldDays()}</b><span>累積守住的日子</span></div>
+      <div class="stat"><b>${last30.length}</b><span>近 30 天有紀錄的天數</span></div>
+      <div class="stat"><b>${avg}</b><span>近 30 天平均渴望強度（0–5）</span></div>
+      <div class="stat"><b>${S.toolbox.filter((i) => i.kind === 'strategy').length}</b><span>百寶箱裡的策略</span></div>
+    </div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="panel"><h2>渴望強度・近 30 天</h2>${cravingChart()}<p class="help" style="margin-top:4px">近 30 天失手 ${slips} 次。</p></div>
+        <div class="panel"><h2>最近的紀錄</h2>${entries.length ? `<div class="entries">${entries.map(([d, c]) => `<div class="entry"><header><b>${md(d)}</b>${c.status ? `<span class="pill ${c.status}">${STATUS[c.status][0]}</span>` : ''}${typeof c.craving === 'number' ? `<span class="muted">渴望 ${c.craving}</span>` : ''}${c.emotions.length ? `<span class="muted">${esc(c.emotions.join('、'))}</span>` : ''}</header>${c.note ? `<p>${esc(c.note)}</p>` : ''}</div>`).join('')}</div>` : `<p class="empty">還沒有紀錄。到「今日」簽到後，這裡會出現你的軌跡。</p>`}</div>
+      </div>
+      <div class="stack">
+        <div class="panel"><h2>中圈島嶼現在的位置</h2><p class="lede">左邊靠近內圈，右邊靠近外圈。括號是近 30 天在簽到中被標記「靠近了」的次數。</p>
+          ${mids.length ? `<div class="bar-list">${mids.map((i) => `<div class="bar-row"><header><b>${esc(i.icon)} ${esc(i.title || '未命名')}</b><span>${depthLabel(i.depth)}（${midCount[i.id] || 0}）</span></header><div class="track"><i style="left:${(i.depth * 100).toFixed(0)}%"></i></div></div>`).join('')}</div>` : `<p class="empty">還沒有中圈島嶼。</p>`}</div>
+        <div class="panel"><h2>本週的外圈</h2>${outs.length ? `<div class="bar-list">${outs.map((i) => { const n = weekCount(i); return `<div class="bar-row"><header><b>${esc(i.icon)} ${esc(i.title || '未命名')}</b><span>${n}/${i.target}</span></header><div class="prog"><i style="width:${Math.min(100, (n / i.target) * 100)}%"></i></div></div>`; }).join('')}</div>` : `<p class="empty">還沒有外圈島嶼。</p>`}</div>
+        <div class="panel"><h2>近 30 天的感覺</h2>${emoSorted.length ? `<div class="chips">${emoSorted.map(([m, n]) => `<span class="chip" style="cursor:default">${esc(m)}・${n}</span>`).join('')}</div>` : `<p class="empty">簽到時選擇感覺，這裡會統計出現次數。</p>`}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- 備份與設定 ---------- */
+let pendingImport = null;
+function backupData() { const { pinHash, ...rest } = S; return JSON.stringify({ app: 'sexpsy-three-circles', exportedAt: new Date().toISOString(), ...rest }, null, 2); }
+function renderSettings() {
+  const v = $('#view-settings');
+  const last = S.lastBackup ? new Date(S.lastBackup).toLocaleDateString('zh-TW') : '還沒有備份過';
+  v.innerHTML = `<div class="settings">
+    <div class="panel">
+      <h2>備份我的群島</h2>
+      <p class="lede">所有資料只存在這個瀏覽器，網站看不到，也幫不了你找回。換手機、清除瀏覽器資料之前，請先備份。上次備份：<b>${esc(last)}</b></p>
+      <div class="row" style="margin-top:12px"><button class="btn primary" data-act="export">下載備份檔</button><button class="btn" data-act="copy">複製備份文字</button></div>
+      <p class="help" style="margin-top:8px">如果按了沒有開始下載，請改用「複製備份文字」，貼到備忘錄或寄給自己。</p>
+      <div id="copy-out"></div>
+    </div>
+    <div class="panel">
+      <h2>載入備份</h2>
+      <p class="lede">選擇之前下載的 .json 檔，或貼上備份文字。載入後會取代目前的資料。</p>
+      <div class="row" style="margin-top:12px"><label class="btn" for="imp-file">選擇備份檔</label><input type="file" id="imp-file" accept="application/json,.json" hidden></div>
+      <textarea class="paste" id="imp-text" placeholder="或把備份文字貼在這裡"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn" data-act="parse">讀取貼上的文字</button></div>
+      <div id="imp-confirm"></div>
+    </div>
+    <div class="panel">
+      <h2>換一個範本</h2>
+      <p class="lede">範本只是起點，每座島都可以改名、改內容或刪除。重新開始會清除目前所有資料。</p>
+      <div class="field"><label for="tpl">範本</label><select id="tpl">${Object.entries(TEMPLATES).map(([k, t]) => `<option value="${k}" ${k === S.template ? 'selected' : ''}>${t.label}</option>`).join('')}</select></div>
+      <div class="row" style="margin-top:12px"><button class="btn danger" data-act="restart">用這個範本重新開始</button></div>
+    </div>
+    <div class="panel">
+      <h2>PIN 碼鎖</h2>
+      <p class="lede">打開頁面時要先輸入 PIN，避免旁人隨手看到。PIN 只是遮擋，資料本身沒有加密；忘記 PIN 只能清除資料、再載入備份。</p>
+      ${S.pinHash ? `<div class="row" style="margin-top:12px"><span>已設定 PIN</span><button class="btn danger" data-act="pin-off">取消 PIN</button></div>`
+        : `<div class="row" style="margin-top:12px"><input type="password" inputmode="numeric" maxlength="8" id="pin-new" class="btn" placeholder="4–8 位數字" aria-label="新的 PIN 碼" style="width:150px"><button class="btn" data-act="pin-set">設定 PIN</button></div>`}
+    </div>
+    <div class="panel">
+      <h2>需要即時協助</h2>
+      <ul class="res">${RESOURCES.map(([n, num, href]) => `<li><span>${n}</span><a href="${href}">${num}</a></li>`).join('')}</ul>
+      <p class="help" style="margin-top:10px">這個工具是自我探索與日常陪伴，不能取代專業的診斷、治療或諮商。</p>
+    </div>
+    <div class="panel">
+      <h2>清除所有資料</h2>
+      <p class="lede">刪除這個瀏覽器裡的地圖、紀錄、百寶箱與 PIN，無法復元。建議先備份。</p>
+      <div class="row" style="margin-top:12px"><button class="btn danger" data-act="wipe">清除所有資料</button></div>
+    </div>
+  </div>`;
+}
+function validImport(obj) { return obj && Array.isArray(obj.islands) && typeof obj.checkins === 'object'; }
+function stageImport(text) {
+  let obj; try { obj = JSON.parse(text); } catch (e) { toast('讀不懂這份內容。請確認是完整的備份文字或 .json 檔。'); return; }
+  if (!validImport(obj)) { toast('這不是三圈復元群島的備份檔。'); return; }
+  pendingImport = obj;
+  $('#imp-confirm').innerHTML = `<div class="slip-note"><p>備份內容：${obj.islands.length} 座島嶼、${Object.keys(obj.checkins).length} 天紀錄、${(obj.toolbox || []).length} 個百寶箱項目（${esc((obj.exportedAt || '').slice(0, 10) || '日期不明')}）。載入後會取代目前的資料。</p><div class="row"><button class="btn primary" data-act="imp-go">確定載入</button><button class="btn" data-act="imp-cancel">取消</button></div></div>`;
+}
+async function sha(s) {
+  try { const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('sexpsy:' + s)); return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join(''); }
+  catch (e) { return 'h' + hashStr('sexpsy:' + s); }
+}
+function bindSettings() {
+  const v = $('#view-settings');
+  v.addEventListener('click', async (e) => {
+    const b = e.target.closest('button'); if (!b) return; const act = b.dataset.act;
+    if (act === 'export') {
+      const blob = new Blob([backupData()], { type: 'application/json' });
+      download(URL.createObjectURL(blob), `我的復元群島-${todayStr()}.json`);
+      S.lastBackup = Date.now(); save(); renderSettings(); renderBanner();
+      toast('已產生備份檔。如果沒有開始下載，請改用「複製備份文字」。');
+    }
+    if (act === 'copy') {
+      const text = backupData();
+      try { await navigator.clipboard.writeText(text); S.lastBackup = Date.now(); save(); renderSettings(); renderBanner(); toast('已複製。貼到備忘錄或寄給自己保存。'); }
+      catch (err) {
+        $('#copy-out').innerHTML = `<textarea class="paste" id="copy-text" readonly aria-label="備份文字"></textarea><p class="help">無法自動複製，請全選上面的文字後複製。</p>`;
+        const ta = $('#copy-text'); ta.value = text; ta.focus(); ta.select();
+        S.lastBackup = Date.now(); save(); renderBanner();
+      }
+    }
+    if (act === 'parse') stageImport($('#imp-text').value);
+    if (act === 'imp-cancel') { pendingImport = null; $('#imp-confirm').innerHTML = ''; }
+    if (act === 'imp-go' && pendingImport) {
+      const { app, exportedAt, ...data } = pendingImport;
+      S = migrate({ ...makeState('blank', false), ...data, sample: false, pinHash: S.pinHash, lastBackup: Date.now() });
+      pendingImport = null; save(); renderAll(); toast('已載入備份。');
+    }
+    if (act === 'restart') armed(b, '會清除目前資料，再按一次確定', () => {
+      const pin = S.pinHash; S = makeState($('#tpl').value, false); S.pinHash = pin; save(); closeEditor(); renderAll(); showTab('map'); toast(`已用「${TEMPLATES[S.template].label}」範本建立你的地圖。`);
+    });
+    if (act === 'pin-set') {
+      const p = $('#pin-new').value.trim();
+      if (!/^\d{4,8}$/.test(p)) { toast('請輸入 4 到 8 位數字。'); return; }
+      touched(); S.pinHash = await sha(p); save(); renderSettings(); toast('已設定 PIN，下次打開時需要輸入。');
+    }
+    if (act === 'pin-off') armed(b, '再按一次確定取消', () => { S.pinHash = null; save(); renderSettings(); toast('已取消 PIN。'); });
+    if (act === 'wipe') armed(b, '無法復元，再按一次確定', () => {
+      try { localStorage.removeItem(KEY); } catch (err) { /* 忽略 */ }
+      S = makeState('blank', false); save(); closeEditor(); renderAll(); showTab('map'); toast('已清除所有資料。');
+    });
+  });
+  v.addEventListener('change', (e) => {
+    if (e.target.id === 'imp-file' && e.target.files[0]) {
+      const r = new FileReader(); r.onload = () => stageImport(String(r.result)); r.readAsText(e.target.files[0]);
+    }
+  });
+}
+
+/* ---------- 鎖定畫面 ---------- */
+function showLock() {
+  const root = $('#lock-root');
+  root.innerHTML = `<div class="lock"><form class="box" id="lock-form"><h2>三圈復元群島</h2><p class="muted">請輸入 PIN 碼</p>
+    <input type="password" inputmode="numeric" maxlength="8" id="lock-pin" autocomplete="off" aria-label="PIN 碼"><button class="btn primary" type="submit" style="justify-content:center">解鎖</button>
+    <p class="muted" id="lock-msg" style="font-size:13px"></p></form></div>`;
+  $('#lock-pin').focus();
+  $('#lock-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (await sha($('#lock-pin').value.trim()) === S.pinHash) root.innerHTML = '';
+    else { $('#lock-msg').textContent = 'PIN 不正確。忘記的話，只能清除這個瀏覽器的資料後載入備份。'; $('#lock-pin').value = ''; }
+  });
+}
+
+/* ---------- 分頁 ---------- */
+const TABS = ['map', 'today', 'box', 'review', 'settings'];
+let currentTab = 'map';
+function showTab(t) {
+  if (!TABS.includes(t)) t = 'map';
+  currentTab = t;
+  document.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  TABS.forEach((k) => { $('#view-' + k).hidden = k !== t; });
+  if (t !== 'map' && sel) closeEditor();
+  refresh();
+  try { history.replaceState(null, '', '#' + t); } catch (e) { /* 忽略 */ }
+}
+/* 重畫目前看得到的畫面 */
+function refresh() {
+  renderBanner(); renderLabels(); renderMap(); renderOverview();
+  if (sel) rerenderEditorKeepScroll();
+  if (currentTab === 'today') renderToday();
+  if (currentTab === 'box') renderBox();
+  if (currentTab === 'review') renderReview();
+  if (currentTab === 'settings') renderSettings();
+}
+function renderAll() { refresh(); }
+
+document.querySelector('.tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'slipkit') openSlipKit();
+  if (act === 'png') exportPNG();
+  if (act === 'rename') openRename();
+  if (act === 'go-settings') showTab('settings');
+  if (act === 'go-box') showTab('box');
+  if (act === 'tb-kind') { tbKind = b.dataset.kind; const src = currentTab === 'today' ? 'today' : 'box'; const keep = $(`#tb-text-${src}`)?.value || ''; refresh(); const inp = $(`#tb-text-${src}`); if (inp) { inp.value = keep; inp.focus(); } }
+  if (act === 'tb-filter') { tbFilter = b.dataset.filter; renderBox(); }
+  if (act === 'tb-add') addToolboxItem(b.dataset.src);
+  if (act === 'tb-del') armed(b, '確定刪除？', () => { S.toolbox = S.toolbox.filter((x) => x.id !== b.dataset.id); save(); refresh(); });
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.id && e.target.id.startsWith('tb-text-')) { e.preventDefault(); addToolboxItem(e.target.id.slice(8)); }
+  if (e.key === 'Escape') { if ($('#modal-root').innerHTML) closeModal(); else if (sel) closeEditor(); }
+});
+document.addEventListener('change', (e) => {
+  if (e.target.matches('select[data-place]')) placeItem(e.target.dataset.place, e.target.value);
+});
+function addToolboxItem(src) {
+  const inp = $(`#tb-text-${src}`); const text = (inp?.value || '').trim();
+  if (!text) { inp?.focus(); return; }
+  touched();
+  S.toolbox.push({ id: uid(), kind: tbKind, text, d: src === 'today' ? todayDate : todayStr(), placed: [] });
+  save(); refresh(); toast('已收進百寶箱。可以從下拉選單放進島嶼。');
+  $(`#tb-text-${src}`)?.focus();
+}
+
+renderBase();
+bindMap(); bindEditor(); bindToday(); bindSettings();
+showTab((location.hash || '').slice(1));
+const sea = $('.sea'); if (sea.scrollWidth > sea.clientWidth) sea.scrollLeft = (sea.scrollWidth - sea.clientWidth) / 2;
+if (S.pinHash) showLock();
+})();
+
+</script>

@@ -1,0 +1,53 @@
+<div id="tc-app">
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <small>沙發上的性心理・復元工具</small>
+      <h1>三圈復元群島</h1>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="頁面">
+      <button role="tab" data-tab="map" aria-selected="true">群島地圖</button>
+      <button role="tab" data-tab="today" aria-selected="false">今日</button>
+      <button role="tab" data-tab="box" aria-selected="false">百寶箱</button>
+      <button role="tab" data-tab="review" aria-selected="false">回顧</button>
+      <button role="tab" data-tab="settings" aria-selected="false">備份與設定</button>
+    </nav>
+  </header>
+  <div id="banner"></div>
+
+  <!-- 群島地圖 -->
+  <section class="view" id="view-map">
+    <div class="layout">
+      <div class="chart-card">
+        <div class="chart-tools">
+          <span class="hint">點島嶼編輯，拖曳可以移動。中圈島嶼離中心越遠，代表越靠近外圈；外海的離島放支持你的人。</span>
+          <div class="row">
+            <button class="btn small" data-act="rename">為群島命名</button>
+            <button class="btn small" data-act="slipkit">失手急救包</button>
+            <button class="btn small" data-act="png">存成圖片</button>
+          </div>
+        </div>
+        <div class="sea">
+          <svg id="map" viewBox="0 0 1000 860" role="group" aria-label="三圈復元群島地圖"><g id="base"></g><g id="labels"></g><g id="routes"></g><g id="isles"></g></svg>
+        </div>
+        <p class="sea-hint">← 左右滑動看整張地圖 →</p>
+        <div class="legend" id="legend"></div>
+      </div>
+      <aside class="side" id="side">
+        <div class="panel" id="overview"></div>
+        <div class="panel" id="editor" role="dialog" aria-label="編輯島嶼"></div>
+      </aside>
+    </div>
+    <div class="backdrop" id="backdrop" hidden></div>
+  </section>
+
+  <section class="view" id="view-today" hidden></section>
+  <section class="view" id="view-box" hidden></section>
+  <section class="view" id="view-review" hidden></section>
+  <section class="view" id="view-settings" hidden></section>
+</div>
+
+<div id="modal-root"></div>
+<div id="lock-root"></div>
+<div id="toast-root"></div>
+</div>

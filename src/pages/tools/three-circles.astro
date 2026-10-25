@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import appMarkup from '../../components/three-circles/ThreeCirclesApp.html?raw';
+import '../../styles/three-circles.css';
+---
+
+<BaseLayout
+  title="三圈復元群島"
+  description="給各種成癮復元的人：用內圈界線、中圈辯證、外圈生活與人際離島，畫出自己的三圈復元地圖。所有資料只存在你的瀏覽器。"
+  breadcrumbs={[
+    { name: '首頁', url: '/' },
+    { name: '三圈復元群島', url: '/tools/three-circles' },
+  ]}
+>
+  <div class="three-circles-page">
+    <Fragment set:html={appMarkup} />
+  </div>
+</BaseLayout>
+
+<style is:global>
+  /* 網站頁首是 sticky 的，右側面板黏住時要讓開它的高度 */
+  .three-circles-page #tc-app {
+    --tc-sticky-top: 88px;
+  }
+</style>
+
+<script>
+  import '../../scripts/three-circles.js';
+</script>
