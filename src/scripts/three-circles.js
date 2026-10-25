@@ -857,7 +857,8 @@ function openWelcome() {
   openModal(`<div class="ed-head"><h2>歡迎來到三圈復元群島</h2><button class="btn ghost small" data-close-btn="1">關閉 ✕</button></div>
     <p class="lede">這是一張只屬於你的復元地圖，花 5 分鐘就能畫出第一版。之後隨時可以按上方的「使用說明」再看一次。</p>
     <ol class="steps">${steps.map(([t, d]) => `<li><div><b>${t}</b><span class="help">${d}</span></div></li>`).join('')}</ol>
-    ${starts}`, (m) => {
+    ${starts}
+    <p class="help" style="margin-top:14px">想知道這個工具是怎麼來的？<button class="linkish" data-act="letter">讀讀寫在前面的話</button></p>`, (m) => {
     m.addEventListener('click', (e) => {
       const b = e.target.closest('[data-start]'); if (!b) return;
       if (b.dataset.start === 'sample') closeModal();
@@ -885,24 +886,29 @@ function openRename() {
 }
 
 /* ---------- 匯出圖片 ---------- */
-async function exportPNG() {
+async function mapImage(scale = 1.6, footer = true) {
   const prev = sel; sel = null; renderMap();
   const svg = $('#map').cloneNode(true); sel = prev; renderMap();
-  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); svg.setAttribute('width', String(W * 1.6)); svg.setAttribute('height', String(H * 1.6));
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); svg.setAttribute('width', String(W * scale)); svg.setAttribute('height', String(H * scale));
   svg.querySelectorAll('[tabindex],[role],[aria-label],[class]').forEach((n) => { n.removeAttribute('tabindex'); n.removeAttribute('role'); n.removeAttribute('aria-label'); n.removeAttribute('class'); });
   const xml = new XMLSerializer().serializeToString(svg);
   const img = new Image();
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
-  try { await img.decode(); } catch (e) { toast('圖片產生失敗，請再試一次。'); return; }
-  const cw = W * 1.6, chh = H * 1.6;
-  const cv = document.createElement('canvas'); cv.width = cw; cv.height = chh + 110;
+  try { await img.decode(); } catch (e) { return null; }
+  const cw = W * scale, chh = H * scale;
+  const cv = document.createElement('canvas'); cv.width = cw; cv.height = chh + (footer ? 110 : 0);
   const ctx = cv.getContext('2d');
   ctx.fillStyle = '#FFFDF9'; ctx.fillRect(0, 0, cv.width, cv.height);
   ctx.drawImage(img, 0, 0, cw, chh);
+  if (footer) {
   ctx.fillStyle = '#3C2A21'; ctx.font = `600 40px ${SERIF_SVG}`; ctx.fillText(S.names.map || DEFAULT_NAMES.map, 60, chh + 70);
   ctx.fillStyle = '#7A6A60'; ctx.font = `28px ${SANS_SVG}`; ctx.textAlign = 'right'; ctx.fillText(`${todayStr()}・© 沙發上的性心理 sexpsy.tw`, cw - 60, chh + 70);
-  let url;
-  try { url = cv.toDataURL('image/png'); } catch (e) { toast('這個瀏覽器不支援匯出圖片。'); return; }
+  }
+  try { return cv.toDataURL('image/png'); } catch (e) { return null; }
+}
+async function exportPNG() {
+  const url = await mapImage(1.6, true);
+  if (!url) { toast('圖片產生失敗，請再試一次。'); return; }
   openModal(`<div class="ed-head"><h2>地圖圖片</h2><button class="btn ghost small" data-close-btn="1">關閉 ✕</button></div>
     <p class="lede">手機：長按圖片存到相簿。電腦：在圖片上按右鍵另存，或按下方按鈕下載。可以帶進諮商時一起討論。</p>
     <img class="export-img" src="${url}" alt="三圈復元群島地圖">
@@ -1043,12 +1049,14 @@ function renderReview() {
   const mids = S.islands.filter((i) => i.ring === 'middle'); const outs = S.islands.filter((i) => i.ring === 'outer');
   const entries = Object.entries(S.checkins).sort((a, b) => (a[0] < b[0] ? 1 : -1)).slice(0, 14);
   v.innerHTML = `<div class="stack">
+    <div class="review-top"><p class="lede">看看每天的變化。要和心理師或信任的人談的時候，可以把一段時間整理成盤點單。</p><button class="btn primary" data-act="sheet">整理成盤點單</button></div>
     <div class="stats">
       <div class="stat"><b>${heldDays()}</b><span>累積守住的日子</span></div>
       <div class="stat"><b>${last30.length}</b><span>近 30 天有紀錄的天數</span></div>
       <div class="stat"><b>${avg}</b><span>近 30 天平均渴望強度（0–5）</span></div>
       <div class="stat"><b>${S.toolbox.filter((i) => i.kind === 'strategy').length}</b><span>百寶箱裡的策略</span></div>
     </div>
+    ${calendarHTML()}
     <div class="grid2">
       <div class="stack">
         <div class="panel"><h2>渴望強度・近 30 天</h2>${cravingChart()}<p class="help" style="margin-top:4px">近 30 天失手 ${slips} 次。</p></div>
@@ -1062,6 +1070,263 @@ function renderReview() {
       </div>
     </div>
   </div>`;
+}
+
+/* ---------- 月曆 ---------- */
+let calY = new Date().getFullYear(), calM = new Date().getMonth(), calSel = todayStr();
+const dayLabel = (d) => `${+d.slice(5, 7)} 月 ${+d.slice(8)} 日・星期${WEEKDAY[new Date(d + 'T00:00').getDay()]}`;
+function outerDoneOn(d) { return S.islands.filter((i) => i.ring === 'outer' && (i.log || []).includes(d)); }
+function calendarHTML() {
+  const first = new Date(calY, calM, 1); const days = new Date(calY, calM + 1, 0).getDate();
+  const lead = (first.getDay() + 6) % 7; const today = todayStr();
+  let cells = ['一', '二', '三', '四', '五', '六', '日'].map((w) => `<span class="cal-w">${w}</span>`).join('');
+  for (let i = 0; i < lead; i++) cells += '<span></span>';
+  let held = 0, slip = 0, rec = 0;
+  for (let n = 1; n <= days; n++) {
+    const d = fmt(new Date(calY, calM, n)); const c = S.checkins[d]; const outs = outerDoneOn(d).length;
+    if (c) { rec++; if (c.status === 'slip') slip++; else if (c.status) held++; }
+    const cls = [c && c.status ? c.status : '', d === today ? 'is-today' : '', d === calSel ? 'is-sel' : ''].join(' ');
+    cells += `<button class="cal-day ${cls}" data-cal="${d}" ${d > today ? 'disabled' : ''} aria-label="${dayLabel(d)}${c && c.status ? '，' + STATUS[c.status][0] : ''}">
+      <span class="n">${n}</span>
+      ${c && typeof c.craving === 'number' ? `<span class="crave" title="渴望 ${c.craving}"><i style="width:${c.craving * 20}%"></i></span>` : ''}
+      ${outs ? `<span class="outs">🌱${outs}</span>` : ''}
+    </button>`;
+  }
+  return `<div class="panel cal">
+    <div class="ed-head"><h2>${calY} 年 ${calM + 1} 月</h2><div class="row"><button class="btn small" data-cal-nav="-1" aria-label="上個月">‹</button><button class="btn small" data-cal-nav="0">本月</button><button class="btn small" data-cal-nav="1" aria-label="下個月">›</button></div></div>
+    <p class="lede">這個月紀錄了 ${rec} 天，守住 ${held} 天，失手 ${slip} 次。點任何一天，看那天的細節。</p>
+    <div class="cal-body"><div>
+    <div class="cal-grid">${cells}</div>
+    <div class="strip-key"><span><i style="background:var(--sage)"></i>守住了</span><span><i style="background:var(--flax)"></i>有些搖晃</span><span><i style="background:var(--wine-soft);border:1px solid var(--wine)"></i>失手了</span><span>橫條：渴望強度</span><span>🌱：做到的外圈</span></div>
+    </div><div class="day-detail">${dayDetailHTML(calSel)}</div></div>
+  </div>`;
+}
+function dayDetailHTML(d) {
+  const c = S.checkins[d]; const outs = outerDoneOn(d); const items = S.toolbox.filter((it) => it.d === d);
+  const mids = c ? c.middle.map((id) => find(id)).filter(Boolean) : [];
+  const name = (i) => esc(`${i.icon} ${i.title || '未命名'}`);
+  let h = `<div class="ed-head"><h3>${dayLabel(d)}</h3><button class="btn small" data-act="edit-day" data-day="${d}">${c ? '修改這天' : '補記這天'}</button></div>`;
+  if (!c && !outs.length && !items.length) return h + `<p class="empty">這天沒有紀錄。</p>`;
+  if (c) {
+    h += `<dl class="kv">${[
+      ['界線', c.status ? `<span class="pill ${c.status}">${STATUS[c.status][0]}</span>` : '—'],
+      ['身心狀態', c.mood ?? '—'], ['渴望強度', c.craving ?? '—'],
+      ['感覺', c.emotions.length ? esc(c.emotions.join('、')) : '—'],
+      ['靠近的中圈', mids.length ? mids.map(name).join('、') : '—'],
+    ].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+  }
+  if (outs.length) h += `<p><b>做到的外圈：</b>${outs.map(name).join('、')}</p>`;
+  if (c && c.note) h += `<p class="note">${esc(c.note)}</p>`;
+  if (items.length) h += `<p><b>收進百寶箱：</b>${items.map((it) => esc(it.text)).join('；')}</p>`;
+  return h;
+}
+function bindReview() {
+  $('#view-review').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.cal) { calSel = b.dataset.cal; renderReview(); }
+    if (b.dataset.calNav) {
+      const n = +b.dataset.calNav; const t = n === 0 ? new Date() : new Date(calY, calM + n, 1);
+      calY = t.getFullYear(); calM = t.getMonth(); renderReview();
+    }
+    if (b.dataset.act === 'edit-day') { todayDate = b.dataset.day; showTab('today'); window.scrollTo(0, 0); }
+  });
+}
+
+/* ---------- 盤點單：帶去和心理師或信任的人對話（不是備份） ---------- */
+const SHEET_SECTIONS = [['summary', '這段期間的概況'], ['map', '群島地圖'], ['daily', '每日簽到表'], ['middle', '中圈島嶼的變化'], ['outer', '外圈的實踐'], ['inner', '內圈界線與因應計畫'], ['box', '百寶箱的新發現'], ['people', '離島・支持我的人']];
+let sheetOpts = null;
+function rangeDates(a, b) {
+  const out = []; const d = new Date(a + 'T00:00'); const end = new Date(b + 'T00:00');
+  while (d <= end && out.length < 120) { out.push(fmt(d)); d.setDate(d.getDate() + 1); }
+  return out;
+}
+function redact(t) {
+  return String(t || '').replace(/\+?\d[\d\s-]{5,}\d/g, '（已隱藏）').replace(/(LINE|Line|line|IG|ig)\s*[:：]\s*\S+/g, '$1（已隱藏）');
+}
+function openSheetBuilder() {
+  const o = sheetOpts || {
+    range: '14', from: daysAgo(13), to: todayStr(), whom: '', notes: false, hideContact: true, alias: true, talk: '', help: '',
+    sec: { summary: true, map: true, daily: true, middle: true, outer: true, inner: true, box: true, people: false },
+  };
+  openModal(`<div class="ed-head"><h2>整理成盤點單</h2><button class="btn ghost small" data-close-btn="1">關閉 ✕</button></div>
+    <p class="lede">把一段時間的紀錄整理成一份簡短的盤點單，像交回家作業一樣，印出來或存成 PDF，帶去和心理師或你信任的人一起看。<b>這不是備份</b>，只會放你勾選的內容。</p>
+    <div class="field"><label for="sh-range">期間</label><select id="sh-range">${[['7', '近 7 天'], ['14', '近 14 天'], ['30', '近 30 天'], ['custom', '自訂日期']].map(([v, t]) => `<option value="${v}" ${o.range === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
+      <div class="row" id="sh-custom" ${o.range === 'custom' ? '' : 'hidden'}><input type="date" id="sh-from" value="${o.from}" max="${todayStr()}" aria-label="開始日期"><span>到</span><input type="date" id="sh-to" value="${o.to}" max="${todayStr()}" aria-label="結束日期"></div></div>
+    <div class="field"><label for="sh-whom">要給誰看（可以不填）</label><input type="text" id="sh-whom" maxlength="30" value="${esc(o.whom)}" placeholder="例如：我的心理師、團體帶領者"></div>
+    <div class="field"><span class="lbl">要放進去的內容</span><div class="checks">${SHEET_SECTIONS.map(([k, t]) => `<label class="check"><input type="checkbox" data-sec="${k}" ${o.sec[k] ? 'checked' : ''}> ${t}</label>`).join('')}</div></div>
+    <div class="field"><span class="lbl">隱私</span><div class="checks">
+      <label class="check"><input type="checkbox" id="sh-contact" ${o.hideContact ? 'checked' : ''}> 隱藏電話、LINE 等聯絡方式</label>
+      <label class="check"><input type="checkbox" id="sh-alias" ${o.alias ? 'checked' : ''}> 離島只寫關係，不寫名字</label>
+      <label class="check"><input type="checkbox" id="sh-notes" ${o.notes ? 'checked' : ''}> 放進每天的筆記內容</label></div>
+      <span class="help">預設不放筆記、隱藏聯絡方式。不確定要不要讓對方看到的，就先不要勾。</span></div>
+    <div class="field"><label for="sh-talk">這次最想談的事</label><textarea id="sh-talk" placeholder="例如：週五晚上特別難熬，想一起想辦法。">${esc(o.talk)}</textarea></div>
+    <div class="field"><label for="sh-help">我希望得到的幫忙</label><textarea id="sh-help" placeholder="例如：想練習怎麼拒絕以前朋友的邀約。">${esc(o.help)}</textarea></div>
+    <div class="ed-foot"><span class="help">下一步會先預覽，確認後再列印。</span><button class="btn primary" id="sh-go">預覽盤點單</button></div>`, (m) => {
+    m.querySelector('#sh-range').addEventListener('change', (e) => { m.querySelector('#sh-custom').hidden = e.target.value !== 'custom'; });
+    m.querySelector('#sh-go').addEventListener('click', () => {
+      const range = m.querySelector('#sh-range').value;
+      let from = range === 'custom' ? m.querySelector('#sh-from').value : daysAgo(+range - 1);
+      let to = range === 'custom' ? m.querySelector('#sh-to').value : todayStr();
+      if (!from || !to) { toast('請選擇開始和結束日期。'); return; }
+      if (from > to) [from, to] = [to, from];
+      const sec = {}; m.querySelectorAll('[data-sec]').forEach((c) => { sec[c.dataset.sec] = c.checked; });
+      sheetOpts = {
+        range, from, to, sec, whom: m.querySelector('#sh-whom').value.trim(),
+        notes: m.querySelector('#sh-notes').checked, hideContact: m.querySelector('#sh-contact').checked, alias: m.querySelector('#sh-alias').checked,
+        talk: m.querySelector('#sh-talk').value.trim(), help: m.querySelector('#sh-help').value.trim(),
+      };
+      closeModal(); renderSheet();
+    });
+  });
+}
+function posAt(is, d) {
+  const h = (is.hist || []).filter((e) => e.d <= d);
+  return h.length ? h[h.length - 1].p : ((is.hist || [])[0]?.p ?? is.depth);
+}
+async function renderSheet() {
+  const o = sheetOpts; const dates = rangeDates(o.from, o.to); const dset = new Set(dates);
+  const cs = dates.map((d) => [d, S.checkins[d]]).filter(([, c]) => c);
+  const name = (i) => esc(`${i.icon} ${i.title || '未命名'}`);
+  const txt = (t) => esc(o.hideContact ? redact(t) : t).replace(/\n/g, '<br>');
+  const sec = (title, body) => `<section class="ps-sec"><h2>${title}</h2>${body}</section>`;
+  const lines = (n) => `<div class="ps-lines">${'<span></span>'.repeat(n)}</div>`;
+  let doc = `<header class="ps-head"><div><small>三圈復元盤點單</small><h1>${esc(S.names.map || DEFAULT_NAMES.map)}</h1></div>
+    <dl class="ps-meta"><dt>期間</dt><dd>${o.from} ～ ${o.to}（${dates.length} 天）</dd><dt>製作日期</dt><dd>${todayStr()}</dd>${o.whom ? `<dt>給</dt><dd>${esc(o.whom)}</dd>` : ''}</dl></header>`;
+  if (o.sec.summary) {
+    const held = cs.filter(([, c]) => c.status === 'held').length, shaky = cs.filter(([, c]) => c.status === 'shaky').length, slip = cs.filter(([, c]) => c.status === 'slip').length;
+    const avg = (k) => { const v = cs.map(([, c]) => c[k]).filter((x) => typeof x === 'number'); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : '—'; };
+    const emo = {}; cs.forEach(([, c]) => c.emotions.forEach((m) => { emo[m] = (emo[m] || 0) + 1; }));
+    const mid = {}; cs.forEach(([, c]) => c.middle.forEach((id) => { mid[id] = (mid[id] || 0) + 1; }));
+    const topEmo = Object.entries(emo).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([m, n]) => `${esc(m)}（${n}）`).join('、') || '—';
+    const topMid = Object.entries(mid).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([id, n]) => { const i = find(id); return i ? `${name(i)}（${n}）` : null; }).filter(Boolean).join('、') || '—';
+    const outTotal = S.islands.filter((i) => i.ring === 'outer').reduce((s, i) => s + (i.log || []).filter((d) => dset.has(d)).length, 0);
+    const box = S.toolbox.filter((it) => dset.has(it.d));
+    doc += sec('這段期間的概況', `<div class="ps-stats">
+      <div><b>${cs.length}/${dates.length}</b><span>有紀錄的天數</span></div>
+      <div><b>${held + shaky}</b><span>守住的天數（其中 ${shaky} 天有些搖晃）</span></div>
+      <div><b>${slip}</b><span>失手次數</span></div>
+      <div><b>${avg('craving')}</b><span>平均渴望強度（0–5）</span></div>
+      <div><b>${avg('mood')}</b><span>平均身心狀態（1–5）</span></div>
+      <div><b>${outTotal}</b><span>外圈做到的次數</span></div>
+    </div>
+    <p><b>最常出現的感覺：</b>${topEmo}</p><p><b>最常靠近的中圈島嶼：</b>${topMid}</p>
+    <p><b>百寶箱新增：</b>策略 ${box.filter((i) => i.kind === 'strategy').length} 個、風險 ${box.filter((i) => i.kind === 'risk').length} 個</p>`);
+  }
+  if (o.sec.map) {
+    const img = await mapImage(1.2, false);
+    if (img) doc += sec('群島地圖', `<img class="ps-map" src="${img}" alt="三圈復元群島地圖">`);
+  }
+  if (o.sec.daily) {
+    const rows = dates.filter((d) => S.checkins[d] || outerDoneOn(d).length);
+    doc += sec('每日簽到表', rows.length ? `<table class="ps-table"><thead><tr><th>日期</th><th>界線</th><th>身心</th><th>渴望</th><th>感覺</th><th>靠近的中圈</th><th>做到的外圈</th>${o.notes ? '<th>筆記</th>' : ''}</tr></thead><tbody>
+      ${rows.map((d) => { const c = S.checkins[d] || { emotions: [], middle: [] }; return `<tr><td>${md(d)}</td><td>${c.status ? STATUS[c.status][0] : '—'}</td><td>${c.mood ?? '—'}</td><td>${c.craving ?? '—'}</td><td>${esc(c.emotions.join('、')) || '—'}</td><td>${c.middle.map((id) => find(id)).filter(Boolean).map((i) => esc(i.title || '未命名')).join('、') || '—'}</td><td>${outerDoneOn(d).map((i) => esc(i.title || '未命名')).join('、') || '—'}</td>${o.notes ? `<td>${txt(c.note || '')}</td>` : ''}</tr>`; }).join('')}
+      </tbody></table>${rows.length < dates.length ? `<p class="ps-note">其餘 ${dates.length - rows.length} 天沒有紀錄。</p>` : ''}` : '<p class="ps-note">這段期間沒有紀錄。</p>');
+  }
+  if (o.sec.middle) {
+    const mids = S.islands.filter((i) => i.ring === 'middle');
+    doc += sec('中圈島嶼的變化', mids.length ? mids.map((i) => {
+      const a = posAt(i, o.from), b = posAt(i, o.to); const n = cs.filter(([, c]) => c.middle.includes(i.id)).length;
+      const arrow = Math.abs(b - a) < 0.05 ? '差不多' : b > a ? '往外圈移動' : '往內圈移動';
+      return `<div class="ps-item"><h3>${name(i)}</h3><p class="ps-note">期間開始：${depthLabel(a)} → 現在：${depthLabel(b)}（${arrow}）・被標記「靠近了」${n} 次</p>
+        ${i.f.toInner ? `<p><b>往內圈：</b>${txt(i.f.toInner)}</p>` : ''}${i.f.toOuter ? `<p><b>往外圈：</b>${txt(i.f.toOuter)}</p>` : ''}${i.f.guard ? `<p><b>防護：</b>${txt(i.f.guard)}</p>` : ''}</div>`;
+    }).join('') : '<p class="ps-note">還沒有中圈島嶼。</p>');
+  }
+  if (o.sec.outer) {
+    const outs = S.islands.filter((i) => i.ring === 'outer'); const weeks = Math.max(1, Math.round(dates.length / 7));
+    doc += sec('外圈的實踐', outs.length ? `<table class="ps-table"><thead><tr><th>島嶼</th><th>做到的次數</th><th>目標</th><th>Plan C（最低限度）</th></tr></thead><tbody>
+      ${outs.map((i) => `<tr><td>${name(i)}</td><td>${(i.log || []).filter((d) => dset.has(d)).length}</td><td>每週 ${i.target} 次（約 ${i.target * weeks} 次）</td><td>${txt(i.f.planC || '—')}</td></tr>`).join('')}</tbody></table>` : '<p class="ps-note">還沒有外圈島嶼。</p>');
+  }
+  if (o.sec.inner) {
+    const inn = S.islands.filter((i) => i.ring === 'inner');
+    doc += sec('內圈界線與因應計畫', inn.length ? inn.map((i) => `<div class="ps-item"><h3>${name(i)}</h3>
+      ${[['boundary', '界線'], ['signals', '警訊'], ['selfcare', '為自己做的事'], ['strategies', '具體策略'], ['resources', '可以找的資源']].filter(([k]) => i.f[k]).map(([k, t]) => `<p><b>${t}：</b>${txt(i.f[k])}</p>`).join('')}</div>`).join('') : '<p class="ps-note">還沒有內圈島嶼。</p>');
+  }
+  if (o.sec.box) {
+    const box = S.toolbox.filter((it) => dset.has(it.d));
+    doc += sec('百寶箱的新發現', box.length ? `<ul class="ps-list">${box.map((it) => `<li><span class="ps-tag ${it.kind}">${it.kind === 'risk' ? '風險' : '策略'}</span>${txt(it.text)}<span class="ps-note">（${md(it.d)}）</span></li>`).join('')}</ul>` : '<p class="ps-note">這段期間沒有新增。</p>');
+  }
+  if (o.sec.people) {
+    const ps = S.islands.filter((i) => i.ring === 'people');
+    doc += sec('離島・支持我的人', ps.length ? ps.map((i, k) => `<div class="ps-item"><h3>${esc(i.icon)} ${o.alias ? esc(i.f.relation || `支持者 ${String.fromCharCode(65 + k)}`) : esc(i.title || '未命名')}</h3>
+      ${i.f.support ? `<p><b>他怎麼支持我：</b>${txt(i.f.support)}</p>` : ''}${!o.hideContact && i.f.contact ? `<p><b>聯絡：</b>${esc(i.f.contact)}</p>` : ''}</div>`).join('') : '<p class="ps-note">還沒有離島。</p>');
+  }
+  doc += sec('這次最想談的事', o.talk ? `<p>${esc(o.talk).replace(/\n/g, '<br>')}</p>` : lines(3));
+  doc += sec('我希望得到的幫忙', o.help ? `<p>${esc(o.help).replace(/\n/g, '<br>')}</p>` : lines(3));
+  doc += sec('心理師／陪伴者的回饋', lines(4));
+  doc += `<footer class="ps-foot">這份盤點單含有個人隱私，請只交給你信任的人，看完可以收回或銷毀。・三圈復元群島 © 沙發上的性心理 sexpsy.tw</footer>`;
+  showSheet(doc);
+}
+function showSheet(html) {
+  closeSheet();
+  const el = document.createElement('div'); el.id = 'tc-sheet'; el.className = 'sheet-overlay';
+  el.innerHTML = `<div class="sheet-toolbar"><b>盤點單預覽</b><div class="row"><button class="btn" data-sh="edit">回去修改</button><button class="btn primary" data-sh="print">列印／存成 PDF</button><button class="btn ghost" data-sh="close">關閉</button></div></div>
+    <aside class="privacy-note"><b>交出去之前，先想一想</b><ul>
+      <li>只給你信任、也願意替你保密的人，例如你的心理師。</li>
+      <li>從頭到尾看一遍，不想讓對方看到的，就「回去修改」取消勾選。</li>
+      <li>紙本要收好，談完可以收回，或用碎紙機處理。</li>
+      <li>存成 PDF 時，不要存到公用電腦或和別人共用的雲端資料夾。</li>
+      <li>不要拍照上傳到群組或社群；用通訊軟體傳檔前，想一想對方的手機會不會被別人看到。</li>
+      <li>列印時選「另存為 PDF」，就能存成檔案。如果按了沒有反應，請用瀏覽器選單裡的「列印」。</li>
+    </ul></aside>
+    <article id="print-sheet">${html}</article>`;
+  document.body.appendChild(el); document.body.classList.add('tc-printing');
+  el.scrollTop = 0;
+  el.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-sh]'); if (!b) return;
+    if (b.dataset.sh === 'print') { try { window.print(); } catch (err) { toast('請用瀏覽器選單裡的「列印」。'); } }
+    if (b.dataset.sh === 'edit') { closeSheet(); openSheetBuilder(); }
+    if (b.dataset.sh === 'close') closeSheet();
+  });
+}
+function closeSheet() { document.getElementById('tc-sheet')?.remove(); document.body.classList.remove('tc-printing'); }
+
+/* ---------- 使用者回饋：寄到網站信箱，不附任何個人紀錄 ---------- */
+const FEEDBACK_ACCESS_KEY = '77c78a23-4a8c-4442-a247-6f6dcb8faf05';
+function openFeedback() {
+  const ROLES = ['我自己在使用', '陪伴家人或朋友', '助人工作者', '其他'];
+  const FEATS = ['三圈地圖', '中圈辯證', '外圈 Plan A／B／C', '離島與記憶', '今日簽到', '百寶箱', '月曆回顧', '盤點單', '失手急救包'];
+  const fb = { role: '', rating: null, feats: new Set() };
+  openModal(`<div class="ed-head"><h2>一起讓群島長得更好</h2><button class="btn ghost small" data-close-btn="1">關閉 ✕</button></div>
+    <p class="lede">謝謝你願意花時間給回饋。這些話會寄給開發這個工具的心理師，用來慢慢優化它。回饋<b>不會</b>附上你的地圖或任何紀錄；也請不要寫下能認出你或其他人的資訊。</p>
+    <form id="fb-form" novalidate>
+      <div class="field"><span class="lbl">你是</span><div class="chips">${ROLES.map((r) => `<button type="button" class="chip" data-fb-role="${r}" aria-pressed="false">${r}</button>`).join('')}</div></div>
+      <div class="field"><span class="lbl">整體來說，這個工具對你有幫助嗎？</span><div class="scale five">${[1, 2, 3, 4, 5].map((n) => `<button type="button" data-fb-rate="${n}" aria-pressed="false">${n}</button>`).join('')}</div><div class="scale-ends"><span>沒什麼幫助</span><span>很有幫助</span></div></div>
+      <div class="field"><span class="lbl">哪些功能對你最有用？（可以多選）</span><div class="chips">${FEATS.map((f) => `<button type="button" class="chip" data-fb-feat="${f}" aria-pressed="false">${f}</button>`).join('')}</div></div>
+      <div class="field"><label for="fb-improve">有什麼地方用起來卡卡的，或希望改進？</label><textarea id="fb-improve" maxlength="2000"></textarea></div>
+      <div class="field"><label for="fb-idea">還想要什麼功能，或想對我們說的話</label><textarea id="fb-idea" maxlength="2000"></textarea></div>
+      <div class="field"><label for="fb-email">Email（選填，想收到回覆再填）</label><input type="text" id="fb-email" inputmode="email" autocomplete="email" maxlength="120"></div>
+      <div class="ed-foot"><p class="help" id="fb-status" role="status"></p><button type="submit" class="btn primary" id="fb-send">送出回饋</button></div>
+    </form>`, (m) => {
+    m.addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.fbRole) { fb.role = fb.role === b.dataset.fbRole ? '' : b.dataset.fbRole; m.querySelectorAll('[data-fb-role]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.fbRole === fb.role))); }
+      if (b.dataset.fbRate) { const n = +b.dataset.fbRate; fb.rating = fb.rating === n ? null : n; m.querySelectorAll('[data-fb-rate]').forEach((x) => x.setAttribute('aria-pressed', String(+x.dataset.fbRate === fb.rating))); }
+      if (b.dataset.fbFeat) { const f = b.dataset.fbFeat; fb.feats.has(f) ? fb.feats.delete(f) : fb.feats.add(f); b.setAttribute('aria-pressed', String(fb.feats.has(f))); }
+    });
+    m.querySelector('#fb-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const improve = m.querySelector('#fb-improve').value.trim(), idea = m.querySelector('#fb-idea').value.trim(), email = m.querySelector('#fb-email').value.trim();
+      const status = m.querySelector('#fb-status'); const btn = m.querySelector('#fb-send');
+      if (!fb.role && !fb.rating && !fb.feats.size && !improve && !idea) { status.textContent = '至少選一項或寫一句話，再送出。'; return; }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { status.textContent = 'Email 格式看起來不太對，可以修正或留空。'; return; }
+      btn.disabled = true; btn.textContent = '送出中…'; status.textContent = '';
+      const payload = {
+        access_key: FEEDBACK_ACCESS_KEY, subject: '三圈復元群島｜使用者回饋', from_name: '三圈復元群島', botcheck: '',
+        身分: fb.role || '（未選）', 幫助程度: fb.rating ? `${fb.rating} / 5` : '（未選）', 有用的功能: [...fb.feats].join('、') || '（未選）',
+        希望改進: improve || '（未填）', 其他想說的: idea || '（未填）',
+      };
+      if (email) payload.email = email;
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(payload) });
+        const out = await res.json();
+        if (!out.success) throw new Error('failed');
+        m.querySelector('#fb-form').outerHTML = `<div class="thanks"><p>收到了，謝謝你的貢獻 🌱</p><p class="lede">你的每一句話，都會讓這座群島長得更好。</p><div class="row" style="margin-top:12px"><button class="btn primary" data-close-btn="1">關閉</button></div></div>`;
+      } catch (err) {
+        status.textContent = '送出時遇到問題。可以稍後再試，或直接寫信到 sexpsy.tw@gmail.com。';
+        btn.disabled = false; btn.textContent = '送出回饋';
+      }
+    });
+  });
 }
 
 /* ---------- 備份與設定 ---------- */
@@ -1102,6 +1367,11 @@ function renderSettings() {
       <h2>需要即時協助</h2>
       <ul class="res">${RESOURCES.map(([n, num, href]) => `<li><span>${n}</span><a href="${href}">${num}</a></li>`).join('')}</ul>
       <p class="help" style="margin-top:10px">這個工具是自我探索與日常陪伴，不能取代專業的診斷、治療或諮商。</p>
+    </div>
+    <div class="panel">
+      <h2>一起讓群島長得更好</h2>
+      <p class="lede">用起來有卡卡的地方、希望增加的功能，或想說的話，都歡迎告訴我們。回饋不會附上你的任何紀錄。</p>
+      <div class="row" style="margin-top:12px"><button class="btn" data-act="feedback">留下回饋</button></div>
     </div>
     <div class="panel">
       <h2>清除所有資料</h2>
@@ -1211,6 +1481,9 @@ document.addEventListener('click', (e) => {
   if (act === 'png') exportPNG();
   if (act === 'rename') openRename();
   if (act === 'welcome') openWelcome();
+  if (act === 'sheet') openSheetBuilder();
+  if (act === 'feedback') openFeedback();
+  if (act === 'letter') { closeModal(); showTab('map'); setTimeout(() => $('#tc-letter')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }
   if (act === 'copy-link') {
     navigator.clipboard?.writeText(location.href.split('#')[0]).then(() => toast('已複製網址，貼到 Safari 或 Chrome 打開。'), () => toast(`請手動複製網址：${location.href.split('#')[0]}`));
   }
@@ -1223,7 +1496,7 @@ document.addEventListener('click', (e) => {
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && e.target.id && e.target.id.startsWith('tb-text-')) { e.preventDefault(); addToolboxItem(e.target.id.slice(8)); }
-  if (e.key === 'Escape') { if ($('#modal-root').innerHTML) closeModal(); else if (sel) closeEditor(); }
+  if (e.key === 'Escape') { if ($('#modal-root').innerHTML) closeModal(); else if (document.getElementById('tc-sheet')) closeSheet(); else if (sel) closeEditor(); }
 });
 document.addEventListener('change', (e) => {
   if (e.target.matches('select[data-place]')) placeItem(e.target.dataset.place, e.target.value);
@@ -1238,7 +1511,7 @@ function addToolboxItem(src) {
 }
 
 renderBase();
-bindMap(); bindEditor(); bindToday(); bindSettings();
+bindMap(); bindEditor(); bindToday(); bindReview(); bindSettings();
 showTab((location.hash || '').slice(1));
 const sea = $('.sea'); if (sea.scrollWidth > sea.clientWidth) sea.scrollLeft = (sea.scrollWidth - sea.clientWidth) / 2;
 if (S.pinHash) showLock();
