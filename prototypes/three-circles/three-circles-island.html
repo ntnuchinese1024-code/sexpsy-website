@@ -326,7 +326,7 @@ body { background: #F9F6F0; color: #3C2A21; }
 #tc-app .lock input { text-align: center; letter-spacing: .5em; font-size: 22px; border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: var(--paper); width: 100%; }
 #tc-app .toast {
   position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
-  z-index: 90; background: var(--ink); color: var(--cream); padding: 10px 16px; border-radius: 12px; font-size: 14px;
+  z-index: 120; background: var(--ink); color: var(--cream); padding: 10px 16px; border-radius: 12px; font-size: 14px;
   width: max-content; max-width: calc(100vw - 32px);
 }
 #tc-app .export-img { width: 100%; border-radius: 12px; border: 1px solid var(--line); margin-top: 12px; }
@@ -481,6 +481,28 @@ body { background: #F9F6F0; color: #3C2A21; }
   #print-sheet .ps-table { display: table; }
 }
 
+/* 外圈的感覺與核心提醒 */
+#tc-app .feels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+#tc-app .feels button { border: 1px solid var(--line); background: var(--cream); border-radius: 12px; padding: 8px 4px; cursor: pointer; line-height: 1.35; font-size: 14px; }
+#tc-app .feels button small { display: block; font-size: 11.5px; color: var(--muted); }
+#tc-app .feels button[aria-pressed="true"][data-feel=nourish] { background: var(--sage-soft); border-color: var(--sage-ink); }
+#tc-app .feels button[aria-pressed="true"][data-feel=heavy] { background: var(--flax-soft); border-color: #B08A4E; }
+#tc-app .feels button[aria-pressed="true"][data-feel=stress] { background: var(--indigo-soft); border-color: var(--indigo); }
+#tc-app .feel-note { margin-top: 6px; padding: 8px 12px; border-radius: 10px; background: var(--indigo-soft); font-size: 13px; }
+#tc-app .feel-tag { font-size: 12px; font-weight: 400; color: var(--indigo); }
+#tc-app .core-note { margin-top: 10px; padding: 10px 14px; border-radius: 12px; background: var(--sage-soft); font-size: 13.5px; }
+#tc-app .core-note b { color: var(--sage-ink); }
+#tc-app .nudge { margin-top: 12px; padding: 10px 14px; border-radius: 12px; border: 1px dashed var(--sage-ink); font-size: 13.5px; }
+#tc-app .nudge .linkish { margin-left: 4px; }
+
+/* 盤點單：交給 AI */
+#tc-sheet .ai-panel { max-width: 820px; margin: 0 auto 14px; padding: 14px 18px; border-radius: 14px; background: var(--sage-soft); display: grid; gap: 8px; }
+#tc-sheet .ai-panel ul { margin: 0; padding-left: 1.2em; display: grid; gap: 2px; }
+#tc-sheet .ai-panel p { margin: 0; }
+#tc-sheet .ai-fallback { width: 100%; min-height: 160px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font: 12px/1.6 ui-monospace, Menlo, monospace; }
+#tc-sheet [hidden] { display: none !important; }
+@media print { #tc-sheet .ai-panel { display: none !important; } }
+
 </style>
 <div id="tc-app">
 <div class="wrap">
@@ -510,6 +532,7 @@ body { background: #F9F6F0; color: #3C2A21; }
           <span class="hint">點島嶼編輯，拖曳可以移動。中圈島嶼離中心越遠，代表越靠近外圈；外海的離島放支持你的人。</span>
           <div class="row">
             <button class="btn small" data-act="rename">為群島命名</button>
+            <button class="btn small" data-act="arrange">整理位置</button>
             <button class="btn small" data-act="slipkit">失手急救包</button>
             <button class="btn small" data-act="png">存成圖片</button>
           </div>
@@ -551,11 +574,11 @@ body { background: #F9F6F0; color: #3C2A21; }
       <article class="panel">
         <h3>四個步驟開始</h3>
         <ol class="howto">
-          <li><b>認識三圈</b>內圈是你不再做的事，中圈是可能往內也可能往外的灰色地帶，外圈是你想長大的生活。外海的離島，放支持你的人。</li>
-          <li><b>點島嶼修改</b>點任何一座島，就能改名字、內容和圖示；拖曳可以移動。中圈的島越往外，代表越靠近外圈。</li>
+          <li><b>認識三圈</b>內圈是你不再做的事，中圈是可能往內也可能往外的灰色地帶，外圈是你想長大的生活。外海的離島，放支持你的人。<br>復元的核心不是把內圈填滿、不停限制自己，而是讓外圈長大。外圈的事也可能在壓力大時變成負擔，往中圈或內圈移動，這時可以先降到 Plan C，或把它移到中圈。</li>
+          <li><b>點島嶼修改</b>點任何一座島，就能改名字、內容和圖示；拖曳可以移動。中圈的島越往外，代表越靠近外圈。島變多覺得擠的時候，按地圖上方的「整理位置」。</li>
           <li><b>每天簽到</b>到「今日」記下有沒有守住、現在的感覺和渴望；發現好用的策略，就收進百寶箱。</li>
           <li><b>定期備份</b>到「備份與設定」下載備份檔，換手機時就能接著用。</li>
-          <li><b>帶去對話</b>到「回顧」看月曆上每天的變化；要和心理師或信任的人談時，按「整理成盤點單」，挑選要放的內容，印出來或存成 PDF。</li>
+          <li><b>帶去對話</b>到「回顧」看月曆上每天的變化；要和心理師或信任的人談時，按「整理成盤點單」，挑選要放的內容，印出來或存成 PDF；也可以複製給 AI，請它用正向支持的方式陪你看。</li>
         </ol>
         <div class="row" style="margin-top:12px"><button class="btn small" data-act="welcome">重新看新手導覽</button></div>
       </article>
@@ -626,9 +649,9 @@ function trunc(s, n) { const a = [...s]; return a.length > n ? a.slice(0, n).joi
 
 /* ---------- 圈層、欄位、外觀 ---------- */
 const RINGS = {
-  inner: { name: '內圈', full: '內圈・界線島', desc: '我清楚設限、不再做的事', color: '#B9867F' },
-  middle: { name: '中圈', full: '中圈・辯證島', desc: '灰色地帶：可能往內，也可能往外', color: '#D9B57A' },
-  outer: { name: '外圈', full: '外圈・建構島', desc: '我想積極擴大的生活', color: '#8FA87F' },
+  inner: { name: '內圈', full: '內圈・界線島', desc: '我清楚設限、不再做的事', color: '#C98A92' },
+  middle: { name: '中圈', full: '中圈・辯證島', desc: '灰色地帶：可能往內，也可能往外', color: '#D6AE62' },
+  outer: { name: '外圈', full: '外圈・建構島', desc: '我想積極擴大的生活，也是復元的核心', color: '#7FA673' },
   people: { name: '離島', full: '離島・人際資源', desc: '支持我的人，和我們共同的記憶', color: '#7F92A6' },
 };
 const FIELDS = {
@@ -651,12 +674,28 @@ const FIELDS = {
     ['planA', 'Plan A・狀態好的時候', '完整的版本。'],
     ['planB', 'Plan B・有點累的時候', '簡化的版本。'],
     ['planC', 'Plan C・最低限度', '再糟的日子也做得到的一小步。'],
+    ['burden', '可能變成負擔的時候', '外圈的事也可能往中圈、甚至內圈移動，尤其在壓力大、覺得「非做不可」的時候。寫下警訊，以及到時候可以怎麼調整。'],
   ],
   people: [
     ['relation', '他是誰', '和我的關係，例如：支持團體夥伴、姊姊、諮商師。'],
     ['support', '他怎麼支持我', '他做了什麼、說了什麼，讓我覺得被接住。'],
     ['contact', '怎麼聯絡', '電話、LINE、什麼時間方便。失手急救包會帶入這裡。'],
   ],
+};
+/* 外圈的事現在給人的感覺；有負擔時在島上畫一朵雲 */
+const FEELS = { nourish: ['滋養我', '做起來有力量', ''], heavy: ['有點負擔', '開始覺得累', '☁️'], stress: ['壓力很大', '變成非做不可', '🌧️'] };
+/* 範本外圈島嶼「可能變成負擔的時候」 */
+const BURDEN = {
+  規律運動: '把運動當成懲罰自己，或沒做到就自責；練到受傷還硬撐。→ 先降到 Plan C，允許自己休息。',
+  參加支持團體: '覺得非去不可、怕被評價，或在團體裡被勾起想用的念頭。→ 先跟帶領者說，或改參加線上聚會。',
+  清醒時的親密關係: '急著證明自己「正常」，或把對方當成唯一的支撐。→ 放慢速度，也照顧其他關係。',
+  睡前儀式: '一沒做到就覺得失敗，焦慮到更睡不著。→ 只做 Plan C 就好。',
+  和伴侶的真實連結: '談話變成檢討或拷問，兩個人都很累。→ 約好可以喊暫停，需要時一起找伴侶諮商。',
+  屬於自己的興趣: '練習變成另一種熬夜或逃避。→ 先設定結束的時間。',
+  晨間運動: '睡不夠還硬撐，身體很累。→ 改成散步，或今天就休息。',
+  和家人吃晚餐: '餐桌上常起衝突，壓力很大。→ 先從短一點的相處開始。',
+  記帳與還款計畫: '看到數字就焦慮、自責。→ 請家人一起看，或先只記收入。',
+  週末家庭時間: '行程排太滿，像在演給家人看。→ 留一點自己的時間。',
 };
 const fieldLabel = (ring, key) => (FIELDS[ring] || []).find((f) => f[0] === key)?.[1] || key;
 const TERRAINS = {
@@ -682,9 +721,9 @@ const KINDS = { strategy: '有幫助的策略', risk: '發現的風險' };
 /* 百寶箱的項目可以放進哪些欄位 */
 const PLACE = {
   strategy: { inner: ['selfcare', 'strategies', 'resources'], middle: ['toOuter', 'guard'], outer: ['planA', 'planB', 'planC'], people: ['support'] },
-  risk: { inner: ['signals'], middle: ['toInner'], outer: [], people: [] },
+  risk: { inner: ['signals'], middle: ['toInner'], outer: ['burden'], people: [] },
 };
-const QUICK = { strategy: { inner: 'strategies', middle: 'toOuter', outer: 'planB' }, risk: { inner: 'signals', middle: 'toInner' } };
+const QUICK = { strategy: { inner: 'strategies', middle: 'toOuter', outer: 'planB' }, risk: { inner: 'signals', middle: 'toInner', outer: 'burden' } };
 const RESOURCES = [
   ['緊急救護／消防', '119', 'tel:119'],
   ['衛福部安心專線（24 小時）', '1925', 'tel:1925'],
@@ -773,7 +812,7 @@ function buildIslands(key, withExamples) {
   for (const ring of Object.keys(by)) {
     by[ring].forEach((r, k) => {
       const n = by[ring].length;
-      const is = newIsland(ring, { title: r[1], f: { ...r[2] }, icon: r[4] || DEFAULT_ICON[ring], terrain: r[5] || DEFAULT_TERRAIN[ring] });
+      const is = newIsland(ring, { title: r[1], f: { ...r[2], ...(ring === 'outer' && BURDEN[r[1]] ? { burden: BURDEN[r[1]] } : {}) }, icon: r[4] || DEFAULT_ICON[ring], terrain: r[5] || DEFAULT_TERRAIN[ring] });
       if (ring === 'people') {
         [is.px, is.py] = PEOPLE_SLOTS[k % PEOPLE_SLOTS.length];
         is.memories = (r[3] || []).map(([d, text]) => ({ id: uid(), d: daysAgo(d), text }));
@@ -947,9 +986,9 @@ function blobPath(seed, rx, ry) {
 function renderBase() {
   let h = `<defs>
     <linearGradient id="g-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D3E1E4"/><stop offset="1" stop-color="#BCD0D6"/></linearGradient>
-    <radialGradient id="g-out" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#E6EFE6"/><stop offset="1" stop-color="#D2E2D6"/></radialGradient>
-    <radialGradient id="g-mid" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#F7EEDB"/><stop offset="1" stop-color="#EBDDBF"/></radialGradient>
-    <radialGradient id="g-in" cx="50%" cy="40%" r="62%"><stop offset="0" stop-color="#F4E1DE"/><stop offset="1" stop-color="#E7C8C6"/></radialGradient>
+    <radialGradient id="g-out" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#DDEDD5"/><stop offset="1" stop-color="#BBD8B1"/></radialGradient>
+    <radialGradient id="g-mid" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#FAEBCB"/><stop offset="1" stop-color="#F0D49C"/></radialGradient>
+    <radialGradient id="g-in" cx="50%" cy="40%" r="62%"><stop offset="0" stop-color="#F5D9D9"/><stop offset="1" stop-color="#E4B3B7"/></radialGradient>
   </defs>
   <rect width="${W}" height="${H}" fill="url(#g-sea)"/>`;
   // 外海的浪花
@@ -962,12 +1001,13 @@ function renderBase() {
     h += `<path class="wave" d="M${x.toFixed(0)},${y.toFixed(0)} q${(7 * s).toFixed(1)},${(-6 * s).toFixed(1)} ${(14 * s).toFixed(1)},0 t${(14 * s).toFixed(1)},0" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" opacity="${(0.45 + rnd() * 0.4).toFixed(2)}"/>`;
   }
   // 三層像台地一樣疊起來的海域：下方深色偏移是陰影，白色描邊是浪花
-  [['outer', 'g-out', '#7E9C92', 11], ['middle', 'g-mid', '#B79F70', 23], ['inner', 'g-in', '#B78585', 37]].forEach(([z, g, shade, seed]) => {
+  [['outer', 'g-out', '#6F9466', 11, '#7FA673'], ['middle', 'g-mid', '#B8904A', 23, '#D6AE62'], ['inner', 'g-in', '#A86A72', 37, '#C98A92']].forEach(([z, g, shade, seed, rim]) => {
     const d = zonePath(ZONE[z], seed, 0.045);
     h += `<path d="${d}" transform="translate(0,12)" fill="${shade}" opacity="0.28"/>`;
     h += `<path d="${d}" fill="url(#${g})"/>`;
     h += `<path d="${zonePath(ZONE[z] * 0.86, seed + 1, 0.05)}" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-dasharray="2 9" stroke-linecap="round" opacity="0.8"/>`;
-    h += `<path d="${d}" fill="none" stroke="#FFFFFF" stroke-width="3.5" opacity="0.9"/>`;
+    h += `<path d="${d}" fill="none" stroke="#FFFFFF" stroke-width="6" opacity="0.85"/>`;
+    h += `<path d="${d}" fill="none" stroke="${rim}" stroke-width="2.2"/>`;
   });
   // 羅盤
   h += `<g transform="translate(56,580)" opacity="0.75"><circle r="26" fill="#FFFDF9" opacity="0.7"/><path d="M0,-22 L6,0 L0,22 L-6,0 Z" fill="#5B6C7D"/><path d="M0,-22 L6,0 L-6,0 Z" fill="#A35D6A"/><text y="-30" text-anchor="middle" font-family="${SANS_SVG}" font-size="13" fill="#5B6C7D">N</text></g>`;
@@ -998,13 +1038,20 @@ function renderLabels() {
 /* ---------- 地圖：島嶼 ---------- */
 let sel = null;
 function weekCount(is) { const w = new Set(weekDates()); return (is.log || []).filter((d) => w.has(d)).length; }
+/* 同一圈的島越多，島和名牌就跟著縮小，避免擠成一團 */
+const RING_ROOM = { inner: 3, middle: 5, outer: 7, people: 6 };
+function crowd(ring) {
+  const n = S.islands.filter((i) => i.ring === ring).length;
+  return n <= RING_ROOM[ring] ? 1 : Math.max(0.58, Math.sqrt(RING_ROOM[ring] / n));
+}
 function islandSize(is) {
-  if (is.ring === 'inner') return 54;
-  if (is.ring === 'middle') return 50;
-  if (is.ring === 'people') return 42;
-  return 44 + Math.min(weekCount(is), 7) * 4;
+  const base = is.ring === 'inner' ? 54 : is.ring === 'middle' ? 50 : is.ring === 'people' ? 42 : 44 + Math.min(weekCount(is), 7) * 4;
+  return base * crowd(is.ring);
 }
 const HEIGHT = { inner: 26, middle: 18, outer: 20, people: 15 };
+const islandHeight = (is) => Math.round(HEIGHT[is.ring] * crowd(is.ring));
+const labelFont = (is) => Math.round((is.ring === 'people' ? 20 : 22) * Math.max(0.8, crowd(is.ring)));
+const labelText = (is) => trunc(is.title.trim() || '未命名', crowd(is.ring) < 0.8 ? 6 : 8);
 function pos(is) {
   if (is.ring === 'people') return [is.px, is.py];
   const [a, b] = BANDS[is.ring]; const r = a + (b - a) * is.depth; const t = (is.angle - 90) * Math.PI / 180;
@@ -1014,7 +1061,7 @@ function textWidth(s, fs) { let w = 0; for (const ch of s) w += ch.charCodeAt(0)
 function islandSVG(is, label) {
   const [ldx, labelY] = label || [0, null];
   const [x, y] = pos(is); const T = TERRAINS[is.terrain] || TERRAINS.grass;
-  const rx = islandSize(is), ry = rx * 0.62, h = HEIGHT[is.ring]; const seed = is.seed;
+  const rx = islandSize(is), ry = rx * 0.62, h = islandHeight(is); const seed = is.seed;
   const title = is.title.trim() || '未命名';
   const top = blobPath(seed, rx, ry);
   let s = `<g class="isl" data-id="${is.id}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" tabindex="0" role="button" aria-label="${esc(RINGS[is.ring].name + '：' + title)}">`;
@@ -1032,19 +1079,22 @@ function islandSVG(is, label) {
     s += `<line x1="${fx.toFixed(1)}" y1="${fy.toFixed(1)}" x2="${fx.toFixed(1)}" y2="${(fy - 34).toFixed(1)}" stroke="#5A4636" stroke-width="2.4" stroke-linecap="round"/>`;
     s += `<path d="M${fx.toFixed(1)},${(fy - 34).toFixed(1)} l20,6 l-20,7 Z" fill="${lerpColor(MID_STOPS, is.depth)}"/>`;
   }
-  const fs = is.ring === 'people' ? 20 : 22; const w = textWidth(trunc(title, 8), fs) + 24; const ly = labelY ?? h + ry + 22;
-  const pillStroke = { inner: '#B9867F', middle: '#D9B57A', outer: '#8FA87F', people: '#7F92A6' }[is.ring];
+  if (is.ring === 'outer' && FEELS[is.feel] && FEELS[is.feel][2]) {
+    s += `<text x="${(rx * 0.7).toFixed(1)}" y="${(-ry * 1.05).toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="${Math.round(rx * 0.55)}">${FEELS[is.feel][2]}</text>`;
+  }
+  const fs = labelFont(is); const ph = fs + 10; const w = textWidth(labelText(is), fs) + 24; const ly = labelY ?? h + ry + 22;
+  const pillStroke = RINGS[is.ring].color;
   // 名牌被擠開時，用虛線連回自己的島
-  if (labelY !== null && (ldx !== 0 || Math.abs(ly - (h + ry + 22)) > 2)) {
-    const fromY = ly < 0 ? -ry * 0.7 : h + ry * 0.7; const toY = ly < 0 ? ly + 16 : ly - 16;
+  if (labelY !== null && Math.abs(ldx) < rx && (ldx !== 0 || Math.abs(ly - (h + ry + 22)) > 2)) {
+    const fromY = ly < 0 ? -ry * 0.7 : h + ry * 0.7; const toY = ly < 0 ? ly + ph / 2 : ly - ph / 2;
     s += `<line x1="0" y1="${fromY.toFixed(1)}" x2="${ldx.toFixed(1)}" y2="${toY.toFixed(1)}" stroke="#5A4636" stroke-width="1.6" stroke-dasharray="2 4" stroke-linecap="round" opacity="0.6"/>`;
   }
-  s += `<g transform="translate(${ldx.toFixed(1)},${ly.toFixed(1)})"><rect x="${(-w / 2).toFixed(1)}" y="-16" width="${w.toFixed(1)}" height="32" rx="16" fill="#FFFDF9" opacity="0.94" stroke="${pillStroke}" stroke-width="1.6"/><text text-anchor="middle" dominant-baseline="central" font-family="${SERIF_SVG}" font-size="${fs}" font-weight="600" fill="#3C2A21">${esc(trunc(title, 8))}</text></g>`;
+  s += `<g transform="translate(${ldx.toFixed(1)},${ly.toFixed(1)})"><rect x="${(-w / 2).toFixed(1)}" y="${-ph / 2}" width="${w.toFixed(1)}" height="${ph}" rx="${ph / 2}" fill="#FFFDF9" opacity="0.94" stroke="${pillStroke}" stroke-width="1.6"/><text text-anchor="middle" dominant-baseline="central" font-family="${SERIF_SVG}" font-size="${fs}" font-weight="600" fill="#3C2A21">${esc(labelText(is))}</text></g>`;
   if (is.ring === 'outer') {
-    s += `<text x="${ldx.toFixed(1)}" y="${(ly + 33).toFixed(1)}" text-anchor="middle" font-family="${SANS_SVG}" font-size="16" fill="#3F5541" paint-order="stroke" stroke="#FFFDF9" stroke-width="4" stroke-linejoin="round">本週 ${weekCount(is)}/${is.target}</text>`;
+    s += `<text x="${ldx.toFixed(1)}" y="${(ly + ph / 2 + 17).toFixed(1)}" text-anchor="middle" font-family="${SANS_SVG}" font-size="${Math.round(fs * 0.72)}" fill="#3F5541" paint-order="stroke" stroke="#FFFDF9" stroke-width="4" stroke-linejoin="round">本週 ${weekCount(is)}/${is.target}</text>`;
   }
   if (is.ring === 'people' && is.memories.length) {
-    s += `<text x="${ldx.toFixed(1)}" y="${(ly + 32).toFixed(1)}" text-anchor="middle" font-family="${SANS_SVG}" font-size="14" fill="#44556A" paint-order="stroke" stroke="#FFFDF9" stroke-width="4" stroke-linejoin="round">${is.memories.length} 段記憶</text>`;
+    s += `<text x="${ldx.toFixed(1)}" y="${(ly + ph / 2 + 16).toFixed(1)}" text-anchor="middle" font-family="${SANS_SVG}" font-size="${Math.round(fs * 0.7)}" fill="#44556A" paint-order="stroke" stroke="#FFFDF9" stroke-width="4" stroke-linejoin="round">${is.memories.length} 段記憶</text>`;
   }
   return s + '</g>';
 }
@@ -1069,24 +1119,33 @@ function renderMap() {
 function layoutLabels(list) {
   const placed = list.map((is) => {
     const [x, y] = pos(is); const rx = islandSize(is); const ry = rx * 0.62;
-    return { id: is.id, x, w: rx * 2, top: y - ry, bottom: y + HEIGHT[is.ring] + ry * 0.9 };
+    return { id: is.id, x, w: rx * 2, top: y - ry, bottom: y + islandHeight(is) + ry * 0.9 };
   });
+  // 圈層名稱和左上角的名字框也不能被名牌蓋住
+  for (const z of ['outer', 'middle', 'inner']) {
+    const t = (LABEL_AT[z][0] - 90) * Math.PI / 180; const lw = textWidth(trunc(ringLabel(z), 12), 19) + 30;
+    const lx = C + Math.cos(t) * ZONE[z], lyy = CY + Math.sin(t) * ZONE[z] * K;
+    placed.push({ id: `ring-${z}`, x: lx, w: lw, top: lyy - 17, bottom: lyy + 17 });
+  }
+  const nw = Math.max(250, textWidth(trunc(S.names.map || DEFAULT_NAMES.map, 12), 32) + 56);
+  placed.push({ id: 'cartouche', x: 26 + nw / 2, w: nw, top: 22, bottom: 114 });
   const out = new Map();
   for (const is of list) {
-    const [x, y] = pos(is); const rx = islandSize(is); const title = trunc(is.title.trim() || '未命名', 8);
-    const fs = is.ring === 'people' ? 20 : 22; const w = textWidth(title, fs) + 24;
-    const hh = 32 + (is.ring === 'outer' || (is.ring === 'people' && is.memories.length) ? 22 : 0);
+    const [x, y] = pos(is); const rx = islandSize(is);
+    const fs = labelFont(is); const ph = fs + 10; const w = textWidth(labelText(is), fs) + 24;
+    const hh = ph + (is.ring === 'outer' || (is.ring === 'people' && is.memories.length) ? Math.round(fs * 0.9) : 0);
     const hitAt = (dx, t) => placed.find((p) => p.id !== is.id && Math.abs(p.x - (x + dx)) < (p.w + w) / 2 + 6 && t < p.bottom + 4 && t + hh > p.top - 4);
-    const below = y + HEIGHT[is.ring] + rx * 0.62 + 22 - 16;
+    const below = y + islandHeight(is) + rx * 0.62 + 22 - ph / 2;
     const above = y - rx * 0.62 - hh - 10;
-    const shift = Math.min(w * 0.4, 80);
-    // 依序試：正下方、正上方、下方偏左右、上方偏左右；都擋住才一路往下挪
-    const tries = [[0, below], [0, above], [-shift, below], [shift, below], [-shift, above], [shift, above]].filter(([, t]) => t > 8 && t + hh < H - 6);
+    const shift = Math.min(w * 0.4, 80); const side = rx + w / 2 + 8; const mid = y - ph / 2;
+    // 依序試：正下方、正上方、右側、左側、下方偏左右、上方偏左右；都擋住才一路往下挪
+    const tries = [[0, below], [0, above], [side, mid], [-side, mid], [-shift, below], [shift, below], [-shift, above], [shift, above]]
+      .filter(([d, t]) => t > 8 && t + hh < H - 6 && x + d - w / 2 > 4 && x + d + w / 2 < W - 4);
     let [dx, top] = tries.find(([d, t]) => !hitAt(d, t)) || [0, below];
     for (let n = 0; n < 8 && hitAt(dx, top); n++) top = hitAt(dx, top).bottom + 6;
     top = Math.min(top, H - hh - 6);
     placed.push({ x: x + dx, w, top, bottom: top + hh });
-    out.set(is.id, [dx, top + 16 - y]);
+    out.set(is.id, [dx, top + ph / 2 - y]);
   }
   return out;
 }
@@ -1132,6 +1191,22 @@ function bindMap() {
     const g = e.target.closest('.isl'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openEditor(g.dataset.id); }
   });
 }
+/* 一鍵重新排列：每一圈平均分散，島多的時候前後交錯；中圈的遠近（代表位置）不動 */
+function arrangeIslands() {
+  touched();
+  const by = (r) => S.islands.filter((i) => i.ring === r).sort((a, b) => a.angle - b.angle);
+  const inner = by('inner');
+  inner.forEach((is, k) => { is.angle = (90 + k * (360 / inner.length)) % 360; is.depth = inner.length > 3 ? (k % 2 ? 0.3 : 0.9) : 0.75; });
+  for (const r of ['middle', 'outer']) {
+    const list = by(r); const off = r === 'middle' ? 36 : -12;
+    list.forEach((is, k) => {
+      is.angle = (30 + (k + 0.5) * (300 / list.length) + off + 360) % 360;
+      if (r === 'outer') is.depth = list.length > 5 ? (k % 2 ? 0.12 : 0.88) : 0.5;
+    });
+  }
+  S.islands.filter((i) => i.ring === 'people').forEach((is, k) => { [is.px, is.py] = PEOPLE_SLOTS[k % PEOPLE_SLOTS.length]; });
+  save(); renderMap(); toast('已重新排列島嶼。中圈島嶼離中心的遠近沒有改變。');
+}
 function recordHist(is) {
   const d = todayStr(); is.hist = is.hist || [];
   const last = is.hist[is.hist.length - 1];
@@ -1161,7 +1236,10 @@ function addIsland(ring) {
 
 /* ---------- 面板：總覽 ---------- */
 function renderOverview() {
-  let h = `<div class="ed-head"><h2>${esc(S.names.map || DEFAULT_NAMES.map)}</h2><button class="btn ghost small" data-act="rename">命名 ✎</button></div><p class="lede">三圈模型來自十二步驟團體，這裡加入減害與辯證的觀點：內圈是界線，中圈是可以往內也可以往外的灰色地帶，外圈是你想積極長大的生活。外海的離島，放那些支持你的人。</p>`;
+  let h = `<div class="ed-head"><h2>${esc(S.names.map || DEFAULT_NAMES.map)}</h2><button class="btn ghost small" data-act="rename">命名 ✎</button></div><p class="lede">三圈模型來自十二步驟團體，這裡加入減害與辯證的觀點：內圈是界線，中圈是可以往內也可以往外的灰色地帶，外圈是你想積極長大的生活。外海的離島，放那些支持你的人。</p>
+    <p class="core-note"><b>復元的核心是讓外圈長大。</b>不是把內圈填滿、不停限制自己，而是一點一點擴大想要的生活。外圈的事也可能在壓力大時變成負擔，往中圈或內圈移動，記得對自己溫柔。</p>`;
+  const nIn = S.islands.filter((i) => i.ring === 'inner').length, nOut = S.islands.filter((i) => i.ring === 'outer').length;
+  if (nIn > nOut) h += `<div class="nudge">內圈的島比外圈多了。限制很重要，但生活不只是限制。要不要新增一座外圈島嶼，想想你想多做的事？<button class="linkish" data-add="outer">新增外圈島嶼</button></div>`;
   for (const ring of ['inner', 'middle', 'outer', 'people']) {
     const list = S.islands.filter((i) => i.ring === ring);
     h += `<div class="ov-ring"><header><span class="dot" style="background:${RINGS[ring].color}"></span><b>${esc(ringLabel(ring))}</b><span>${RINGS[ring].desc}</span></header><div class="chips">`;
@@ -1234,6 +1312,9 @@ function renderEditor() {
   }
   if (r === 'inner') h += `<div class="row" style="margin-top:14px"><button class="btn" data-act="slipkit">打開失手急救包</button></div>`;
   if (r === 'outer') {
+    const feel = is.feel || 'nourish';
+    h += `<div class="field"><span class="lbl">這件事現在給我的感覺</span><div class="feels">${Object.entries(FEELS).map(([k, [a, b]]) => `<button data-feel="${k}" aria-pressed="${feel === k}">${a}<small>${b}</small></button>`).join('')}</div>
+      ${feel !== 'nourish' ? `<p class="feel-note">外圈的事也可能往中圈、內圈移動。可以先降到 Plan C、允許自己休息；如果它一直讓你喘不過氣，也可以把它移到中圈，寫下怎樣會變成負擔。</p>` : ''}</div>`;
     const today = todayStr(); const log = new Set(is.log || []);
     h += `<div class="field"><label for="ed-target">每週目標次數</label><input type="number" id="ed-target" min="1" max="14" value="${is.target}"></div>
     <div class="field"><span class="lbl">本週做到的日子（任何一個 Plan 都算）</span><div class="week">`;
@@ -1307,6 +1388,7 @@ function bindEditor() {
     touched();
     if (b.dataset.day) toggleLog(is, b.dataset.day);
     else if (b.dataset.icon) is.icon = b.dataset.icon;
+    else if (b.dataset.feel) is.feel = b.dataset.feel;
     else if (b.dataset.terrain) is.terrain = b.dataset.terrain;
     else if (b.dataset.act === 'reshape') is.seed = Math.floor(Math.random() * 1e9);
     else if (b.dataset.quick) { const it = S.toolbox.find((x) => x.id === b.dataset.quick); if (it) placeInto(it, is, QUICK[it.kind][is.ring]); }
@@ -1442,7 +1524,7 @@ function startFresh(key) {
 function openWelcome() {
   markGuideSeen();
   const steps = [
-    ['認識三圈', '內圈是你不再做的事，中圈是可能往內也可能往外的灰色地帶，外圈是你想長大的生活。外海的離島，放支持你的人。'],
+    ['認識三圈', '內圈是你不再做的事，中圈是可能往內也可能往外的灰色地帶，外圈是你想長大的生活。外海的離島，放支持你的人。復元的核心不是把內圈填滿，而是讓外圈長大。'],
     ['點島嶼修改', '點任何一座島，就能改名字、內容和圖示；拖曳可以移動。中圈的島越往外，代表越靠近外圈。'],
     ['每天簽到', '到「今日」記下有沒有守住、現在的感覺和渴望；發現好用的策略，就收進百寶箱，之後放進島嶼。'],
     ['定期備份', '資料只存在這台裝置的瀏覽器裡。每週到「備份與設定」備份一次，換手機時就能接著用。'],
@@ -1581,7 +1663,7 @@ function renderToday() {
       </div>
       <div class="panel">
         <h2>本週的外圈</h2>
-        ${outs.length ? `<div class="bar-list">${outs.map((i) => { const n = weekCount(i); return `<div class="bar-row"><header><b>${esc(i.icon)} ${esc(i.title || '未命名')}</b><span>${n}/${i.target}</span></header><div class="prog"><i style="width:${Math.min(100, (n / i.target) * 100)}%"></i></div></div>`; }).join('')}</div>` : `<p class="empty">還沒有外圈島嶼。</p>`}
+        ${outs.length ? `<div class="bar-list">${outs.map((i) => { const n = weekCount(i); return `<div class="bar-row"><header><b>${esc(i.icon)} ${esc(i.title || '未命名')}${i.feel && i.feel !== 'nourish' ? ` <span class="feel-tag">${FEELS[i.feel][2]} ${FEELS[i.feel][0]}</span>` : ''}</b><span>${n}/${i.target}</span></header><div class="prog"><i style="width:${Math.min(100, (n / i.target) * 100)}%"></i></div></div>`; }).join('')}</div>` : `<p class="empty">還沒有外圈島嶼。</p>`}
       </div>
     </div>
   </div>`;
@@ -1665,7 +1747,7 @@ function renderReview() {
       <div class="stack">
         <div class="panel"><h2>中圈島嶼現在的位置</h2><p class="lede">左邊靠近內圈，右邊靠近外圈。括號是近 30 天在簽到中被標記「靠近了」的次數。</p>
           ${mids.length ? `<div class="bar-list">${mids.map((i) => `<div class="bar-row"><header><b>${esc(i.icon)} ${esc(i.title || '未命名')}</b><span>${depthLabel(i.depth)}（${midCount[i.id] || 0}）</span></header><div class="track"><i style="left:${(i.depth * 100).toFixed(0)}%"></i></div></div>`).join('')}</div>` : `<p class="empty">還沒有中圈島嶼。</p>`}</div>
-        <div class="panel"><h2>本週的外圈</h2>${outs.length ? `<div class="bar-list">${outs.map((i) => { const n = weekCount(i); return `<div class="bar-row"><header><b>${esc(i.icon)} ${esc(i.title || '未命名')}</b><span>${n}/${i.target}</span></header><div class="prog"><i style="width:${Math.min(100, (n / i.target) * 100)}%"></i></div></div>`; }).join('')}</div>` : `<p class="empty">還沒有外圈島嶼。</p>`}</div>
+        <div class="panel"><h2>本週的外圈</h2>${outs.length ? `<div class="bar-list">${outs.map((i) => { const n = weekCount(i); return `<div class="bar-row"><header><b>${esc(i.icon)} ${esc(i.title || '未命名')}${i.feel && i.feel !== 'nourish' ? ` <span class="feel-tag">${FEELS[i.feel][2]} ${FEELS[i.feel][0]}</span>` : ''}</b><span>${n}/${i.target}</span></header><div class="prog"><i style="width:${Math.min(100, (n / i.target) * 100)}%"></i></div></div>`; }).join('')}</div>` : `<p class="empty">還沒有外圈島嶼。</p>`}</div>
         <div class="panel"><h2>近 30 天的感覺</h2>${emoSorted.length ? `<div class="chips">${emoSorted.map(([m, n]) => `<span class="chip" style="cursor:default">${esc(m)}・${n}</span>`).join('')}</div>` : `<p class="empty">簽到時選擇感覺，這裡會統計出現次數。</p>`}</div>
       </div>
     </div>
@@ -1749,7 +1831,7 @@ function openSheetBuilder() {
     sec: { summary: true, map: true, daily: true, middle: true, outer: true, inner: true, box: true, people: false },
   };
   openModal(`<div class="ed-head"><h2>整理成盤點單</h2><button class="btn ghost small" data-close-btn="1">關閉 ✕</button></div>
-    <p class="lede">把一段時間的紀錄整理成一份簡短的盤點單，像交回家作業一樣，印出來或存成 PDF，帶去和心理師或你信任的人一起看。<b>這不是備份</b>，只會放你勾選的內容。</p>
+    <p class="lede">把一段時間的紀錄整理成一份簡短的盤點單，像交回家作業一樣，印出來或存成 PDF，帶去和心理師或你信任的人一起看；也可以複製給 AI，請它用正向支持的方式陪你看。<b>這不是備份</b>，只會放你勾選的內容。</p>
     <div class="field"><label for="sh-range">期間</label><select id="sh-range">${[['7', '近 7 天'], ['14', '近 14 天'], ['30', '近 30 天'], ['custom', '自訂日期']].map(([v, t]) => `<option value="${v}" ${o.range === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
       <div class="row" id="sh-custom" ${o.range === 'custom' ? '' : 'hidden'}><input type="date" id="sh-from" value="${o.from}" max="${todayStr()}" aria-label="開始日期"><span>到</span><input type="date" id="sh-to" value="${o.to}" max="${todayStr()}" aria-label="結束日期"></div></div>
     <div class="field"><label for="sh-whom">要給誰看（可以不填）</label><input type="text" id="sh-whom" maxlength="30" value="${esc(o.whom)}" placeholder="例如：我的心理師、團體帶領者"></div>
@@ -1833,8 +1915,9 @@ async function renderSheet() {
   }
   if (o.sec.outer) {
     const outs = S.islands.filter((i) => i.ring === 'outer'); const weeks = Math.max(1, Math.round(dates.length / 7));
-    doc += sec('外圈的實踐', outs.length ? `<table class="ps-table"><thead><tr><th>島嶼</th><th>做到的次數</th><th>目標</th><th>Plan C（最低限度）</th></tr></thead><tbody>
-      ${outs.map((i) => `<tr><td>${name(i)}</td><td>${(i.log || []).filter((d) => dset.has(d)).length}</td><td>每週 ${i.target} 次（約 ${i.target * weeks} 次）</td><td>${txt(i.f.planC || '—')}</td></tr>`).join('')}</tbody></table>` : '<p class="ps-note">還沒有外圈島嶼。</p>');
+    doc += sec('外圈的實踐', outs.length ? `<table class="ps-table"><thead><tr><th>島嶼</th><th>做到的次數</th><th>目標</th><th>現在的感覺</th><th>Plan C（最低限度）</th></tr></thead><tbody>
+      ${outs.map((i) => `<tr><td>${name(i)}</td><td>${(i.log || []).filter((d) => dset.has(d)).length}</td><td>每週 ${i.target} 次（約 ${i.target * weeks} 次）</td><td>${FEELS[i.feel || 'nourish'][0]}</td><td>${txt(i.f.planC || '—')}</td></tr>`).join('')}</tbody></table>
+      ${outs.filter((i) => i.feel && i.feel !== 'nourish' && i.f.burden).map((i) => `<p><b>${esc(i.title || '未命名')}可能變成負擔的時候：</b>${txt(i.f.burden)}</p>`).join('')}` : '<p class="ps-note">還沒有外圈島嶼。</p>');
   }
   if (o.sec.inner) {
     const inn = S.islands.filter((i) => i.ring === 'inner');
@@ -1856,10 +1939,51 @@ async function renderSheet() {
   doc += `<footer class="ps-foot">這份盤點單含有個人隱私，請只交給你信任的人，看完可以收回或銷毀。・三圈復元群島 © 沙發上的性心理 sexpsy.tw</footer>`;
   showSheet(doc);
 }
+/* 交給 AI 的指令：以正向支持、賦能為方向，讓 AI 也成為復元的資源 */
+const AI_PROMPT = `你是一位溫暖、尊重自主的復元陪伴者，熟悉減害取向、動機式晤談與優勢觀點。以下是我用「三圈復元群島」整理的一段期間盤點單：
+- 內圈：我決定不再做的事
+- 中圈：可能往內、也可能往外的灰色地帶
+- 外圈：我想長大的生活，也是復元的核心
+- 離島：支持我的人
+
+請你陪我一起看這份盤點單：
+1. 先具體地肯定我做到的事，特別是外圈的實踐、守住的日子，以及我願意盤點自己的勇氣。
+2. 用好奇、不下定論的語氣，說說你看到的模式，例如哪些情境、感覺或中圈島嶼常常一起出現。
+3. 復元的核心不是把內圈填滿、不停限制自己，而是讓外圈長大。請幫我想 2 到 3 個讓外圈長大、或讓中圈往外移的具體小步驟，最好是今天或這週就做得到的。
+4. 外圈的事也可能在壓力大時變成負擔。如果你看到這樣的跡象，幫我想想怎麼調整，例如先降到 Plan C、允許自己休息。
+5. 如果這段期間有失手，請用不羞辱的方式回應：失手不代表歸零，陪我看見可以學到什麼。
+6. 最後，寫一段簡短、真誠的鼓勵給我。
+
+請注意：
+- 用溫暖、口語、不說教的繁體中文；避免評價、命令或嚇人的字眼。
+- 提供選項而不是指令，尊重我的選擇和步調。
+- 不要做診斷，也不要取代我的心理師；適合的時候，鼓勵我把這些帶去和心理師或信任的人談。
+- 如果內容透露我現在有立即的危險（例如想傷害自己、用量過多、身體很不舒服），請先提醒我撥打 119，或衛福部安心專線 1925、生命線 1995，並聯絡身邊信任的人。`;
+function sheetPlainText() {
+  const el = document.getElementById('print-sheet');
+  return el ? el.innerText.replace(/\n{3,}/g, '\n\n').trim() : '';
+}
+async function copyText(text, fallbackEl) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) {
+    if (fallbackEl) { fallbackEl.hidden = false; fallbackEl.value = text; fallbackEl.focus(); fallbackEl.select(); }
+    return false;
+  }
+}
 function showSheet(html) {
   closeSheet();
   const el = document.createElement('div'); el.id = 'tc-sheet'; el.className = 'sheet-overlay';
-  el.innerHTML = `<div class="sheet-toolbar"><b>盤點單預覽</b><div class="row"><button class="btn" data-sh="edit">回去修改</button><button class="btn primary" data-sh="print">列印／存成 PDF</button><button class="btn ghost" data-sh="close">關閉</button></div></div>
+  el.innerHTML = `<div class="sheet-toolbar"><b>盤點單預覽</b><div class="row"><button class="btn" data-sh="edit">回去修改</button><button class="btn" data-sh="ai">交給 AI 陪伴</button><button class="btn primary" data-sh="print">列印／存成 PDF</button><button class="btn ghost" data-sh="close">關閉</button></div></div>
+    <section class="ai-panel" hidden>
+      <b>讓 AI 用正向支持的方式陪你看</b>
+      <p>按下「複製」後，打開你常用的 AI（例如 Claude、ChatGPT），貼上送出就好。複製的內容包含一段請 AI 以肯定、鼓勵、協助想策略為方向的指令，以及這份盤點單的文字（不含地圖圖片）。</p>
+      <ul>
+        <li>許多 AI 服務會保存對話，也可能拿來改進模型。可以先到設定關閉這個選項，或使用不保存紀錄的模式。</li>
+        <li>盤點單已依你的選擇隱藏聯絡方式；也建議不要放真實姓名、地點或工作單位，不確定就「回去修改」。</li>
+        <li>AI 的回應是陪伴與參考，不是專業判斷。如果讀了覺得被批評或更難受，可以停下來，找心理師或信任的人談。</li>
+      </ul>
+      <div class="row"><button class="btn primary" data-sh="ai-all">複製指令＋盤點單</button><button class="btn" data-sh="ai-prompt">只複製指令</button></div>
+      <textarea class="ai-fallback" hidden readonly aria-label="要貼給 AI 的文字"></textarea>
+    </section>
     <aside class="privacy-note"><b>交出去之前，先想一想</b><ul>
       <li>只給你信任、也願意替你保密的人，例如你的心理師。</li>
       <li>從頭到尾看一遍，不想讓對方看到的，就「回去修改」取消勾選。</li>
@@ -1876,6 +2000,11 @@ function showSheet(html) {
     if (b.dataset.sh === 'print') { try { window.print(); } catch (err) { toast('請用瀏覽器選單裡的「列印」。'); } }
     if (b.dataset.sh === 'edit') { closeSheet(); openSheetBuilder(); }
     if (b.dataset.sh === 'close') closeSheet();
+    if (b.dataset.sh === 'ai') { const p = el.querySelector('.ai-panel'); p.hidden = !p.hidden; if (!p.hidden) p.scrollIntoView({ block: 'nearest' }); }
+    if (b.dataset.sh === 'ai-all' || b.dataset.sh === 'ai-prompt') {
+      const text = b.dataset.sh === 'ai-all' ? `${AI_PROMPT}\n\n以下是我的盤點單：\n---\n${sheetPlainText()}` : AI_PROMPT;
+      copyText(text, el.querySelector('.ai-fallback')).then((ok) => toast(ok ? '已複製。打開你常用的 AI，貼上送出就可以了。' : '無法自動複製，請全選下方文字後複製。'));
+    }
   });
 }
 function closeSheet() { document.getElementById('tc-sheet')?.remove(); document.body.classList.remove('tc-printing'); }
@@ -2079,6 +2208,7 @@ document.addEventListener('click', (e) => {
   const act = b.dataset.act;
   if (act === 'slipkit') openSlipKit();
   if (act === 'png') exportPNG();
+  if (act === 'arrange') arrangeIslands();
   if (act === 'rename') openRename();
   if (act === 'welcome') openWelcome();
   if (act === 'sheet') openSheetBuilder();

@@ -318,7 +318,7 @@
 #tc-app .lock input { text-align: center; letter-spacing: .5em; font-size: 22px; border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: var(--paper); width: 100%; }
 #tc-app .toast {
   position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
-  z-index: 90; background: var(--ink); color: var(--cream); padding: 10px 16px; border-radius: 12px; font-size: 14px;
+  z-index: 120; background: var(--ink); color: var(--cream); padding: 10px 16px; border-radius: 12px; font-size: 14px;
   width: max-content; max-width: calc(100vw - 32px);
 }
 #tc-app .export-img { width: 100%; border-radius: 12px; border: 1px solid var(--line); margin-top: 12px; }
@@ -472,3 +472,25 @@
   #print-sheet { max-width: none; box-shadow: none; border-radius: 0; padding: 0; }
   #print-sheet .ps-table { display: table; }
 }
+
+/* 外圈的感覺與核心提醒 */
+#tc-app .feels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+#tc-app .feels button { border: 1px solid var(--line); background: var(--cream); border-radius: 12px; padding: 8px 4px; cursor: pointer; line-height: 1.35; font-size: 14px; }
+#tc-app .feels button small { display: block; font-size: 11.5px; color: var(--muted); }
+#tc-app .feels button[aria-pressed="true"][data-feel=nourish] { background: var(--sage-soft); border-color: var(--sage-ink); }
+#tc-app .feels button[aria-pressed="true"][data-feel=heavy] { background: var(--flax-soft); border-color: #B08A4E; }
+#tc-app .feels button[aria-pressed="true"][data-feel=stress] { background: var(--indigo-soft); border-color: var(--indigo); }
+#tc-app .feel-note { margin-top: 6px; padding: 8px 12px; border-radius: 10px; background: var(--indigo-soft); font-size: 13px; }
+#tc-app .feel-tag { font-size: 12px; font-weight: 400; color: var(--indigo); }
+#tc-app .core-note { margin-top: 10px; padding: 10px 14px; border-radius: 12px; background: var(--sage-soft); font-size: 13.5px; }
+#tc-app .core-note b { color: var(--sage-ink); }
+#tc-app .nudge { margin-top: 12px; padding: 10px 14px; border-radius: 12px; border: 1px dashed var(--sage-ink); font-size: 13.5px; }
+#tc-app .nudge .linkish { margin-left: 4px; }
+
+/* 盤點單：交給 AI */
+#tc-sheet .ai-panel { max-width: 820px; margin: 0 auto 14px; padding: 14px 18px; border-radius: 14px; background: var(--sage-soft); display: grid; gap: 8px; }
+#tc-sheet .ai-panel ul { margin: 0; padding-left: 1.2em; display: grid; gap: 2px; }
+#tc-sheet .ai-panel p { margin: 0; }
+#tc-sheet .ai-fallback { width: 100%; min-height: 160px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font: 12px/1.6 ui-monospace, Menlo, monospace; }
+#tc-sheet [hidden] { display: none !important; }
+@media print { #tc-sheet .ai-panel { display: none !important; } }
