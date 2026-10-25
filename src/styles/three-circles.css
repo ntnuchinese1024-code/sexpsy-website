@@ -1,4 +1,5 @@
-/* 三圈復元群島：所有樣式都限定在 #tc-app 底下，避免和全站 Tailwind 樣式互相干擾 */
+/* 三圈復元群島 © 2026 沙發上的性心理（sexpsy.tw）．All rights reserved.
+   所有樣式都限定在 #tc-app 底下，避免和全站 Tailwind 樣式互相干擾 */
 /* 版面：上方分頁；地圖頁桌機為「左海圖、右面板」，手機為單欄、編輯器改成底部抽屜。
    色票沿用 sexpsy.tw（燕麥白、深栗棕、赤陶、鼠尾草、酒紅、亞麻），刻意維持網站的單一淺色調。 */
 #tc-app {
@@ -322,3 +323,40 @@
 }
 #tc-app .export-img { width: 100%; border-radius: 12px; border: 1px solid var(--line); margin-top: 12px; }
 @media (prefers-reduced-motion: reduce) { #tc-app #editor { transition: none; } #tc-app #map .wave { animation: none; } }
+
+/* 頁首右側：使用說明按鈕 + 分頁 */
+#tc-app .top-right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
+#tc-app .help-btn { border-radius: 999px; }
+
+/* 使用說明、資料保存、版權 */
+#tc-app .guide { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--line); }
+#tc-app .guide > h2 { font-size: 22px; }
+#tc-app .guide-grid { display: grid; gap: 16px; margin-top: 14px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { #tc-app .guide-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; } }
+#tc-app .guide h3 { font-size: 17px; margin-bottom: 8px; }
+#tc-app .guide p { font-size: 14px; }
+#tc-app .guide p + p, #tc-app .guide .dots + p { margin-top: 8px; }
+#tc-app .guide .sub { color: var(--muted); font-size: 13.5px; }
+#tc-app .guide a { color: var(--terracotta-ink); text-decoration: underline; text-underline-offset: 2px; }
+#tc-app .howto { list-style: none; counter-reset: h; padding: 0; margin: 0; display: grid; gap: 10px; }
+#tc-app .howto li { counter-increment: h; display: grid; grid-template-columns: 26px minmax(0, 1fr); column-gap: 10px; font-size: 14px; color: var(--muted); }
+#tc-app .howto li::before {
+  content: counter(h); grid-row: span 2; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--flax-soft); color: #8A6122; font-weight: 700; font-size: 13px;
+}
+#tc-app .howto b { color: var(--ink); display: block; }
+#tc-app .dots { margin: 6px 0 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: 14px; }
+#tc-app .dots li::marker { color: var(--terracotta); }
+
+/* 新手導覽的開始方式 */
+#tc-app .starts { display: grid; gap: 8px; margin-top: 12px; }
+#tc-app .start-opt {
+  display: grid; gap: 2px; text-align: left; border: 1px solid var(--line); background: var(--cream);
+  border-radius: 14px; padding: 10px 14px; cursor: pointer;
+}
+#tc-app .start-opt:hover { border-color: var(--muted); }
+#tc-app .start-opt b { font-size: 15px; }
+#tc-app .start-opt span { font-size: 13px; color: var(--muted); }
+#tc-app .start-tpl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border: 1px solid var(--line); background: var(--cream); border-radius: 14px; padding: 10px 14px; }
+#tc-app .start-tpl b { font-size: 15px; flex: 1 1 100%; }
+#tc-app .start-tpl select { flex: 1 1 160px; min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 6px 8px; }

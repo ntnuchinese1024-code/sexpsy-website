@@ -1,3 +1,5 @@
+/* 三圈復元群島 © 2026 沙發上的性心理（sexpsy.tw）．All rights reserved.
+   未經書面同意，請勿複製、改作或重新發布。 */
 (() => {
 'use strict';
 
@@ -284,10 +286,16 @@ function armed(btn, label, fn) {
   const orig = btn.textContent; btn.classList.add('armed'); btn.textContent = label;
   setTimeout(() => { if (btn.isConnected) { btn.classList.remove('armed'); btn.textContent = orig; } }, 3000);
 }
+/* LINE、IG、FB 的內建瀏覽器不一定會留住資料 */
+const IN_APP = /\bLine\/|FBAN|FBAV|FB_IAB|Instagram|Messenger/i.test(navigator.userAgent || '');
 function renderBanner() {
   const el = $('#banner');
+  if (IN_APP) {
+    el.innerHTML = `<div class="banner warn"><p><b>你現在是在 App 內建的瀏覽器裡。</b>這裡的資料可能會不見。請點右上角的選單，選「用預設瀏覽器開啟」或「在 Safari／Chrome 中開啟」。</p><button class="btn small" data-act="copy-link">複製網址</button></div>`;
+    return;
+  }
   if (S.sample) {
-    el.innerHTML = `<div class="banner"><p><b>這是範例地圖</b>（藥物與性的情境），每日紀錄和百寶箱也是範例。直接修改任何內容，就會變成你自己的地圖；也可以到「備份與設定」換一個範本。</p><button class="btn small" data-act="go-settings">選擇範本</button></div>`;
+    el.innerHTML = `<div class="banner"><p><b>這是範例地圖</b>（藥物與性的情境），每日紀錄和百寶箱也是範例。直接修改任何內容，就會變成你自己的地圖；也可以選一個範本或從空白開始。</p><button class="btn small" data-act="welcome">選擇開始方式</button></div>`;
     return;
   }
   const stale = !S.lastBackup || Date.now() - S.lastBackup > 14 * 864e5;
@@ -822,6 +830,43 @@ function openSlipKit() {
   });
 }
 
+/* ---------- 新手導覽 ---------- */
+const GUIDE_KEY = 'sexpsy-three-circles-guide-seen';
+function guideSeen() { try { return localStorage.getItem(GUIDE_KEY) === '1'; } catch (e) { return false; } }
+function markGuideSeen() { try { localStorage.setItem(GUIDE_KEY, '1'); } catch (e) { /* 存不了就下次再顯示 */ } }
+function startFresh(key) {
+  const pin = S.pinHash; S = makeState(key, false); S.pinHash = pin; save();
+  closeModal(); closeEditor(); showTab('map');
+  toast(key === 'blank' ? '已建立空白地圖。從右邊（手機在下方）新增第一座島嶼。' : `已用「${TEMPLATES[key].label}」範本建立你的地圖。點任何一座島開始修改。`);
+}
+function openWelcome() {
+  markGuideSeen();
+  const steps = [
+    ['認識三圈', '內圈是你不再做的事，中圈是可能往內也可能往外的灰色地帶，外圈是你想長大的生活。外海的離島，放支持你的人。'],
+    ['點島嶼修改', '點任何一座島，就能改名字、內容和圖示；拖曳可以移動。中圈的島越往外，代表越靠近外圈。'],
+    ['每天簽到', '到「今日」記下有沒有守住、現在的感覺和渴望；發現好用的策略，就收進百寶箱，之後放進島嶼。'],
+    ['定期備份', '資料只存在這台裝置的瀏覽器裡。每週到「備份與設定」備份一次，換手機時就能接著用。'],
+  ];
+  const tplOptions = Object.entries(TEMPLATES).filter(([k]) => k !== 'blank').map(([k, t]) => `<option value="${k}">${t.label}</option>`).join('');
+  const starts = S.sample ? `<h3 style="margin-top:18px;font-size:16px">想怎麼開始？</h3>
+    <div class="starts">
+      <button class="start-opt" data-start="sample"><b>先看看範例</b><span>逛一逛範例地圖，覺得可以了，直接修改就會變成你的。</span></button>
+      <div class="start-tpl"><b>用範本開始</b><select id="wel-tpl" aria-label="範本">${tplOptions}</select><button class="btn primary small" data-start="template">開始</button></div>
+      <button class="start-opt" data-start="blank"><b>從空白開始</b><span>自己一座一座新增島嶼。</span></button>
+    </div>` : `<div class="row" style="margin-top:16px"><button class="btn primary" data-close-btn="1">知道了</button></div>`;
+  openModal(`<div class="ed-head"><h2>歡迎來到三圈復元群島</h2><button class="btn ghost small" data-close-btn="1">關閉 ✕</button></div>
+    <p class="lede">這是一張只屬於你的復元地圖，花 5 分鐘就能畫出第一版。之後隨時可以按上方的「使用說明」再看一次。</p>
+    <ol class="steps">${steps.map(([t, d]) => `<li><div><b>${t}</b><span class="help">${d}</span></div></li>`).join('')}</ol>
+    ${starts}`, (m) => {
+    m.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-start]'); if (!b) return;
+      if (b.dataset.start === 'sample') closeModal();
+      if (b.dataset.start === 'template') startFresh(m.querySelector('#wel-tpl').value);
+      if (b.dataset.start === 'blank') startFresh('blank');
+    });
+  });
+}
+
 /* ---------- 命名 ---------- */
 function openRename() {
   const row = (k, label, help) => `<div class="field"><label for="nm-${k}">${label}</label>${help ? `<span class="help">${help}</span>` : ''}<input type="text" id="nm-${k}" data-nm="${k}" maxlength="${k === 'map' ? 16 : 12}" value="${esc(S.names[k] || '')}" placeholder="${esc(DEFAULT_NAMES[k])}"></div>`;
@@ -855,7 +900,7 @@ async function exportPNG() {
   ctx.fillStyle = '#FFFDF9'; ctx.fillRect(0, 0, cv.width, cv.height);
   ctx.drawImage(img, 0, 0, cw, chh);
   ctx.fillStyle = '#3C2A21'; ctx.font = `600 40px ${SERIF_SVG}`; ctx.fillText(S.names.map || DEFAULT_NAMES.map, 60, chh + 70);
-  ctx.fillStyle = '#7A6A60'; ctx.font = `28px ${SANS_SVG}`; ctx.textAlign = 'right'; ctx.fillText(`${todayStr()}・sexpsy.tw`, cw - 60, chh + 70);
+  ctx.fillStyle = '#7A6A60'; ctx.font = `28px ${SANS_SVG}`; ctx.textAlign = 'right'; ctx.fillText(`${todayStr()}・© 沙發上的性心理 sexpsy.tw`, cw - 60, chh + 70);
   let url;
   try { url = cv.toDataURL('image/png'); } catch (e) { toast('這個瀏覽器不支援匯出圖片。'); return; }
   openModal(`<div class="ed-head"><h2>地圖圖片</h2><button class="btn ghost small" data-close-btn="1">關閉 ✕</button></div>
@@ -1102,9 +1147,7 @@ function bindSettings() {
       S = migrate({ ...makeState('blank', false), ...data, sample: false, pinHash: S.pinHash, lastBackup: Date.now() });
       pendingImport = null; save(); renderAll(); toast('已載入備份。');
     }
-    if (act === 'restart') armed(b, '會清除目前資料，再按一次確定', () => {
-      const pin = S.pinHash; S = makeState($('#tpl').value, false); S.pinHash = pin; save(); closeEditor(); renderAll(); showTab('map'); toast(`已用「${TEMPLATES[S.template].label}」範本建立你的地圖。`);
-    });
+    if (act === 'restart') armed(b, '會清除目前資料，再按一次確定', () => startFresh($('#tpl').value));
     if (act === 'pin-set') {
       const p = $('#pin-new').value.trim();
       if (!/^\d{4,8}$/.test(p)) { toast('請輸入 4 到 8 位數字。'); return; }
@@ -1167,6 +1210,10 @@ document.addEventListener('click', (e) => {
   if (act === 'slipkit') openSlipKit();
   if (act === 'png') exportPNG();
   if (act === 'rename') openRename();
+  if (act === 'welcome') openWelcome();
+  if (act === 'copy-link') {
+    navigator.clipboard?.writeText(location.href.split('#')[0]).then(() => toast('已複製網址，貼到 Safari 或 Chrome 打開。'), () => toast(`請手動複製網址：${location.href.split('#')[0]}`));
+  }
   if (act === 'go-settings') showTab('settings');
   if (act === 'go-box') showTab('box');
   if (act === 'tb-kind') { tbKind = b.dataset.kind; const src = currentTab === 'today' ? 'today' : 'box'; const keep = $(`#tb-text-${src}`)?.value || ''; refresh(); const inp = $(`#tb-text-${src}`); if (inp) { inp.value = keep; inp.focus(); } }
@@ -1195,4 +1242,5 @@ bindMap(); bindEditor(); bindToday(); bindSettings();
 showTab((location.hash || '').slice(1));
 const sea = $('.sea'); if (sea.scrollWidth > sea.clientWidth) sea.scrollLeft = (sea.scrollWidth - sea.clientWidth) / 2;
 if (S.pinHash) showLock();
+else if (S.sample && !guideSeen()) openWelcome();
 })();
