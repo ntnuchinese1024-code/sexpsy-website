@@ -26,3 +26,7 @@ npm-debug.log*
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 .obsidian/plugins/
+
+# Claude Code：個人設定與工作分支不進版控（共用的 settings.json、skills 要進版控）
+.claude/settings.local.json
+.claude/worktrees/
