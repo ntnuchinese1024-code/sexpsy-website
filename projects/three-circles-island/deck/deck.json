@@ -12,6 +12,7 @@
     "s5": { "description": "隱私、開始使用與結語", "start": "privacy" }
   },
   "faces": {
+    "ningshuti": { "family": "NingShuTi", "src": "/_blob/7e1e0b5e8ce06acb5a445aea72be910d" },
     "noto-serif-tc": { "family": "Noto Serif TC", "href": "https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&display=swap" },
     "noto-sans-tc": { "family": "Noto Sans TC", "href": "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" }
   },

@@ -22,6 +22,7 @@
 | `prototype/three-circles-island.html` | 上面腳本產生的試用頁（不要手改） |
 | `deck/deck.json`、`deck/slides/` | 設計版簡報的原始檔（19 頁，1920×1080） |
 | `deck/img/` | 簡報用的工具截圖 |
+| `deck/font/NingShuTi-deck.woff2` | 簡報標題用的凝書體子集（只含簡報用到的字；改了簡報文字要重新產生） |
 
 ## 網站上的檔案
 
