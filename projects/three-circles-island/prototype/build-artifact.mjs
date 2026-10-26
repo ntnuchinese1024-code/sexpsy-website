@@ -1,12 +1,12 @@
 // 用網站上的同一份 CSS、標記和程式，組出可以單獨開啟的原型頁（three-circles-island.html），
 // 讓試用連結和 sexpsy.tw 上的版本保持一致。
-// 用法：node prototypes/three-circles/build-artifact.mjs
+// 用法：node projects/three-circles-island/prototype/build-artifact.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = join(here, '..', '..');
+const root = join(here, '..', '..', '..');
 const read = (p) => readFileSync(join(root, p), 'utf8');
 
 const css = read('src/styles/three-circles.css');
@@ -30,4 +30,4 @@ ${js}
 `;
 
 writeFileSync(join(here, 'three-circles-island.html'), page);
-console.log('已產生 prototypes/three-circles/three-circles-island.html');
+console.log('已產生 projects/three-circles-island/prototype/three-circles-island.html');

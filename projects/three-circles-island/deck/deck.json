@@ -1,0 +1,19 @@
+{
+  "v": 4,
+  "createdOnFiles": { "v": 1, "at": "2026-10-25T18:10:00Z" },
+  "lists": "css",
+  "title": "三圈復元群島",
+  "order": ["cover", "letter", "circles", "shifts", "core", "map", "middle", "outer", "people", "daily", "calendar", "slipkit", "helpers", "sheet", "clinic", "ai", "privacy", "start", "closing"],
+  "sections": {
+    "s1": { "description": "開場：這個工具是怎麼來的", "start": "cover" },
+    "s2": { "description": "三圈模型，以及復元的核心是讓外圈長大", "start": "circles" },
+    "s3": { "description": "工具導覽：群島、三圈、離島與每天的陪伴", "start": "map" },
+    "s4": { "description": "給助人工作者：盤點單、臨床運用與 AI 陪伴", "start": "helpers" },
+    "s5": { "description": "隱私、開始使用與結語", "start": "privacy" }
+  },
+  "faces": {
+    "noto-serif-tc": { "family": "Noto Serif TC", "href": "https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&display=swap" },
+    "noto-sans-tc": { "family": "Noto Sans TC", "href": "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" }
+  },
+  "designSystems": []
+}

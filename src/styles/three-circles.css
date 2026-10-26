@@ -494,3 +494,7 @@
 #tc-sheet .ai-fallback { width: 100%; min-height: 160px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font: 12px/1.6 ui-monospace, Menlo, monospace; }
 #tc-sheet [hidden] { display: none !important; }
 @media print { #tc-sheet .ai-panel { display: none !important; } }
+
+/* 寫在前面下方的延伸閱讀 */
+#tc-app .letter-links { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); display: grid; gap: 8px; }
+#tc-app .letter-links a { color: var(--terracotta-ink); font-size: 15px; text-decoration: underline; text-underline-offset: 3px; }

@@ -1,0 +1,97 @@
+{
+  "title": "隱性減害：重新閱讀性成癮的三個圓圈",
+  "subtitle": "Exploring Implicit Harm Reduction in Sexual Addiction: Reframing Clinical Boundaries Beyond Rigid Abstinence",
+  "source": "2026 年亞太減害與成癮學會研討會（日本札幌）口頭發表，中文精簡版。主要參考：Adams & Robinson (2001); Marlatt (1996); Braun-Harvey & Vigorito (2016); Grubbs et al. (2019); Okabe & Ito (2025)。完整書目見本文參考文獻。",
+  "disclaimers": [
+    "本簡報整理自創辦人的研討會發表內容，由創辦人與 AI 協作彙整、重新設計版面；學術詮釋與文責由創辦人自負。",
+    "文中個案情境經過改寫，不指涉任何特定個案。",
+    "內容僅供心理教育與專業交流參考，不構成醫療、心理診斷或治療建議。",
+    "© 沙發上的性心理 Sexpsy.tw．版權所有，請勿挪作他用，或未經同意重製、散布、改作。"
+  ],
+  "slides": [
+    {
+      "layout": "cover",
+      "kicker": "2026 亞太減害與成癮學會研討會・札幌",
+      "heading": "隱性減害",
+      "subtitle": "重新閱讀性成癮的三個圓圈",
+      "lead": ["不是更少的界線，而是[[重新被劃定的界線]]"]
+    },
+    {
+      "layout": "quote",
+      "quote": "我這禮拜又打破承諾了。",
+      "translation": "他第十四次這樣說。他需要的，不是第十五次承諾。",
+      "attribution": "諮商室裡的一句話（情境經改寫）"
+    },
+    {
+      "layout": "columns",
+      "heading": "戒斷模式的三個卡關",
+      "columns": [
+        { "heading": "性無法歸零", "lead": ["性是人的基本功能。失控的性行為是[[性健康]]的問題，不是對某個物質的成癮。"], "label": "Braun-Harvey & Vigorito, 2016" },
+        { "heading": "失敗產生羞恥", "tinted": true, "lead": ["控制、失敗、羞恥，羞恥又推動下一次行為：[[控制與釋放的循環]]。"], "label": "Adams & Robinson, 2001" },
+        { "heading": "道德不一致", "lead": ["自覺「成癮」更常被行為與價值的落差預測，而不是使用量。"], "label": "Grubbs et al., 2019" }
+      ]
+    },
+    {
+      "layout": "feature",
+      "heading": "減害：第三條路",
+      "subheading": "既不是道德模式，也不只是疾病模式",
+      "figure": { "type": "ripple" },
+      "lead": [
+        "戒斷是一個好的結果，但[[不是唯一可以被接受的結果]]。",
+        "協助應該是低門檻的：容易取得，而不是要人先證明自己值得。（Marlatt, 1996）"
+      ]
+    },
+    {
+      "layout": "spectrum",
+      "heading": "三個圓圈（Adams & Robinson, 2001）",
+      "items": [
+        { "title": "內圈", "subtitle": "Inner circle", "text": "底線行為：個人承諾完全戒除的事。" },
+        { "title": "中圈", "subtitle": "Middle circle", "text": "模糊的警訊：需要被留意，也可能隨時間改變。" },
+        { "title": "外圈", "subtitle": "Outer circle", "text": "有助於復元的健康行為：聚會、運動、誠實溝通。" }
+      ]
+    },
+    {
+      "layout": "bullets",
+      "heading": "一個大部分不在談戒斷的工具",
+      "lead": ["它源自強烈主張戒斷的傳統，但三個部分裡，只有內圈在談戒斷。"],
+      "bullets": [
+        { "label": "外圈", "text": "談的是建構一個生活。" },
+        { "label": "中圈", "text": "默默承認了性不是非黑即白。" },
+        { "label": "實務上", "text": "三個圈常坍縮成一個，所有東西都在為內圈服務。" }
+      ],
+      "note": "隱性減害：不是新的介入，而是一個[[早已存在、終於被命名]]的介入。"
+    },
+    {
+      "layout": "flow",
+      "heading": "減害式重讀",
+      "items": [
+        { "title": "內圈・止血", "subtitle": "Stop the bleeding", "text": "只放真正不可逆的事。內圈也許[[越小越好]]，每多一項，門檻就更高。" },
+        { "title": "中圈・維持", "subtitle": "Maintenance", "text": "協商過的使用可以是合理的目標。是自我治理，不只是自我控制。" },
+        { "title": "外圈・建構", "subtitle": "Construction", "text": "不只是輔助，而可能就是目標本身：重新和性健康連結。" }
+      ]
+    },
+    {
+      "layout": "columns",
+      "heading": "對證據誠實，兩個方向都是",
+      "columns": [
+        { "heading": "非戒斷取向", "lead": ["自我接納對部分男性更可達成（Sniewski & Farvid, 2019b）；接納取向的隨機對照試驗也有效（Crosby & Twohig, 2016）。"] },
+        { "heading": "戒斷取向", "tinted": true, "lead": ["團體認知行為治療處遇性慾亢進，同樣有效（Hallberg et al., 2019）。"] }
+      ],
+      "note": "不是取代，而是在選單上多一個選項。現在，很多地方只提供[[一種尺寸]]。"
+    },
+    {
+      "layout": "feature",
+      "heading": "為什麼在東亞特別重要",
+      "subheading": "28 位高風險者中，只有 3 位尋求治療",
+      "figure": { "type": "target" },
+      "lead": [
+        "日本全國機率樣本中，強迫性性行為高風險者的求助率約一成（Okabe & Ito, 2025）。",
+        "沒有求助，不是因為不想要幫助，而是不相信有可行的選項（Sniewski & Farvid, 2019a）。高門檻的入口，可能成為[[擋在門口的牆]]。"
+      ]
+    },
+    {
+      "layout": "closing",
+      "statement": "不只是一道復元的[[階梯]]，也是一張傷害的[[地圖]]。"
+    }
+  ]
+}
