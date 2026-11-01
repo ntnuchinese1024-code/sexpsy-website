@@ -72,8 +72,8 @@
 
 | 內容 | 位置 |
 |---|---|
-| IG 圖卡（每篇文章一個資料夾，`carousel_*.png`、`story_*.png`） | `~/Desktop/07_學會與社群/沙發上的性心理ig/` |
-| 六大系列的社群版型（IG 封面、內文頁、FB 卡 pptx） | `~/Desktop/07_學會與社群/exports/` |
+| IG 圖卡（每篇文章一個資料夾，`carousel_*.png`、`story_*.png`） | `~/Desktop/10_沙發上的性心理/沙發上的性心理ig/` |
+| 六大系列的社群版型（IG 封面、內文頁、FB 卡 pptx） | `~/Desktop/10_沙發上的性心理/exports/` |
 | 演講講稿與投影片 | `~/Desktop/05_演講與素材/` |
 | 研究文獻 | `~/Desktop/03_研究與投稿/` |
 | 凝書體原始檔 | `~/Library/Mobile Documents/com~apple~CloudDocs/Desktop/凝書體字體.otf` |

@@ -16,9 +16,9 @@
 
 | 內容 | 位置 |
 |---|---|
-| 每篇文章的圖卡（一個資料夾一篇，`carousel_01.png`…、`story_01.png`…） | `~/Desktop/07_學會與社群/沙發上的性心理ig/` |
-| 六大系列的版型（`IG封面 1080x1080.pptx`、`IG內文頁 1080x1350.pptx`、`FB橫向卡 1200x630.pptx`） | `~/Desktop/07_學會與社群/exports/主題*/` |
-| 品牌 logo、icon | `~/Desktop/07_學會與社群/沙發上的性心理ig/logo`、`icons` |
+| 每篇文章的圖卡（一個資料夾一篇，`carousel_01.png`…、`story_01.png`…） | `~/Desktop/10_沙發上的性心理/沙發上的性心理ig/` |
+| 六大系列的版型（`IG封面 1080x1080.pptx`、`IG內文頁 1080x1350.pptx`、`FB橫向卡 1200x630.pptx`） | `~/Desktop/10_沙發上的性心理/exports/主題*/` |
+| 品牌 logo、icon | `~/Desktop/10_沙發上的性心理/沙發上的性心理ig/logo`、`icons` |
 
 ## 資料夾命名
 
