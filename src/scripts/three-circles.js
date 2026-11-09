@@ -87,10 +87,65 @@ const TERRAINS = {
 const DEFAULT_NAMES = { map: '我的復元群島', inner: '內圈・界線', middle: '中圈・辯證與管控', outer: '外圈・積極建構', people: '離島・人際資源' };
 const ringLabel = (r) => (S.names && S.names[r] && S.names[r].trim()) || DEFAULT_NAMES[r];
 const DEFAULT_TERRAIN = { inner: 'rock', middle: 'sand', outer: 'grass', people: 'slate' };
-const DEFAULT_ICON = { inner: '⚓', middle: '🧭', outer: '🌱', people: '🤝' };
-const ICONS = ['⚓', '🛑', '🚪', '🧱', '🔒', '⛔', '🧭', '📱', '🌙', '🍷', '🎲', '🎮', '💻', '🌃',
-  '🌱', '🌳', '🌻', '🏃', '🧘', '📚', '🎸', '🎨', '🍳', '☕', '🐕', '🐈', '🌊', '⛰️',
-  '🏕️', '🏡', '💞', '💬', '🙏', '☀️', '⭐', '🎵', '🚲', '🧩', '🤝', '👥', '👤', '💌', '🎁', '📷', '🕯️', '🧸', '📺', '💰'];
+const DEFAULT_ICON = { inner: 'svg:lighthouse', middle: 'svg:compass', outer: 'svg:sprout', people: 'svg:people' };
+/* 品牌線條圖示（24×24、線條風格），在島頂上會用岸壁的顏色「刻」上去；圖示值寫成 'svg:<名稱>' */
+const LINE_ICONS = {
+  lighthouse: ['燈塔', 'M10 21h4M9.4 21l1.1-11h3l1.1 11M9 10h6M10.5 10V7.5a1.5 1.5 0 0 1 3 0V10M12 4v1M16 6.5l2.5-1M8 6.5l-2.5-1'],
+  anchor: ['錨', 'M12 4.5a1.8 1.8 0 1 0 0 3.6a1.8 1.8 0 1 0 0-3.6zM12 8.1V20M8.5 11h7M5 14.5a7 7 0 0 0 14 0M5 14.5l-1.5 1.5M19 14.5l1.5 1.5'],
+  shield: ['盾牌', 'M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6zM9 12l2 2 4-4'],
+  lock: ['鎖', 'M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3M12 14.5v2.5'],
+  door: ['門', 'M6 21V4h12v17M4 21h16M14.5 12.5h.5'],
+  stop: ['停下來', 'M8.5 3h7L21 8.5v7L15.5 21h-7L3 15.5v-7zM8 12h8'],
+  key: ['鑰匙', 'M8 11a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM10.8 12.2L20 3M16 7l2.5 2.5M18.5 4.5L21 7'],
+  compass: ['羅盤', 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM15.5 8.5l-2 5-5 2 2-5z'],
+  phone: ['手機', 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2'],
+  moon: ['夜晚', 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z'],
+  glass: ['酒杯', 'M7 3h10l-1 6a4 4 0 0 1-8 0zM12 13v7M8.5 20h7'],
+  people: ['朋友', 'M9 11a3 3 0 1 0 0-6a3 3 0 1 0 0 6zM3.5 20a5.5 5.5 0 0 1 11 0M16 11a2.5 2.5 0 1 0 0-5M17 14a5 5 0 0 1 3.5 6'],
+  sprout: ['新芽', 'M12 20v-8M12 12c0-4 3-6.5 7-6.5 0 4-3 6.5-7 6.5zM12 14c0-3-2.2-5-6-5 0 3 2.2 5 6 5z'],
+  tree: ['樹', 'M12 21v-4M12 3l5.5 7.5H15l3.5 4.5h-13L9 10.5H6.5z'],
+  leaf: ['葉子', 'M5 19c0-8 5-14 14-14 0 9-6 14-14 14zM5 19l8-8'],
+  flower: ['花', 'M12 21v-7M7 5l2.5 3L12 4l2.5 4L17 5v4.5a5 5 0 0 1-10 0zM12 18c-1.8-1.6-3.6-1.8-5-1M12 19c1.8-1.6 3.6-1.8 5-1'],
+  mountain: ['山', 'M3 19l6-10 3.5 5 2.5-3.5L21 19zM7.5 11.5l1.5 1.5 1.5-1.5'],
+  wave: ['海浪', 'M3 9.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 14.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0'],
+  sun: ['太陽', 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4'],
+  star: ['星星', 'M12 3.5l2.5 5.3 5.8.7-4.3 4 1.1 5.8L12 16.5l-5.1 2.8 1.1-5.8-4.3-4 5.8-.7z'],
+  cloud: ['雲', 'M7 18a4 4 0 0 1-.5-8 5.5 5.5 0 0 1 10.6-1A4.5 4.5 0 0 1 17 18z'],
+  footprints: ['散步', 'M8 4c1.6 0 2.4 2 2.4 4S9.5 12 8 12 5.6 10 5.6 8 6.4 4 8 4zM6.2 14.5h3.6M16 9c1.6 0 2.4 2 2.4 4s-.9 4-2.4 4-2.4-2-2.4-4 .8-4 2.4-4zM14.2 19.5h3.6'],
+  bicycle: ['單車', 'M6 13.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM18 13.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM6 17l4-7h5l3 7M10 10l3.5 7M13.5 6.5H16'],
+  book: ['閱讀', 'M4 5.5c2-1 5-1 8 .5 3-1.5 6-1.5 8-.5V19c-2-1-5-1-8 .5-3-1.5-6-1.5-8-.5zM12 6v13.5'],
+  pen: ['書寫', 'M4 20l1-4L16 5l3 3L8 19zM14 7l3 3M4 20h6'],
+  music: ['音樂', 'M9 17.5V6l10-2v11.5M9 17.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0zM19 15.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z'],
+  palette: ['畫畫', 'M12 3a9 9 0 0 0 0 18c1.2 0 1.8-.8 1.8-1.8 0-1.4-1.3-1.6-1.3-2.8 0-1 .8-1.7 1.8-1.7H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3zM7.5 11.5h.5M10 7.5h.5M15 7.5h.5'],
+  mug: ['咖啡', 'M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5zM16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M8.5 4v2.5M12 4v2.5'],
+  bowl: ['好好吃飯', 'M3.5 11h17a8.5 8.5 0 0 1-17 0zM8 7c0-1.5 1-1.5 1-3M12 7c0-1.5 1-1.5 1-3M16 7c0-1.5 1-1.5 1-3'],
+  bed: ['好好睡', 'M3 19V6M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-7v6M6.5 11a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3z'],
+  house: ['家', 'M4 11l8-7 8 7M6 9.5V20h12V9.5M10 20v-5h4v5'],
+  heart: ['愛', 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z'],
+  chat: ['說說話', 'M4 5h16v11H10l-5 4v-4H4z'],
+  letter: ['寫信', 'M4 6h16v12H4zM4 7l8 6 8-6'],
+  boat: ['小船', 'M3 15.5h18l-3 4.5H6zM12 15.5V4M12 4.5l6 8.5h-6'],
+  candle: ['燭光', 'M12 3c1.8 2.4 3 3.6 3 6a3 3 0 0 1-6 0c0-2.4 1.2-3.6 3-6zM9.5 13h5v8h-5z'],
+};
+/* 圖示選單的分類：第一類是品牌線條圖示，其餘是 emoji */
+const ICON_GROUPS = [
+  ['線條', Object.keys(LINE_ICONS).map((k) => `svg:${k}`)],
+  ['界線', ['⚓', '🛑', '🚪', '🧱', '🔒', '⛔', '🚫', '🔑', '🛡️', '⚠️', '🚧', '🧯']],
+  ['情境', ['🧭', '📱', '🌙', '🌃', '🍷', '🍺', '🎲', '🎮', '💻', '📺', '💰', '💸', '💊', '🚬', '🛏️', '🏙️']],
+  ['身心', ['🌱', '🏃', '🚶', '🧘', '🚲', '🏊', '🥗', '🍳', '☕', '🛁', '😴', '💪']],
+  ['興趣', ['📚', '✍️', '🎸', '🎹', '🎨', '🎵', '📷', '🎬', '🧩', '🧶', '🪴', '🎤']],
+  ['自然', ['🌳', '🌻', '🌸', '🍃', '🌿', '🌊', '⛰️', '🏕️', '☀️', '🌈', '⭐', '🐚']],
+  ['連結', ['🤝', '👥', '👤', '💞', '💬', '🙏', '💌', '🎁', '🏡', '🐕', '🐈', '🫂']],
+  ['心情', ['🕯️', '🧸', '💛', '✨', '🌤️', '☁️', '🌧️', '🔥', '💧', '🎈']],
+];
+const lineIcon = (icon) => (typeof icon === 'string' && icon.startsWith('svg:') ? LINE_ICONS[icon.slice(4)] : null);
+const iconLabel = (icon) => (lineIcon(icon) ? lineIcon(icon)[0] : '');
+/* 在 HTML 裡顯示圖示：線條圖示輸出 inline SVG，emoji 照原樣 */
+function iconHTML(icon, size = 18) {
+  const li = lineIcon(icon);
+  if (li) return `<svg class="ic" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path d="${li[1]}"/></svg>`;
+  return esc(icon || '');
+}
 
 const EMOTIONS = ['平靜', '焦慮', '孤單', '渴望', '疲憊', '煩躁', '羞愧', '難過', '有動力', '被支持', '開心'];
 const STATUS = { held: ['守住了', '沒有進入內圈'], shaky: ['有些搖晃', '靠近了，但守住'], slip: ['失手了', '進入了內圈'] };
@@ -449,7 +504,14 @@ function islandSVG(is, label) {
   s += `<path class="isl-top" d="${top}" fill="${T.sand}"/>`;
   s += `<path d="${blobPath(seed + 11, rx * 0.8, ry * 0.76)}" transform="translate(${(rx * 0.04).toFixed(1)},-2)" fill="${T.top}"/>`;
   s += `<ellipse cx="${(-rx * 0.3).toFixed(1)}" cy="${(-ry * 0.38).toFixed(1)}" rx="${(rx * 0.26).toFixed(1)}" ry="${(ry * 0.16).toFixed(1)}" fill="#FFFFFF" opacity="0.25"/>`;
-  s += `<text y="${(-ry * 0.12).toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="${(rx * 0.74).toFixed(0)}">${esc(is.icon)}</text>`;
+  const li = lineIcon(is.icon);
+  if (li) {
+    // 線條圖示：先畫一層淡淡的亮邊，再用岸壁色描線，像刻在島頂上
+    const sz = rx * 0.95; const cy = -ry * 0.12;
+    s += `<g transform="translate(${(-sz / 2).toFixed(1)},${(cy - sz / 2).toFixed(1)}) scale(${(sz / 24).toFixed(3)})" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="${li[1]}" stroke="#FFFDF9" stroke-width="4.2" opacity="0.55"/><path d="${li[1]}" stroke="${T.side}" stroke-width="2"/></g>`;
+  } else {
+    s += `<text y="${(-ry * 0.12).toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="${(rx * 0.74).toFixed(0)}">${iconHTML(is.icon)}</text>`;
+  }
   if (is.ring === 'middle') {
     // 旗子的顏色代表目前位置：紅色靠近內圈、綠色靠近外圈
     const fx = rx * 0.62, fy = -ry * 0.05;
@@ -620,7 +682,7 @@ function renderOverview() {
   for (const ring of ['inner', 'middle', 'outer', 'people']) {
     const list = S.islands.filter((i) => i.ring === ring);
     h += `<div class="ov-ring"><header><span class="dot" style="background:${RINGS[ring].color}"></span><b>${esc(ringLabel(ring))}</b><span>${RINGS[ring].desc}</span></header><div class="chips">`;
-    list.forEach((i) => { h += `<button class="chip" data-open="${i.id}">${esc(i.icon)} ${esc(i.title.trim() || '未命名')}</button>`; });
+    list.forEach((i) => { h += `<button class="chip" data-open="${i.id}">${iconHTML(i.icon)} ${esc(i.title.trim() || '未命名')}</button>`; });
     h += `<button class="chip add" data-add="${ring}">＋ 新增${RINGS[ring].name}</button></div></div>`;
   }
   $('#overview').innerHTML = h;
@@ -654,9 +716,13 @@ function histSvg(is) {
 function fieldHTML(is, [key, label, help]) {
   return `<div class="field"><label for="f-${key}">${label}</label><span class="help">${help}</span><textarea id="f-${key}" data-f="${key}">${esc(is.f[key] || '')}</textarea></div>`;
 }
+let iconCat = null;
 function lookHTML(is, open) {
+  const cat = iconCat || (ICON_GROUPS.find(([, list]) => list.includes(is.icon)) || ICON_GROUPS[0])[0];
+  const list = ICON_GROUPS.find(([n]) => n === cat)[1];
   return `<details class="look" ${open ? 'open' : ''}><summary>外觀：圖示與地形</summary>
-    <div class="icons" role="group" aria-label="圖示">${ICONS.map((ic) => `<button data-icon="${ic}" aria-pressed="${is.icon === ic}">${ic}</button>`).join('')}</div>
+    <div class="icon-tabs" role="group" aria-label="圖示分類">${ICON_GROUPS.map(([n]) => `<button data-icat="${n}" aria-pressed="${n === cat}">${n}</button>`).join('')}</div>
+    <div class="icons ${cat === '線條' ? 'icons-line' : ''}" role="group" aria-label="圖示">${list.map((ic) => `<button data-icon="${ic}" aria-pressed="${is.icon === ic}"${iconLabel(ic) ? ` title="${iconLabel(ic)}" aria-label="${iconLabel(ic)}"` : ''}>${iconHTML(ic, 22)}</button>`).join('')}</div>
     <div class="terrains" role="group" aria-label="地形">${Object.entries(TERRAINS).map(([k, t]) => `<button data-terrain="${k}" aria-pressed="${is.terrain === k}"><i style="background:${t.top}"></i>${t.name}</button>`).join('')}</div>
     <div class="row" style="margin:10px 0 8px"><button class="btn small" data-act="reshape">換一個島嶼形狀</button></div>
   </details>`;
@@ -721,7 +787,7 @@ function syncDepth(is) {
 }
 function isMobile() { return window.matchMedia('(max-width: 1179px)').matches; }
 function openEditor(id, lookOpen = false) {
-  sel = id; editorLookOpen = lookOpen; renderEditor(); renderMap();
+  sel = id; iconCat = null; editorLookOpen = lookOpen; renderEditor(); renderMap();
   $('#editor').classList.add('open'); $('#side').classList.add('editing');
   if (isMobile()) $('#backdrop').hidden = false;
   $('#editor').scrollTop = 0;
@@ -761,6 +827,7 @@ function bindEditor() {
   ed.addEventListener('click', (e) => {
     const b = e.target.closest('button'); if (!b) return; const is = find(sel); if (!is) return;
     if (b.dataset.act === 'close') { closeEditor(); return; }
+    if (b.dataset.icat) { iconCat = b.dataset.icat; rerenderEditorKeepScroll(); return; }
     if (b.dataset.act === 'del') { armed(b, '確定刪除？再按一次', () => { S.islands = S.islands.filter((i) => i.id !== sel); S.toolbox.forEach((it) => { it.placed = it.placed.filter((p) => p.id !== sel); }); save(); closeEditor(); toast('已刪除這座島嶼。'); }); return; }
     touched();
     if (b.dataset.day) toggleLog(is, b.dataset.day);
@@ -869,7 +936,7 @@ function renderBox() {
 /* ---------- 失手急救包 ---------- */
 function openSlipKit() {
   const contacts = S.islands.filter((i) => i.ring === 'inner').flatMap((i) => (i.f.resources || '').split('\n')).map((s) => s.trim()).filter(Boolean);
-  const people = S.islands.filter((i) => i.ring === 'people').map((p) => `${p.icon} ${p.title || '未命名'}${p.f.relation ? `（${p.f.relation}）` : ''}${p.f.contact ? `：${p.f.contact}` : ''}`);
+  const people = S.islands.filter((i) => i.ring === 'people').map((p) => `${lineIcon(p.icon) ? '' : `${p.icon} `}${p.title || '未命名'}${p.f.relation ? `（${p.f.relation}）` : ''}${p.f.contact ? `：${p.f.contact}` : ''}`);
   const uniq = [...new Set([...people, ...contacts])];
   const outers = S.islands.filter((i) => i.ring === 'outer');
   let steps = '';
@@ -877,7 +944,7 @@ function openSlipKit() {
     let inner = '';
     if (body === 'say') inner = `<span class="help">寫一句你想在這種時候聽到的話。</span><textarea id="slip-say" aria-label="對自己說的話">${esc(S.slip.say)}</textarea>`;
     else if (body === 'contacts') inner = uniq.length ? `<span class="help">從你的離島和內圈島嶼帶入：</span><ul class="res">${uniq.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : `<span class="help">還沒有填資源。新增一座離島，或在內圈島嶼的「我可以找的資源」寫下人名或電話，這裡就會出現。</span>`;
-    else if (body === 'next') inner = outers.length ? `<span class="help">挑一座島的 Plan C 就好：</span><ul class="res">${outers.map((o) => `<li><span>${esc(o.icon)} ${esc(o.title || '未命名')}</span><span class="muted">${esc(o.f.planC || o.f.planB || '')}</span></li>`).join('')}</ul>` : `<span class="help">還沒有外圈島嶼。之後可以新增一座，寫下最低限度的 Plan C。</span>`;
+    else if (body === 'next') inner = outers.length ? `<span class="help">挑一座島的 Plan C 就好：</span><ul class="res">${outers.map((o) => `<li><span>${iconHTML(o.icon)} ${esc(o.title || '未命名')}</span><span class="muted">${esc(o.f.planC || o.f.planB || '')}</span></li>`).join('')}</ul>` : `<span class="help">還沒有外圈島嶼。之後可以新增一座，寫下最低限度的 Plan C。</span>`;
     else inner = `<span class="help">${esc(body)}</span>`;
     steps += `<li><div><b>${t}</b>${inner}</div></li>`;
   });
@@ -1019,8 +1086,8 @@ function renderToday() {
           <div class="chips" style="margin-top:2px">${emoChips}</div>
           <div class="row" style="margin-top:8px"><input type="text" class="text-in" id="emo-new" maxlength="10" placeholder="找不到的話，寫下自己的感覺" aria-label="自訂感覺"><button class="btn small" data-act="emo-add">新增</button>${S.customEmotions.length ? `<button class="btn ghost small" data-act="emo-manage">${emoManage ? '完成' : '管理自訂'}</button>` : ''}</div>
         </div>
-        <div class="field"><span class="lbl">今天靠近了哪些中圈島嶼？</span>${mids.length ? `<div class="chips" style="margin-top:2px">${mids.map((i) => `<button class="chip" data-mid="${i.id}" aria-pressed="${c.middle.includes(i.id)}">${esc(i.icon)} ${esc(i.title || '未命名')}</button>`).join('')}</div>` : `<span class="help">地圖上還沒有中圈島嶼。</span>`}</div>
-        <div class="field"><span class="lbl">今天做了哪些外圈島嶼？</span>${outs.length ? `<div class="chips" style="margin-top:2px">${outs.map((i) => `<button class="chip" data-out="${i.id}" aria-pressed="${(i.log || []).includes(todayDate)}">${esc(i.icon)} ${esc(i.title || '未命名')}</button>`).join('')}</div><span class="help">會同步到外圈島嶼的本週打卡。</span>` : `<span class="help">地圖上還沒有外圈島嶼。</span>`}</div>
+        <div class="field"><span class="lbl">今天靠近了哪些中圈島嶼？</span>${mids.length ? `<div class="chips" style="margin-top:2px">${mids.map((i) => `<button class="chip" data-mid="${i.id}" aria-pressed="${c.middle.includes(i.id)}">${iconHTML(i.icon)} ${esc(i.title || '未命名')}</button>`).join('')}</div>` : `<span class="help">地圖上還沒有中圈島嶼。</span>`}</div>
+        <div class="field"><span class="lbl">今天做了哪些外圈島嶼？</span>${outs.length ? `<div class="chips" style="margin-top:2px">${outs.map((i) => `<button class="chip" data-out="${i.id}" aria-pressed="${(i.log || []).includes(todayDate)}">${iconHTML(i.icon)} ${esc(i.title || '未命名')}</button>`).join('')}</div><span class="help">會同步到外圈島嶼的本週打卡。</span>` : `<span class="help">地圖上還沒有外圈島嶼。</span>`}</div>
         <div class="field"><label for="t-note">一句話筆記</label><textarea id="t-note" placeholder="今天發生了什麼？我怎麼因應？">${esc(c.note)}</textarea></div>
         <p class="saved" style="margin-top:10px">${S.checkins[todayDate] ? '已自動儲存。' : '點選任何項目就會自動儲存。'}</p>
       </div>
@@ -1040,7 +1107,7 @@ function renderToday() {
       </div>
       <div class="panel">
         <h2>本週的外圈</h2>
-        ${outs.length ? `<div class="bar-list">${outs.map((i) => { const n = weekCount(i); return `<div class="bar-row"><header><b>${esc(i.icon)} ${esc(i.title || '未命名')}${i.feel && i.feel !== 'nourish' ? ` <span class="feel-tag">${FEELS[i.feel][2]} ${FEELS[i.feel][0]}</span>` : ''}</b><span>${n}/${i.target}</span></header><div class="prog"><i style="width:${Math.min(100, (n / i.target) * 100)}%"></i></div></div>`; }).join('')}</div>` : `<p class="empty">還沒有外圈島嶼。</p>`}
+        ${outs.length ? `<div class="bar-list">${outs.map((i) => { const n = weekCount(i); return `<div class="bar-row"><header><b>${iconHTML(i.icon)} ${esc(i.title || '未命名')}${i.feel && i.feel !== 'nourish' ? ` <span class="feel-tag">${FEELS[i.feel][2]} ${FEELS[i.feel][0]}</span>` : ''}</b><span>${n}/${i.target}</span></header><div class="prog"><i style="width:${Math.min(100, (n / i.target) * 100)}%"></i></div></div>`; }).join('')}</div>` : `<p class="empty">還沒有外圈島嶼。</p>`}
       </div>
     </div>
   </div>`;
@@ -1123,8 +1190,8 @@ function renderReview() {
       </div>
       <div class="stack">
         <div class="panel"><h2>中圈島嶼現在的位置</h2><p class="lede">左邊靠近內圈，右邊靠近外圈。括號是近 30 天在簽到中被標記「靠近了」的次數。</p>
-          ${mids.length ? `<div class="bar-list">${mids.map((i) => `<div class="bar-row"><header><b>${esc(i.icon)} ${esc(i.title || '未命名')}</b><span>${depthLabel(i.depth)}（${midCount[i.id] || 0}）</span></header><div class="track"><i style="left:${(i.depth * 100).toFixed(0)}%"></i></div></div>`).join('')}</div>` : `<p class="empty">還沒有中圈島嶼。</p>`}</div>
-        <div class="panel"><h2>本週的外圈</h2>${outs.length ? `<div class="bar-list">${outs.map((i) => { const n = weekCount(i); return `<div class="bar-row"><header><b>${esc(i.icon)} ${esc(i.title || '未命名')}${i.feel && i.feel !== 'nourish' ? ` <span class="feel-tag">${FEELS[i.feel][2]} ${FEELS[i.feel][0]}</span>` : ''}</b><span>${n}/${i.target}</span></header><div class="prog"><i style="width:${Math.min(100, (n / i.target) * 100)}%"></i></div></div>`; }).join('')}</div>` : `<p class="empty">還沒有外圈島嶼。</p>`}</div>
+          ${mids.length ? `<div class="bar-list">${mids.map((i) => `<div class="bar-row"><header><b>${iconHTML(i.icon)} ${esc(i.title || '未命名')}</b><span>${depthLabel(i.depth)}（${midCount[i.id] || 0}）</span></header><div class="track"><i style="left:${(i.depth * 100).toFixed(0)}%"></i></div></div>`).join('')}</div>` : `<p class="empty">還沒有中圈島嶼。</p>`}</div>
+        <div class="panel"><h2>本週的外圈</h2>${outs.length ? `<div class="bar-list">${outs.map((i) => { const n = weekCount(i); return `<div class="bar-row"><header><b>${iconHTML(i.icon)} ${esc(i.title || '未命名')}${i.feel && i.feel !== 'nourish' ? ` <span class="feel-tag">${FEELS[i.feel][2]} ${FEELS[i.feel][0]}</span>` : ''}</b><span>${n}/${i.target}</span></header><div class="prog"><i style="width:${Math.min(100, (n / i.target) * 100)}%"></i></div></div>`; }).join('')}</div>` : `<p class="empty">還沒有外圈島嶼。</p>`}</div>
         <div class="panel"><h2>近 30 天的感覺</h2>${emoSorted.length ? `<div class="chips">${emoSorted.map(([m, n]) => `<span class="chip" style="cursor:default">${esc(m)}・${n}</span>`).join('')}</div>` : `<p class="empty">簽到時選擇感覺，這裡會統計出現次數。</p>`}</div>
       </div>
     </div>
@@ -1163,7 +1230,7 @@ function calendarHTML() {
 function dayDetailHTML(d) {
   const c = S.checkins[d]; const outs = outerDoneOn(d); const items = S.toolbox.filter((it) => it.d === d);
   const mids = c ? c.middle.map((id) => find(id)).filter(Boolean) : [];
-  const name = (i) => esc(`${i.icon} ${i.title || '未命名'}`);
+  const name = (i) => `${iconHTML(i.icon)} ${esc(i.title || '未命名')}`;
   let h = `<div class="ed-head"><h3>${dayLabel(d)}</h3><button class="btn small" data-act="edit-day" data-day="${d}">${c ? '修改這天' : '補記這天'}</button></div>`;
   if (!c && !outs.length && !items.length) return h + `<p class="empty">這天沒有紀錄。</p>`;
   if (c) {
@@ -1245,7 +1312,7 @@ function posAt(is, d) {
 async function renderSheet() {
   const o = sheetOpts; const dates = rangeDates(o.from, o.to); const dset = new Set(dates);
   const cs = dates.map((d) => [d, S.checkins[d]]).filter(([, c]) => c);
-  const name = (i) => esc(`${i.icon} ${i.title || '未命名'}`);
+  const name = (i) => `${iconHTML(i.icon)} ${esc(i.title || '未命名')}`;
   const txt = (t) => esc(o.hideContact ? redact(t) : t).replace(/\n/g, '<br>');
   const sec = (title, body) => `<section class="ps-sec"><h2>${title}</h2>${body}</section>`;
   const lines = (n) => `<div class="ps-lines">${'<span></span>'.repeat(n)}</div>`;
@@ -1307,7 +1374,7 @@ async function renderSheet() {
   }
   if (o.sec.people) {
     const ps = S.islands.filter((i) => i.ring === 'people');
-    doc += sec('離島・支持我的人', ps.length ? ps.map((i, k) => `<div class="ps-item"><h3>${esc(i.icon)} ${o.alias ? esc(i.f.relation || `支持者 ${String.fromCharCode(65 + k)}`) : esc(i.title || '未命名')}</h3>
+    doc += sec('離島・支持我的人', ps.length ? ps.map((i, k) => `<div class="ps-item"><h3>${iconHTML(i.icon)} ${o.alias ? esc(i.f.relation || `支持者 ${String.fromCharCode(65 + k)}`) : esc(i.title || '未命名')}</h3>
       ${i.f.support ? `<p><b>他怎麼支持我：</b>${txt(i.f.support)}</p>` : ''}${!o.hideContact && i.f.contact ? `<p><b>聯絡：</b>${esc(i.f.contact)}</p>` : ''}</div>`).join('') : '<p class="ps-note">還沒有離島。</p>');
   }
   doc += sec('這次最想談的事', o.talk ? `<p>${esc(o.talk).replace(/\n/g, '<br>')}</p>` : lines(3));

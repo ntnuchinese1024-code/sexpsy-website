@@ -498,3 +498,20 @@
 /* 寫在前面下方的延伸閱讀 */
 #tc-app .letter-links { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); display: grid; gap: 8px; }
 #tc-app .letter-links a { color: var(--terracotta-ink); font-size: 15px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* 品牌線條圖示（inline SVG），在文字裡跟著字色 */
+#tc-app .ic, #tc-sheet .ic {
+  display: inline-block; vertical-align: -0.2em; fill: none; stroke: currentColor;
+  stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: none;
+}
+/* 圖示選單：分類標籤 + 格子 */
+#tc-app .icon-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+#tc-app .icon-tabs button {
+  border: 1px solid var(--line); background: var(--paper); border-radius: 999px;
+  padding: 2px 10px; font-size: 13px; cursor: pointer; color: var(--muted);
+}
+#tc-app .icon-tabs button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+#tc-app .icons { margin-top: 8px; }
+#tc-app .icons button { display: grid; place-items: center; min-height: 38px; color: var(--ink); }
+#tc-app .icons-line button { color: #6E4F44; }
+#tc-app .icons-line button[aria-pressed="true"] { color: var(--ink); }
